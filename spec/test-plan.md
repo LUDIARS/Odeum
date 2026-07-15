@@ -33,4 +33,8 @@ Tests are derived from the desktop application's critical risks.
 
 The executable core test project is dependency-free so it remains runnable without a package restore network. Windows/OBS integration requires a local smoke matrix and is not replaced by mocks.
 
+The OBS release gate starts with `eng/Test-Obs-Prerequisites.ps1 -RequireRunning`, then connects from Spectator and saves a replay from the selected game scene. A machine without a running OBS WebSocket is reported as not ready; it is never treated as a passing recording test.
+
 The critical standalone smoke path is: import a recorded video, seek to distinct offsets, add one positive and one negative stamp with comments, restart Spectator, reopen the draft, export JSON, and import the resulting `{ utterances, gameId, sourceRef }` document into the Volputas timeline importer.
+
+`eng/Run-Standalone-Smoke.ps1` automates the non-UI portion with a real generated MP4: Windows duration probing, managed copy, SQLite reopen, both stamp kinds, SHA-256, and raw JSON export. Window selection, seeking, and button interaction remain a manual desktop smoke because they cross the WPF and native-window boundary.
