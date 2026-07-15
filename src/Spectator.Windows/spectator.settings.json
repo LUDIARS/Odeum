@@ -1,0 +1,8 @@
+{
+  "integrationMode": "standalone",
+  "obsWebSocketUrl": "ws://127.0.0.1:4455",
+  "captureHotKey": "Ctrl+Shift+F8",
+  "screenshotFormat": "jpeg",
+  "videoBackend": "obs",
+  "replaySeconds": 20
+}

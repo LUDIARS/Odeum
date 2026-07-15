@@ -1,0 +1,62 @@
+<Application x:Class="Spectator.Windows.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+  <Application.Resources>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="#111318" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#1A1E26" />
+    <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="#242A35" />
+    <SolidColorBrush x:Key="TextBrush" Color="#F4F6FA" />
+    <SolidColorBrush x:Key="MutedBrush" Color="#9CA7B8" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#7C5CFC" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="#43D19E" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#F4B860" />
+
+    <Style TargetType="Window">
+      <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+      <Setter Property="FontFamily" Value="Segoe UI" />
+    </Style>
+    <Style TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+    <Style TargetType="Button">
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="14,8" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+    </Style>
+    <Style TargetType="TextBox">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+      <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+      <Setter Property="BorderBrush" Value="#343C4A" />
+      <Setter Property="CaretBrush" Value="White" />
+      <Setter Property="Padding" Value="10,8" />
+    </Style>
+    <Style TargetType="ComboBox">
+      <Setter Property="Foreground" Value="#111318" />
+      <Setter Property="Background" Value="White" />
+      <Setter Property="Padding" Value="8,6" />
+    </Style>
+    <Style TargetType="PasswordBox">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+      <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+      <Setter Property="BorderBrush" Value="#343C4A" />
+      <Setter Property="CaretBrush" Value="White" />
+      <Setter Property="Padding" Value="10,8" />
+    </Style>
+  </Application.Resources>
+</Application>

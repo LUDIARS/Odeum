@@ -1,0 +1,248 @@
+<Window x:Class="Spectator.Windows.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Spectator" Width="440" Height="820" MinWidth="390" MinHeight="82"
+        WindowStartupLocation="CenterScreen">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" Padding="14">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock FontSize="22" FontWeight="SemiBold" Text="Spectator" />
+          <TextBlock x:Name="HeaderStatusText" Foreground="{StaticResource MutedBrush}"
+                     Text="Volputas: 未ログイン" />
+        </StackPanel>
+        <Button x:Name="CollapseButton" Grid.Column="1" Style="{StaticResource SecondaryButton}"
+                Click="CollapseClick" Content="折り畳む" />
+      </Grid>
+    </Border>
+
+    <ScrollViewer x:Name="MainContent" Grid.Row="1" VerticalScrollBarVisibility="Auto">
+      <StackPanel Margin="16">
+        <Border x:Name="VolputasPanel" Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="14" Margin="0,0,0,12">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Text="Volputas" />
+            <Button x:Name="LoginButton" Margin="0,10,0,0" Click="LoginClick" Content="ブラウザでログイン" />
+            <TextBlock x:Name="LoginStatusText" Margin="0,8,0,0" Foreground="{StaticResource MutedBrush}"
+                       Text="未ログイン" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="14" Margin="0,0,0,12">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Text="録画済み動画をレビュー" />
+            <TextBlock Margin="0,4,0,0" Foreground="{StaticResource MutedBrush}"
+                       Text="ローカル動画を読み込み、再生しながらコメントやスタンプを記録します。"
+                       TextWrapping="Wrap" />
+            <TextBox x:Name="ImportGameIdTextBox" Margin="0,10,0,8" MaxLength="100"
+                     ToolTip="ゲームIDまたは識別名（1〜100文字）" />
+            <Button x:Name="ImportLocalVideoButton" Click="ImportLocalVideoClick"
+                    Content="ローカル動画を読み込む" />
+            <TextBlock x:Name="ImportVideoStatusText" Margin="0,8,0,0"
+                       Foreground="{StaticResource MutedBrush}" Text="MP4 / MKV / WebM"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="14" Margin="0,0,0,12">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Text="対象ゲーム" />
+            <ComboBox x:Name="WindowComboBox" Margin="0,10,0,8" />
+            <TextBox x:Name="GameIdTextBox" Margin="0,0,0,8" ToolTip="Volputas game_id" />
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Button Grid.Column="0" Margin="0,0,4,0" Style="{StaticResource SecondaryButton}"
+                      Click="RefreshWindowsClick" Content="更新" />
+              <Button Grid.Column="1" Margin="4,0,0,0" Click="AttachClick" Content="登録して吸着" />
+            </Grid>
+            <CheckBox x:Name="TopmostCheckBox" Margin="2,10,0,0" IsChecked="True"
+                      Checked="TopmostChanged" Unchecked="TopmostChanged" Content="Spectatorを最前面に保つ" />
+            <TextBlock x:Name="AttachmentStatusText" Margin="0,8,0,0" Foreground="{StaticResource MutedBrush}"
+                       Text="未吸着" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="14" Margin="0,0,0,12">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+              <TextBlock Foreground="{StaticResource MutedBrush}" Text="経過時間" />
+              <TextBlock x:Name="ElapsedText" Margin="0,3,0,0" FontSize="20" Text="00:00:00" />
+            </StackPanel>
+            <StackPanel Grid.Column="1">
+              <TextBlock Foreground="{StaticResource MutedBrush}" Text="アクティブ" />
+              <TextBlock x:Name="ActiveText" Margin="0,3,0,0" FontSize="20" Text="00:00:00" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="14" Margin="0,0,0,12">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Text="OBS Replay Buffer" />
+            <TextBox x:Name="ObsEndpointTextBox" Margin="0,10,0,8" />
+            <PasswordBox x:Name="ObsPasswordBox" Margin="0,0,0,8" ToolTip="空欄ならCredential Managerの保存値を使用" />
+            <Button x:Name="ConnectObsButton" Click="ConnectObsClick" Content="接続してReplay Bufferを開始" />
+            <TextBlock x:Name="ObsStatusText" Margin="0,8,0,0" Foreground="{StaticResource MutedBrush}"
+                       Text="未接続" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Button x:Name="CaptureButton" Height="46" Margin="0,0,0,12" Click="CaptureClick"
+                Content="キャプチャ（Ctrl+Shift+F8）" />
+
+        <Border x:Name="DraftPanel" Visibility="Collapsed" Background="{StaticResource SurfaceBrush}"
+                CornerRadius="10" Padding="14" Margin="0,0,0,12">
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold" Text="動画レビュー / 投稿プレビュー" />
+            <Image x:Name="ScreenshotPreview" Height="170" Margin="0,10,0,6" Stretch="Uniform" />
+            <CheckBox x:Name="ScreenshotEnabledCheckBox" Margin="0,2" Click="AssetEnabledClick"
+                      Content="スクリーンショットを添付" />
+            <MediaElement x:Name="VideoPreview" Height="170" Margin="0,8,0,6"
+                          LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="Uniform"
+                          MediaOpened="VideoPreviewMediaOpened" MediaEnded="VideoPreviewMediaEnded"
+                          MouseLeftButtonDown="VideoPreviewMouseDown" />
+            <CheckBox x:Name="VideoEnabledCheckBox" Margin="0,2" Click="AssetEnabledClick"
+                      Content="動画を添付" />
+            <Border x:Name="ReactionPanel" Margin="0,10,0,0" Padding="10" BorderThickness="1"
+                    BorderBrush="{StaticResource MutedBrush}" CornerRadius="6">
+              <StackPanel>
+                <TextBlock FontWeight="SemiBold" Text="本人の反応（raw data）" />
+                <TextBlock Margin="0,4,0,0" Foreground="{StaticResource MutedBrush}"
+                           Text="動画の時刻に、本人が感じたことをそのまま記録します。" TextWrapping="Wrap" />
+                <Grid Margin="0,8,0,0">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <Button Grid.Column="0" Padding="10,4" Click="PlayVideoClick" Content="再生" />
+                  <Button Grid.Column="1" Margin="6,0,0,0" Padding="10,4" Style="{StaticResource SecondaryButton}"
+                          Click="PauseVideoClick" Content="停止" />
+                  <TextBlock x:Name="VideoPositionText" Grid.Column="2" Margin="10,4,0,0"
+                             HorizontalAlignment="Right" Text="00:00:00.000" />
+                </Grid>
+                <Slider x:Name="VideoSeekSlider" Margin="0,6,0,0" Minimum="0" Maximum="1"
+                        IsMoveToPointEnabled="True" ValueChanged="VideoSeekSliderValueChanged" />
+                <TextBox x:Name="ReactionContentTextBox" Margin="0,8,0,0" Height="64" MaxLength="2000"
+                         AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                <Grid Margin="0,6,0,0">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <Button x:Name="AddReactionButton" Grid.Column="0" Margin="0,0,3,0"
+                          Style="{StaticResource SecondaryButton}" Click="AddReactionClick"
+                          Content="コメント" />
+                  <Button x:Name="PositiveReactionButton" Grid.Column="1" Margin="3,0"
+                          Background="#FF2E7D32" Foreground="White" Click="AddPositiveReactionClick"
+                          Content="👍 ここ良かった" />
+                  <Button x:Name="NegativeReactionButton" Grid.Column="2" Margin="3,0,0,0"
+                          Background="#FFC62828" Foreground="White" Click="AddNegativeReactionClick"
+                          Content="👎 ここ悪かった" />
+                </Grid>
+                <ListBox x:Name="ReactionListBox" Margin="0,8,0,0" MaxHeight="150" SelectionMode="Single">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="2,3">
+                        <StackPanel Orientation="Horizontal">
+                          <TextBlock FontWeight="SemiBold" Text="{Binding OffsetText}" />
+                          <TextBlock Margin="8,0,0,0" FontWeight="SemiBold" Text="{Binding StampLabel}" />
+                        </StackPanel>
+                        <TextBlock Foreground="{StaticResource MutedBrush}" Text="{Binding Content}"
+                                   TextWrapping="Wrap" MaxWidth="320" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+                <Grid Margin="0,6,0,0">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <Button Grid.Column="0" Margin="0,0,3,0" Style="{StaticResource SecondaryButton}"
+                          Click="DeleteReactionClick" Content="選択を削除" />
+                  <Button Grid.Column="1" Margin="3,0,0,0" Click="ExportReactionRawDataClick"
+                          Content="JSONを出力" />
+                </Grid>
+              </StackPanel>
+            </Border>
+            <TextBlock Margin="0,10,0,0" FontWeight="SemiBold" Text="全体の感想（任意）" />
+            <TextBox x:Name="CommentTextBox" Margin="0,6,0,8" Height="90" MaxLength="2000"
+                     AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Button x:Name="DiscardDraftButton" Grid.Column="0" Margin="0,0,4,0" Style="{StaticResource SecondaryButton}"
+                      Click="DiscardDraftClick" Content="破棄" />
+              <Button x:Name="SubmitDraftButton" Grid.Column="1" Margin="4,0,0,0" Click="SubmitDraftClick" Content="Volputasへ投稿" />
+            </Grid>
+            <Button x:Name="OpenVolputasButton" Margin="0,8,0,0" Style="{StaticResource SecondaryButton}"
+                    Visibility="Collapsed" Click="OpenVolputasClick" Content="Volputasで開く" />
+          </StackPanel>
+        </Border>
+
+        <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="14" Margin="0,0,0,12">
+          <StackPanel>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock FontWeight="SemiBold" Text="下書きと投稿履歴" />
+              <Button Grid.Column="1" Padding="10,4" Style="{StaticResource SecondaryButton}"
+                      Click="RefreshDraftsClick" Content="更新" />
+            </Grid>
+            <ListBox x:Name="DraftListBox" Margin="0,10,0,8" MaxHeight="230"
+                     SelectionMode="Single" MouseDoubleClick="OpenDraftClick">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Margin="2,4">
+                    <TextBlock>
+                      <Run Text="{Binding CapturedAt, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" />
+                      <Run Text="  " />
+                      <Run FontWeight="SemiBold" Text="{Binding State}" />
+                    </TextBlock>
+                    <TextBlock Foreground="{StaticResource MutedBrush}" Text="{Binding Text}"
+                               TextTrimming="CharacterEllipsis" MaxWidth="340" />
+                    <TextBlock Foreground="#FFC95C54" Text="{Binding LastError}"
+                               TextWrapping="Wrap" MaxWidth="340" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Button Grid.Column="0" Margin="0,0,4,0" Style="{StaticResource SecondaryButton}"
+                      Click="OpenDraftClick" Content="選択を開く" />
+              <Button Grid.Column="1" Margin="4,0,0,0" Style="{StaticResource SecondaryButton}"
+                      Click="DeleteSelectedDraftClick" Content="選択を削除" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <TextBlock x:Name="CaptureStatusText" Foreground="{StaticResource MutedBrush}"
+                   Text="準備完了" TextWrapping="Wrap" />
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Window>

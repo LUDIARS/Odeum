@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ludiars.example/schemas/spectator/reaction-raw-data-v2.json",
+  "title": "Spectator self-reported reaction raw data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sourceKind",
+    "gameId",
+    "sourceRef",
+    "source",
+    "utterances"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "spectator.reaction-raw/v2" },
+    "sourceKind": { "const": "self_report" },
+    "gameId": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "sourceRef": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "draftId",
+        "captureAnchorId",
+        "videoSha256",
+        "videoMimeType",
+        "videoDurationMilliseconds",
+        "clipStartedAt",
+        "clipEndedAt"
+      ],
+      "properties": {
+        "draftId": { "type": "string", "format": "uuid" },
+        "captureAnchorId": { "type": "string", "minLength": 1 },
+        "videoSha256": { "type": "string", "minLength": 1 },
+        "videoMimeType": { "type": "string", "pattern": "^video/" },
+        "videoDurationMilliseconds": { "type": "integer", "minimum": 0 },
+        "clipStartedAt": { "type": ["string", "null"], "format": "date-time" },
+        "clipEndedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "utterances": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "videoOffsetMs", "reactionKind", "content", "recordedAt"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "videoOffsetMs": { "type": "integer", "minimum": 0 },
+          "reactionKind": { "enum": ["comment", "positive", "negative"] },
+          "content": { "type": "string", "minLength": 1, "maxLength": 2000, "pattern": "\\S" },
+          "recordedAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}
