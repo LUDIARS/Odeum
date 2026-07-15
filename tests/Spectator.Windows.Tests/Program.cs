@@ -6,6 +6,7 @@ using Spectator.Core.Drafts;
 using Spectator.Core.Reactions;
 using Spectator.Core.Sessions;
 using Spectator.Windows.Configuration;
+using Spectator.Windows.Capture;
 using Spectator.Windows.Persistence;
 using Spectator.Windows.Reactions;
 using Spectator.Windows.Obs;
@@ -18,6 +19,13 @@ internal static class Program
 {
     public static int Main(string[] arguments)
     {
+        if (arguments.Length == 2 && string.Equals(arguments[0], "--standalone-smoke", StringComparison.Ordinal))
+        {
+            Console.WriteLine("RUN  Standalone real-video review smoke");
+            StandaloneRealVideoSmoke(arguments[1]);
+            Console.WriteLine("PASS Standalone real-video review smoke");
+            return 0;
+        }
         var tests = new (string Name, Action Run)[]
         {
             ("SQLite draft lifecycle preserves remote ownership", DraftLifecycle),
@@ -38,6 +46,67 @@ internal static class Program
             Console.WriteLine($"PASS {name}");
         }
         return 0;
+    }
+
+    private static void StandaloneRealVideoSmoke(string sourcePath)
+    {
+        using var temporary = new TemporaryDirectory();
+        string databasePath = System.IO.Path.Combine(temporary.Path, "spectator.db");
+        string capturePath = System.IO.Path.Combine(temporary.Path, "captures");
+        var database = new SpectatorDatabase(databasePath);
+        database.Initialize();
+        var sessions = new LocalSessionRepository(database);
+        var drafts = new DraftRepository(database);
+        var reactions = new ReactionRepository(database);
+        var store = new CaptureStore(capturePath);
+        Guid sessionId = Guid.Parse("7397441d-f242-4d40-ab41-da6cba2c13d0");
+        Guid draftId = Guid.Parse("ac5b60df-609b-4c24-92ae-078fdbe5abe6");
+        Guid assetId = Guid.Parse("c5047c26-056e-4017-b216-64a2fdc614c3");
+        DateTimeOffset now = new(2026, 7, 15, 1, 0, 0, TimeSpan.Zero);
+        var importer = new LocalVideoImporter(
+            store,
+            drafts,
+            sessions,
+            new SequenceIdentifierSource(sessionId, draftId, assetId),
+            new FixedTimeSource(now),
+            new WindowsMediaDurationSource());
+
+        StoredDraft imported = importer.ImportAsync(sourcePath, "standalone-smoke", CancellationToken.None)
+            .GetAwaiter()
+            .GetResult();
+        int duration = imported.Assets.Single().DurationMilliseconds
+            ?? throw new InvalidDataException("The real video duration was not persisted.");
+        Check.True(duration >= 1_500, "The generated smoke video is too short");
+        reactions.Add(new ReactionAnnotation(
+            Guid.Parse("e9b7de18-ed09-44c6-9f2e-99a5d769e607"),
+            draftId,
+            500,
+            ReactionKind.Positive,
+            "ここ良かった",
+            now.AddSeconds(1)));
+        reactions.Add(new ReactionAnnotation(
+            Guid.Parse("94253978-2bf4-493c-9042-3b625f2fc709"),
+            draftId,
+            1_500,
+            ReactionKind.Negative,
+            "ここ悪かった",
+            now.AddSeconds(2)));
+
+        var reopenedDatabase = new SpectatorDatabase(databasePath);
+        reopenedDatabase.Initialize();
+        StoredDraft reopened = new DraftRepository(reopenedDatabase).Get(draftId)
+            ?? throw new InvalidOperationException("The imported draft was not restored after reopening SQLite.");
+        IReadOnlyList<ReactionAnnotation> reopenedReactions = new ReactionRepository(reopenedDatabase).List(draftId);
+        string outputPath = System.IO.Path.Combine(temporary.Path, "reaction-raw.json");
+        new ReactionRawDataExporter().Write(outputPath, "standalone-smoke", reopened, reopenedReactions);
+        using JsonDocument output = JsonDocument.Parse(File.ReadAllText(outputPath));
+        JsonElement root = output.RootElement;
+        Check.Equal(2, root.GetProperty("utterances").GetArrayLength(), "The reopened raw data count differs");
+        Check.Equal("positive", root.GetProperty("utterances")[0].GetProperty("reactionKind").GetString(), "The positive stamp was lost");
+        Check.Equal("negative", root.GetProperty("utterances")[1].GetProperty("reactionKind").GetString(), "The negative stamp was lost");
+        Check.Equal(64, root.GetProperty("sourceRef").GetString()?.Length ?? 0, "The real video SHA-256 was not exported");
+        Check.True(File.Exists(sourcePath), "The source video was moved during standalone import");
+        Check.True(File.Exists(System.IO.Path.Combine(capturePath, reopened.Assets.Single().RelativePath)), "The managed video copy is missing after reopen");
     }
 
     private static void DraftLifecycle()

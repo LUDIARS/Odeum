@@ -48,6 +48,9 @@ dotnet restore Spectator.sln
 dotnet build Spectator.sln -c Release --no-restore
 dotnet run --project tests/Spectator.Core.Tests -c Release --no-build
 dotnet run --project tests/Spectator.Windows.Tests -c Release --no-build
+./eng/Run-Standalone-Smoke.ps1
+./eng/Test-Obs-Prerequisites.ps1
+./eng/Test-Obs-Prerequisites.ps1 -RequireRunning
 ```
 
 Release実行ファイルは`src/Spectator.Windows/bin/Release/net8.0-windows10.0.19041.0/Spectator.exe`、ローカルデータは`%LOCALAPPDATA%\Spectator`に保存されます。

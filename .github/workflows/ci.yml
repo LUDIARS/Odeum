@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore
+        run: dotnet restore Spectator.sln
+      - name: Build
+        run: dotnet build Spectator.sln -c Release --no-restore
+      - name: Core tests
+        run: dotnet run --project tests/Spectator.Core.Tests -c Release --no-build
+      - name: Windows tests
+        run: dotnet run --project tests/Spectator.Windows.Tests -c Release --no-build
+      - name: Ensure FFmpeg
+        shell: pwsh
+        run: |
+          if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
+            choco install ffmpeg -y --no-progress
+          }
+      - name: Standalone real-video smoke
+        shell: pwsh
+        run: ./eng/Run-Standalone-Smoke.ps1
+      - name: Build unsigned verification package
+        shell: pwsh
+        run: ./eng/Build-Release.ps1 -Runtime win-x64 -Version 0.1.0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spectator-win-x64-unsigned-verification
+          path: |
+            artifacts/release/Spectator-0.1.0-win-x64.zip
+            artifacts/release/Spectator-0.1.0-win-x64.manifest.json
+          if-no-files-found: error
