@@ -15,7 +15,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Spectator.Core\Spectator.Core.csproj" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.7" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.29" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
   </ItemGroup>
 
   <ItemGroup>
