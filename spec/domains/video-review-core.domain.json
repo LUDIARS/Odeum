@@ -1,0 +1,11 @@
+{
+  "name": "video-review-core",
+  "description": "動画レビューの中核。 再生と注釈、 レビュー結果の保持。",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "(^|/)src/Spectator\\.Core/(?:.*/)?[^/]+$"
+    }
+  ]
+}

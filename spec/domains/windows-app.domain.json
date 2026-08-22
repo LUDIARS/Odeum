@@ -1,0 +1,17 @@
+{
+  "name": "windows-app",
+  "description": "Windows アプリの器。 画面と OS 連携、 パッケージング。",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "(^|/)src/Spectator\\.Windows/(?:.*/)?[^/]+$"
+    },
+    {
+      "pathPattern": "(^|/)packaging/(?:.*/)?[^/]+$"
+    },
+    {
+      "pathPattern": "(^|/)eng/(?:.*/)?[^/]+$"
+    }
+  ]
+}
