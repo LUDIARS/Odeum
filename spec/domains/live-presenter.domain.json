@@ -1,0 +1,11 @@
+{
+  "name": "live-presenter",
+  "description": "発表者アプリ odeum-presenter: 画面取り込み・H.264 送信・Tela/Pictor の重ね表示と操作パネル、その仕様と契約。",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {"pathPattern": "(^|/)native/presenter/(?:.*/)?[^/]+$"},
+    {"pathPattern": "(^|/)contracts/presenter-[^/]+$"},
+    {"pathPattern": "(^|/)spec/(feature/live-presenter\\.md|tasks/2026-10-04-(odeum-presenter|presenter-implementation)\\.md|domains/live-presenter\\.domain\\.json)$"}
+  ]
+}

@@ -8,6 +8,12 @@
     {"id":"C-3","criterion":"C-3 Reactions.accept(message): グッドの切捨てと stamp/comment の流量制限を守る","symbol":"Reactions.accept","file":"native/relay/reactions.cpp","module":"./contracts/reactions.contract.ts","mode":"observe","sample":1},
     {"id":"C-4","criterion":"C-4 Poll.answer(sub,choices): 人単位の回答上書きと複数選択を集計する","symbol":"Poll.answer","file":"native/relay/poll.cpp","module":"./contracts/poll.contract.ts","mode":"observe","sample":1},
     {"id":"C-5","criterion":"C-5 Reactions.flush(now): 250ms ごとに非空の burst のみを送る","symbol":"Reactions.flush","file":"native/relay/reactions.cpp","module":"./contracts/burst.contract.ts","mode":"observe","sample":1},
-    {"id":"C-6","criterion":"C-6 authorize_sessions(ticket): service 以外を拒否し jti の再利用を拒否する","symbol":"authorize_sessions","file":"native/relay/authentication.cpp","module":"./contracts/service.contract.ts","mode":"observe","sample":1}
+    {"id":"C-6","criterion":"C-6 authorize_sessions(ticket): service 以外を拒否し jti の再利用を拒否する","symbol":"authorize_sessions","file":"native/relay/authentication.cpp","module":"./contracts/service.contract.ts","mode":"observe","sample":1},
+    {"id":"C-7","criterion":"C-7 parse_launch_url(text): odeum://present 以外の scheme/経路、wss 以外の relay、ticket 欠落を拒否する","symbol":"parse_launch_url","file":"native/presenter/core/launch_url.cpp","module":"./contracts/presenter-url.contract.ts","mode":"observe","sample":1},
+    {"id":"C-8","criterion":"C-8 ReconnectBackoff.next(): 失敗ごとに指数で伸び、上限で止まり、reset で初期値へ戻る","symbol":"ReconnectBackoff.next","file":"native/presenter/core/reconnect_backoff.cpp","module":"./contracts/presenter-backoff.contract.ts","mode":"observe","sample":1},
+    {"id":"C-9","criterion":"C-9 OverlayState.apply(message,now): burst の累計・スタンプの寿命・コメントの上限件数・tally を反映する","symbol":"OverlayState.apply","file":"native/presenter/core/overlay_state.cpp","module":"./contracts/presenter-overlay.contract.ts","mode":"observe","sample":1},
+    {"id":"C-10","criterion":"C-10 PollDraft.build(id): 質問・2〜6 択・各 60 文字・複数選択可否を検証して poll.open を作る","symbol":"PollDraft.build","file":"native/presenter/core/poll_draft.cpp","module":"./contracts/presenter-poll.contract.ts","mode":"observe","sample":1},
+    {"id":"C-11","criterion":"C-11 VideoPipeline.on_rtcp(packet): PLI/FIR を受けたら次に符号化するフレームを IDR にする","symbol":"VideoPipeline.on_rtcp","file":"native/presenter/core/video_pipeline.cpp","module":"./contracts/presenter-keyframe.contract.ts","mode":"observe","sample":1},
+    {"id":"C-12","criterion":"C-12 ConnectionMonitor.closed(now): チケット期限切れなら再接続を止めて GLab での再発行を案内する","symbol":"ConnectionMonitor.closed","file":"native/presenter/core/connection_monitor.cpp","module":"./contracts/presenter-connection.contract.ts","mode":"observe","sample":1}
   ]
 }
