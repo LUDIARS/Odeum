@@ -14,6 +14,9 @@ FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download
   URL_HASH SHA256=d6c65aca6b1ed68e7a182f4757257b107ae403032760ed6ef121c9d55e81757d)
 set(NO_EXAMPLES ON CACHE BOOL "" FORCE)
 set(NO_TESTS ON CACHE BOOL "" FORCE)
+# libsrtp (inside libdatachannel) otherwise registers its own CTest drivers, which are not
+# built here and show up as "Not Run" failures in our ctest run.
+set(LIBSRTP_TEST_APPS OFF CACHE BOOL "" FORCE)
 set(NO_MEDIA OFF CACHE BOOL "" FORCE)
 set(USE_GNUTLS OFF CACHE BOOL "" FORCE)
 set(USE_MBEDTLS OFF CACHE BOOL "" FORCE)
@@ -21,8 +24,10 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 # v0.23.3 includes the MSVC static-library PDB fix.
 FetchContent_Declare(datachannel GIT_REPOSITORY https://github.com/paullouisageneau/libdatachannel.git
   GIT_TAG d9391849 GIT_SUBMODULES_RECURSE TRUE)
-FetchContent_Declare(boost URL https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz
-  URL_HASH SHA256=f55c340aa49763b1925ccf02b2e83f35fdcf634c9d5164a2acb87540173c741d
+# The zip release: CMake's tar extractor stops partway through Boost's tar archives on Windows
+# ("Invalid empty pathname"), leaving the headers incomplete.
+FetchContent_Declare(boost URL https://github.com/boostorg/boost/releases/download/boost-1.87.0/boost-1.87.0-b2-nodocs.zip
+  URL_HASH SHA256=40efbb1f38b8cf186fd7bb12809f561ae1c233bae0f75146862e9bfce77d0d42
   SOURCE_SUBDIR odeum-header-only)
 FetchContent_MakeAvailable(json datachannel boost)
 add_library(odeum_boost INTERFACE)
