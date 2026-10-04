@@ -1,0 +1,1325 @@
+{
+  "name": "Odeum YouTube Program",
+  "current_scene": "00 待機",
+  "current_program_scene": "00 待機",
+  "scene_order": [
+    {
+      "name": "00 待機"
+    },
+    {
+      "name": "01 入力1"
+    },
+    {
+      "name": "02 入力2"
+    },
+    {
+      "name": "03 入力3"
+    },
+    {
+      "name": "04 入力4"
+    },
+    {
+      "name": "05 4分割"
+    },
+    {
+      "name": "06 終了"
+    },
+    {
+      "name": "SOURCE 1"
+    },
+    {
+      "name": "SOURCE 2"
+    },
+    {
+      "name": "SOURCE 3"
+    },
+    {
+      "name": "SOURCE 4"
+    },
+    {
+      "name": "AUDIO - Program"
+    }
+  ],
+  "sources": [
+    {
+      "name": "Background",
+      "uuid": "90241b31-f6f7-4738-834e-a2c4a7a116f6",
+      "id": "color_source",
+      "versioned_id": "color_source_v3",
+      "settings": {
+        "color": 4280686350,
+        "width": 1920,
+        "height": 1080
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "Waiting title",
+      "uuid": "25b36907-8ca1-401d-aa6d-03701a011454",
+      "id": "text_gdiplus",
+      "versioned_id": "text_gdiplus_v3",
+      "settings": {
+        "text": "ODEUM LIVE\nまもなく開始します",
+        "font": {
+          "face": "Yu Gothic UI",
+          "size": 60,
+          "style": "Regular",
+          "flags": 0
+        },
+        "color": 4294309365,
+        "opacity": 100,
+        "outline": false,
+        "align": "center",
+        "valign": "center",
+        "extents": true,
+        "extents_cx": 1920,
+        "extents_cy": 1080,
+        "extents_wrap": true
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "Ending title",
+      "uuid": "14f3c54a-7ae9-4235-b9e5-0f87a79ddd0e",
+      "id": "text_gdiplus",
+      "versioned_id": "text_gdiplus_v3",
+      "settings": {
+        "text": "ODEUM LIVE\nご視聴ありがとうございました",
+        "font": {
+          "face": "Yu Gothic UI",
+          "size": 60,
+          "style": "Regular",
+          "flags": 0
+        },
+        "color": 4294309365,
+        "opacity": 100,
+        "outline": false,
+        "align": "center",
+        "valign": "center",
+        "extents": true,
+        "extents_cx": 1920,
+        "extents_cy": 1080,
+        "extents_wrap": true
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "Input 1 unassigned",
+      "uuid": "1759c6c0-bd89-46be-84b5-7b87df51aeca",
+      "id": "text_gdiplus",
+      "versioned_id": "text_gdiplus_v3",
+      "settings": {
+        "text": "INPUT 1\n入力未接続",
+        "font": {
+          "face": "Yu Gothic UI",
+          "size": 72,
+          "style": "Regular",
+          "flags": 0
+        },
+        "color": 4294309365,
+        "opacity": 100,
+        "outline": false,
+        "align": "center",
+        "valign": "center",
+        "extents": true,
+        "extents_cx": 1920,
+        "extents_cy": 1080,
+        "extents_wrap": true
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "SOURCE 1",
+      "uuid": "abd46965-b5ab-4813-9479-69cb766d4ab9",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "name": "Background",
+            "source_uuid": "90241b31-f6f7-4738-834e-a2c4a7a116f6",
+            "id": 1,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "Input 1 unassigned",
+            "source_uuid": "1759c6c0-bd89-46be-84b5-7b87df51aeca",
+            "id": 2,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          }
+        ]
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "Input 2 unassigned",
+      "uuid": "f062fec4-2f84-4dd0-8c13-d0e9de1bf637",
+      "id": "text_gdiplus",
+      "versioned_id": "text_gdiplus_v3",
+      "settings": {
+        "text": "INPUT 2\n入力未接続",
+        "font": {
+          "face": "Yu Gothic UI",
+          "size": 72,
+          "style": "Regular",
+          "flags": 0
+        },
+        "color": 4294309365,
+        "opacity": 100,
+        "outline": false,
+        "align": "center",
+        "valign": "center",
+        "extents": true,
+        "extents_cx": 1920,
+        "extents_cy": 1080,
+        "extents_wrap": true
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "SOURCE 2",
+      "uuid": "fe973a96-0f32-46a6-9050-8ec128b070b1",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "name": "Background",
+            "source_uuid": "90241b31-f6f7-4738-834e-a2c4a7a116f6",
+            "id": 1,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "Input 2 unassigned",
+            "source_uuid": "f062fec4-2f84-4dd0-8c13-d0e9de1bf637",
+            "id": 2,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          }
+        ]
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "Input 3 unassigned",
+      "uuid": "57c02b4a-3b9a-4d65-96fb-f7304503fef3",
+      "id": "text_gdiplus",
+      "versioned_id": "text_gdiplus_v3",
+      "settings": {
+        "text": "INPUT 3\n入力未接続",
+        "font": {
+          "face": "Yu Gothic UI",
+          "size": 72,
+          "style": "Regular",
+          "flags": 0
+        },
+        "color": 4294309365,
+        "opacity": 100,
+        "outline": false,
+        "align": "center",
+        "valign": "center",
+        "extents": true,
+        "extents_cx": 1920,
+        "extents_cy": 1080,
+        "extents_wrap": true
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "SOURCE 3",
+      "uuid": "e2c7fe4c-2343-45f7-b6a4-6dd44447bc59",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "name": "Background",
+            "source_uuid": "90241b31-f6f7-4738-834e-a2c4a7a116f6",
+            "id": 1,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "Input 3 unassigned",
+            "source_uuid": "57c02b4a-3b9a-4d65-96fb-f7304503fef3",
+            "id": 2,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          }
+        ]
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "Input 4 unassigned",
+      "uuid": "4709d3e2-99a2-4977-ba95-d63b9bcfe277",
+      "id": "text_gdiplus",
+      "versioned_id": "text_gdiplus_v3",
+      "settings": {
+        "text": "INPUT 4\n入力未接続",
+        "font": {
+          "face": "Yu Gothic UI",
+          "size": 72,
+          "style": "Regular",
+          "flags": 0
+        },
+        "color": 4294309365,
+        "opacity": 100,
+        "outline": false,
+        "align": "center",
+        "valign": "center",
+        "extents": true,
+        "extents_cx": 1920,
+        "extents_cy": 1080,
+        "extents_wrap": true
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "SOURCE 4",
+      "uuid": "41918d25-a400-49e2-b381-924e0373ac6f",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "name": "Background",
+            "source_uuid": "90241b31-f6f7-4738-834e-a2c4a7a116f6",
+            "id": 1,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "Input 4 unassigned",
+            "source_uuid": "4709d3e2-99a2-4977-ba95-d63b9bcfe277",
+            "id": 2,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          }
+        ]
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "AUDIO - Program",
+      "uuid": "927b8dc2-976c-457c-91ea-3eaaf0e6f6d3",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 1,
+        "items": []
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "00 待機",
+      "uuid": "0f9188d2-341b-4925-b56e-648bc99f500b",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "name": "Background",
+            "source_uuid": "90241b31-f6f7-4738-834e-a2c4a7a116f6",
+            "id": 1,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "Waiting title",
+            "source_uuid": "25b36907-8ca1-401d-aa6d-03701a011454",
+            "id": 2,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          }
+        ]
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "01 入力1",
+      "uuid": "a4aff635-0530-42f5-a43c-583f7bbdfd41",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "name": "SOURCE 1",
+            "source_uuid": "abd46965-b5ab-4813-9479-69cb766d4ab9",
+            "id": 1,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "AUDIO - Program",
+            "source_uuid": "927b8dc2-976c-457c-91ea-3eaaf0e6f6d3",
+            "id": 2,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          }
+        ]
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "02 入力2",
+      "uuid": "6f0200a1-f4ea-4c7b-842f-755b1f6ddac7",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "name": "SOURCE 2",
+            "source_uuid": "fe973a96-0f32-46a6-9050-8ec128b070b1",
+            "id": 1,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "AUDIO - Program",
+            "source_uuid": "927b8dc2-976c-457c-91ea-3eaaf0e6f6d3",
+            "id": 2,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          }
+        ]
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "03 入力3",
+      "uuid": "ca5c0487-a2a0-44ca-9352-7a532f213a9c",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "name": "SOURCE 3",
+            "source_uuid": "e2c7fe4c-2343-45f7-b6a4-6dd44447bc59",
+            "id": 1,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "AUDIO - Program",
+            "source_uuid": "927b8dc2-976c-457c-91ea-3eaaf0e6f6d3",
+            "id": 2,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          }
+        ]
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "04 入力4",
+      "uuid": "d64a3a8e-1406-4ea6-8c7f-3b3790fc2377",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "name": "SOURCE 4",
+            "source_uuid": "41918d25-a400-49e2-b381-924e0373ac6f",
+            "id": 1,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "AUDIO - Program",
+            "source_uuid": "927b8dc2-976c-457c-91ea-3eaaf0e6f6d3",
+            "id": 2,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          }
+        ]
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "05 4分割",
+      "uuid": "218b77cb-6ae3-4a61-974d-6bba43108e2b",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 6,
+        "items": [
+          {
+            "name": "SOURCE 1",
+            "source_uuid": "abd46965-b5ab-4813-9479-69cb766d4ab9",
+            "id": 1,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 960,
+              "y": 540
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "SOURCE 2",
+            "source_uuid": "fe973a96-0f32-46a6-9050-8ec128b070b1",
+            "id": 2,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 960,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 960,
+              "y": 540
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "SOURCE 3",
+            "source_uuid": "e2c7fe4c-2343-45f7-b6a4-6dd44447bc59",
+            "id": 3,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 540
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 960,
+              "y": 540
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "SOURCE 4",
+            "source_uuid": "41918d25-a400-49e2-b381-924e0373ac6f",
+            "id": 4,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 960,
+              "y": 540
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 960,
+              "y": 540
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "AUDIO - Program",
+            "source_uuid": "927b8dc2-976c-457c-91ea-3eaaf0e6f6d3",
+            "id": 5,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          }
+        ]
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "name": "06 終了",
+      "uuid": "c7fd65e5-af9f-4572-94e2-3c9273946b94",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "id_counter": 3,
+        "items": [
+          {
+            "name": "Background",
+            "source_uuid": "90241b31-f6f7-4738-834e-a2c4a7a116f6",
+            "id": 1,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          },
+          {
+            "name": "Ending title",
+            "source_uuid": "14f3c54a-7ae9-4235-b9e5-0f87a79ddd0e",
+            "id": 2,
+            "visible": true,
+            "locked": true,
+            "rot": 0,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1
+            },
+            "align": 5,
+            "bounds_type": 2,
+            "bounds_align": 0,
+            "bounds": {
+              "x": 1920,
+              "y": 1080
+            },
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "scale_filter": "bicubic",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "private_settings": {}
+          }
+        ]
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "hotkeys": {},
+      "monitoring_type": 0,
+      "private_settings": {}
+    }
+  ],
+  "groups": [],
+  "transitions": [],
+  "current_transition": "Fade",
+  "transition_duration": 250,
+  "quick_transitions": [],
+  "saved_projectors": [],
+  "scaling_enabled": false,
+  "scaling_level": 0,
+  "scaling_off_x": 0,
+  "scaling_off_y": 0,
+  "preview_locked": true,
+  "DesktopAudioDevice1": null,
+  "DesktopAudioDevice2": null,
+  "AuxAudioDevice1": null,
+  "AuxAudioDevice2": null,
+  "AuxAudioDevice3": null,
+  "AuxAudioDevice4": null
+}

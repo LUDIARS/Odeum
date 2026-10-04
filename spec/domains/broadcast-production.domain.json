@@ -1,0 +1,10 @@
+{
+  "name": "broadcast-production",
+  "description": "OBSで最大4入力を1番組に切替・合成し、YouTube Liveへ送出する再利用可能な設定。",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    { "pathPattern": "(^|/)broadcast/(?:.*/)?[^/]+$" },
+    { "pathPattern": "(^|/)spec/domains/broadcast-production\\.domain\\.json$" }
+  ]
+}
