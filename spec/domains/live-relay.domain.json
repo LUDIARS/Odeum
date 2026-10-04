@@ -1,0 +1,15 @@
+{
+  "name": "live-relay",
+  "description": "ネイティブ中継、ビルド、導入と契約証跡。",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {"pathPattern": "(^|/)native/relay/(?:.*/)?[^/]+$"},
+    {"pathPattern": "(^|/)native/CMakeLists\\.txt$"},
+    {"pathPattern": "(^|/)scripts/site/(?:.*/)?[^/]+$"},
+    {"pathPattern": "(^|/)excubitor\\.(catalog\\.yaml|bootstrap\\.json)$"},
+    {"pathPattern": "(^|/)augur\\.(contracts|inject)\\.json$"},
+    {"pathPattern": "(^|/)contracts/(?:.*/)?[^/]+$"},
+    {"pathPattern": "(^|/)spec/(feature/live-relay\\.md|tasks/2026-10-04-relay-implementation\\.md|domains/live-(protocol|relay)\\.domain\\.json)$"}
+  ]
+}

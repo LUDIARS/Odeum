@@ -8,3 +8,8 @@ TestResults/
 
 # Anatomia のローカル状態 (ドメイン定義の正本は spec/domains/)
 .anatomia/
+native/build*/
+.vestigium-logs/
+.concordia-commit.json
+.relay-status.json
+.relay-pr.json

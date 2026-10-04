@@ -1,0 +1,8 @@
+foreach(name protocol ticket state media)
+  add_executable(odeum_${name}_tests ${name}_tests.cpp)
+  target_link_libraries(odeum_${name}_tests PRIVATE odeum_relay_state OpenSSL::Crypto)
+  if(name STREQUAL "media")
+    target_link_libraries(odeum_${name}_tests PRIVATE odeum_relay_transport)
+  endif()
+  add_test(NAME odeum.${name} COMMAND odeum_${name}_tests)
+endforeach()

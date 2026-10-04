@@ -1,0 +1,7 @@
+{
+  "name": "live-protocol",
+  "description": "Odeum の OS 非依存メッセージと署名チケット契約。",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [{"pathPattern": "(^|/)native/protocol/(?:.*/)?[^/]+$"}]
+}

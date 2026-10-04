@@ -1,0 +1,10 @@
+add_library(odeum_relay_state reactions.cpp poll.cpp authentication.cpp)
+target_include_directories(odeum_relay_state PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(odeum_relay_state PUBLIC odeum_protocol)
+add_library(odeum_relay_transport config.cpp web_access.cpp media.cpp hub.cpp server.cpp connection.cpp)
+target_link_libraries(odeum_relay_transport PUBLIC odeum_relay_state datachannel odeum_boost Threads::Threads)
+add_executable(odeum-relay main.cpp)
+target_link_libraries(odeum-relay PRIVATE odeum_relay_transport)
+set_target_properties(odeum-relay PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin" RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin")
+install(TARGETS odeum-relay RUNTIME DESTINATION bin)

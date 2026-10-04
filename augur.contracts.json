@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "contractsDir": "contracts",
+  "importFrom": "@ludiars/log-weaver",
+  "contracts": [
+    {"id":"C-1","criterion":"C-1 parse_message(wire): UTF-8 JSON と全メッセージの境界値を検証する","symbol":"parse_message","file":"native/protocol/message.cpp","module":"./contracts/protocol.contract.ts","mode":"observe","sample":1},
+    {"id":"C-2","criterion":"C-2 TicketVerifier.verify(ticket): Ed25519・claims・有効期限を検証する","symbol":"TicketVerifier.verify","file":"native/protocol/ticket.cpp","module":"./contracts/ticket.contract.ts","mode":"observe","sample":1},
+    {"id":"C-3","criterion":"C-3 Reactions.accept(message): グッドの切捨てと stamp/comment の流量制限を守る","symbol":"Reactions.accept","file":"native/relay/reactions.cpp","module":"./contracts/reactions.contract.ts","mode":"observe","sample":1},
+    {"id":"C-4","criterion":"C-4 Poll.answer(sub,choices): 人単位の回答上書きと複数選択を集計する","symbol":"Poll.answer","file":"native/relay/poll.cpp","module":"./contracts/poll.contract.ts","mode":"observe","sample":1},
+    {"id":"C-5","criterion":"C-5 Reactions.flush(now): 250ms ごとに非空の burst のみを送る","symbol":"Reactions.flush","file":"native/relay/reactions.cpp","module":"./contracts/burst.contract.ts","mode":"observe","sample":1},
+    {"id":"C-6","criterion":"C-6 authorize_sessions(ticket): service 以外を拒否し jti の再利用を拒否する","symbol":"authorize_sessions","file":"native/relay/authentication.cpp","module":"./contracts/service.contract.ts","mode":"observe","sample":1}
+  ]
+}

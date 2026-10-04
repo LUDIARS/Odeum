@@ -1,0 +1,7 @@
+{
+  "service": "odeum-relay",
+  "include": ["native/**/*.cpp", "scripts/site/**/*.mjs"],
+  "exclude": ["native/build/**"],
+  "importFrom": "@ludiars/log-weaver",
+  "rules": {"contract-wrap": true}
+}

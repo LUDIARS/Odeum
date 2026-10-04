@@ -1,0 +1,21 @@
+services:
+  - code: odeum-relay
+    name: Odeum live relay
+    tier: personal
+    project_code: Od
+    component: relay
+    port: 4400
+    repo: LUDIARS/Odeum
+    runtime: native
+    cwd: ${ARS_ROOT}/Odeum
+    command: native/build/bin/odeum-relay
+    autostart: false
+    allow_hot_reload: false
+    env:
+      ODEUM_RELAY_PORT: "4400"
+    health:
+      type: http
+      url: http://localhost:4400/health
+      interval_sec: 30
+    provides:
+      ODEUM_RELAY_URL: http://${host}:${port}
