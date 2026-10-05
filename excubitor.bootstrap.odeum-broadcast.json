@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "service": "odeum-broadcast",
+  "setup": "scripts/broadcast/setup.mjs",
+  "data": {
+    "export": "scripts/broadcast/export-data.mjs",
+    "import": "scripts/broadcast/import-data.mjs"
+  }
+}

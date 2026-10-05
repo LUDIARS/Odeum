@@ -73,12 +73,20 @@ real account/key is configured. Verify the receiving sources, reaction layer,
 audio mix/sync, program return at all senders, disconnect behavior and CPU load
 before an authorized unlisted YouTube trial. Real operation has not been tested.
 
-Ex's current bootstrap manifest supports a single service identity. Odeum's existing
-manifest belongs to the independent WebRTC `odeum-relay` and requires its signing-key
-configuration. Do not invoke that bootstrap as an SRT installer or overwrite its
-manifest. The new parent requires an existing main checkout plus the above local
-preparation. Remote Ex registration alone does not install OBS/MediaMTX or expose a
-remote shell. Deployment remains incomplete until preparation is performed on VANMAC.
+With Ex's service-specific manifest support (local PR #2461), request bootstrap
+for `odeum-broadcast`, repository `LUDIARS/Odeum`, with `start:false`. Its dedicated
+manifest downloads and checksum-verifies MediaMTX 1.21.1, prepares private settings
+and installs the OBS profile without starting either service. OBS must already be
+installed and stopped, and Ex must run as the logged-in OBS desktop user. The local
+Tailscale IPv4 is discovered only if unambiguous. Repeat setup preserves existing
+credentials and accepts an identical installation; conflicting or partial state
+requires operator reconciliation. It does not install OBS or OS packages.
+
+Update VANMAC's Ex runtime to include #2461 and Odeum's main checkout to include
+the new manifest before requesting installation. Bootstrap never pulls an existing
+checkout. Ex update/restart is a separate authorized operation. Odeum's legacy root
+manifest still belongs to the independent WebRTC `odeum-relay`; do not invoke it as
+an SRT installer. Registration and source merge alone do not complete deployment.
 
 Sources: [OBS SRT](https://obsproject.com/kb/srt-protocol-streaming-guide),
 [OBS custom output implementation](https://github.com/obsproject/obs-studio/blob/32.0.4/frontend/utility/AdvancedOutput.cpp),

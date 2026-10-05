@@ -5,6 +5,8 @@
   "presetRules": [],
   "templateRules": [],
   "membership": [
+    { "pathPattern": "(^|/)scripts/broadcast/[^/]+$" },
+    { "pathPattern": "(^|/)excubitor\\.bootstrap\\.odeum-broadcast\\.json$" },
     { "pathPattern": "(^|/)broadcast/(?:.*/)?[^/]+$" },
     { "pathPattern": "(^|/)spec/domains/broadcast-production\\.domain\\.json$" }
   ]
