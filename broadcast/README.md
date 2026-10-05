@@ -1,5 +1,8 @@
 # Odeum — YouTube Live 番組制作
 
+VANMAC (macOS) を親機にする遠隔4入力と番組返送の設定は [VANMAC.md](VANMAC.md) を参照。
+以下の既存プロファイルは Windows/NVENC 用。Macへそのまま配置しない。
+
 最大4本の入力をOBSで切替・合成し、1本の番組としてYouTube Liveへ送る。
 入力機材とYouTubeチャンネルの接続は別途必要。これは接続前の設定一式であり、配信稼働済みではない。
 

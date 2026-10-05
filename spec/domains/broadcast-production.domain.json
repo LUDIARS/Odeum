@@ -1,6 +1,7 @@
 {
   "name": "broadcast-production",
   "description": "OBSで最大4入力を1番組に切替・合成し、YouTube Liveへ送出する再利用可能な設定。",
+  "specRefs": ["spec/feature/vanmac-broadcast.md", "broadcast/VANMAC.md", "broadcast/README.md"],
   "presetRules": [],
   "templateRules": [],
   "membership": [

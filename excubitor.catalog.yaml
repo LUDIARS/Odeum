@@ -1,4 +1,37 @@
 services:
+  # macOS parent program services. Preparation creates the private relay binary/config.
+  # UDP/SRT port; no HTTP health probe. Bind address is the explicitly selected Tailscale IP.
+  - code: odeum-broadcast
+    name: Odeum SRT program router
+    tier: personal
+    project_code: Od
+    component: broadcast
+    port: 8890
+    repo: LUDIARS/Odeum
+    runtime: app
+    cwd: ${ARS_ROOT}/Odeum
+    exec: ${ARS_ROOT}/Odeum/artifacts/broadcast/mediamtx
+    exec_args: [artifacts/broadcast/mediamtx.yml]
+    autostart: false
+    allow_hot_reload: false
+    health:
+      type: process
+      interval_sec: 30
+  - code: odeum-obs
+    name: Odeum macOS OBS parent
+    tier: personal
+    project_code: Od
+    component: obs
+    repo: LUDIARS/Odeum
+    runtime: app
+    cwd: ${ARS_ROOT}/Odeum
+    exec: /Applications/OBS.app/Contents/MacOS/OBS
+    exec_args: [--profile, Odeum_VANMAC, --collection, Odeum_VANMAC]
+    autostart: false
+    allow_hot_reload: false
+    health:
+      type: process
+      interval_sec: 30
   - code: odeum-relay
     name: Odeum live relay
     tier: personal
