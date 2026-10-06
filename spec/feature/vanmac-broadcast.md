@@ -24,6 +24,20 @@ not assert runtime success from static checks, Ex registration or process presen
 Deployment/runbook: [VANMAC](../../broadcast/VANMAC.md).
 # Excubitor broadcast bootstrap
 
+## Bootstrap diagnostic exit codes
+
+Ex discards setup stdout/stderr to protect credentials, but preserves the process
+exit code in operation steps. `scripts/broadcast/setup-diagnostics.mjs` defines
+stable stages: 20 platform/arguments, 21 root account, 22 checkout, 23 OBS executable,
+24 logged-in desktop account, 25 OBS stopped/process inspection, 26 Tailscale IPv4,
+27 artifacts storage, 28 exclusive lock, 29 download/checksum/extraction,
+30 configuration preparation, 31 existing preparation, 32 OBS configuration install,
+33 cleanup. Successful setup remains 0. The stage identifies the failed check,
+not its underlying cause: e.g. 23 may be missing OBS or access denied.
+No credentials, native exception text or child output enter these diagnostics.
+Cleanup failure takes precedence because residual files/locks require inspection.
+Do not retry without addressing the failed stage or explicit diagnostic changes.
+
 `excubitor.bootstrap.odeum-broadcast.json` selects `scripts/broadcast/setup.mjs`.
 It requires Ex service-specific manifest support (Ex task
 `actio:7b5951f6-39d2-44d5-871d-e0af3ef642e9`, local PR #2461).
