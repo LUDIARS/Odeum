@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Odeum 参加</title>
+<link rel="stylesheet" href="/web/odeum.css">
+<script type="module" src="/web/join.js"></script>
+</head>
+<body class="od-join-body">
+<main class="od-join">
+  <section id="entry" class="od-card">
+    <h1>リアクションで参加</h1>
+    <form id="entry-form">
+      <label>参加コード<input id="code" name="code" autocomplete="off" autocapitalize="characters" inputmode="text" maxlength="16" required></label>
+      <label>表示名<input id="name" name="name" autocomplete="nickname" maxlength="32" required></label>
+      <button type="submit">参加する</button>
+    </form>
+    <p class="od-hint">ログインは不要です。表示名は画面に出る質問・感想とスタンプに使われます。</p>
+  </section>
+
+  <section id="stage" hidden>
+    <p id="status" class="od-status" role="status"></p>
+    <button id="good" class="od-good" type="button">👍 グッド <span id="good-count"></span></button>
+    <div id="stamps" class="od-stamp-row"></div>
+
+    <form id="telop-form" class="od-card">
+      <label>ツッコミ (画面にテロップで出ます)<input id="telop" maxlength="120" autocomplete="off"></label>
+      <p class="od-counter" id="telop-counter"></p>
+      <button type="submit">送る</button>
+    </form>
+
+    <form id="post-form" class="od-card">
+      <fieldset class="od-category">
+        <legend>質問 / 感想</legend>
+        <label><input type="radio" name="category" value="question" checked>質問</label>
+        <label><input type="radio" name="category" value="impression">感想</label>
+      </fieldset>
+      <textarea id="post" rows="3" maxlength="560"></textarea>
+      <p class="od-counter" id="post-counter"></p>
+      <label class="od-visibility"><input id="show" type="checkbox">名前と本文を画面に表示する</label>
+      <button type="submit">投稿する</button>
+    </form>
+    <p id="feedback" class="od-feedback" role="status"></p>
+  </section>
+</main>
+</body>
+</html>

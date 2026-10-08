@@ -32,8 +32,9 @@ Windows capture affinity and macOS excluded application protect the control pane
 
 GLab renders public text and reaction effects over its video element because the
 native desktop overlay is intentionally capture-excluded. This is the WebRTC viewer
-path, not an OBS browser-source integration. Cocoiru/SRT/OBS integration remains
-part of the separate LAN deployment task; it must not be claimed complete here.
+path. The OBS program layer and login-free phone participation are specified in
+[SPEC-PROGRAM-OVERLAY-GUEST-JOIN](program-overlay-guest-join.md); live Cocoiru/SRT/OBS
+confirmation remains part of the separate LAN deployment task.
 
 ## Verification
 

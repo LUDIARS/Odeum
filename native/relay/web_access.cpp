@@ -75,4 +75,8 @@ bool WebAccess::allows_host(std::string authority) const {
 bool WebAccess::allows_origin(const std::string& value) const {
     return value.empty() || std::find(origins_.begin(), origins_.end(), value) != origins_.end();
 }
+bool WebAccess::allows_same_origin(const std::string& authority, const std::string& origin) const {
+    if (origin.empty()) return allows_host(authority);
+    return allows_host(authority) && (origin == "http://" + authority || origin == "https://" + authority);
+}
 }

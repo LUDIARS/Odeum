@@ -20,9 +20,14 @@ confirmed. Text sources use FreeType/Hiragino rather than Windows GDI+. Input
 audio follows scene activation; the four-way layout mixes all four input tracks.
 Mute unwanted input audio and do not duplicate it in AUDIO - Program.
 
-Any reaction layer composed in OBS is included in both outputs. This change does
-not invent a reaction feed: add the real reaction source to the program scenes
-before acceptance. No YouTube key or microphone is supplied by the templates.
+Any reaction layer composed in OBS is included in both outputs. The reaction layer is
+the relay's program overlay page ([SPEC-PROGRAM-OVERLAY-GUEST-JOIN](../spec/feature/program-overlay-guest-join.md)):
+add a Browser source named `Reactions` (1920x1080, custom CSS empty, "Shutdown source when
+not visible" off) with the overlay URL that GLab shows for the presentation session,
+`http://127.0.0.1:4400/overlay#key=<overlay key>`, and place it at the top of `SOURCE 1`-`SOURCE 4`
+and `05 4分割`. The key changes per GLab session and is a credential: do not commit or
+screenshot it. Templates ship without the source because they cannot hold a session key.
+No YouTube key or microphone is supplied by the templates.
 
 ## Prepare on VANMAC, without launching OBS or the router
 

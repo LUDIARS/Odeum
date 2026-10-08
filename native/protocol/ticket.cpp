@@ -24,6 +24,11 @@ std::string decode(std::string_view encoded) {
     if (bits && (value & ((1u << bits) - 1u))) invalid();
     return out;
 }
+// A SHA-256 digest in unpadded base64url is exactly 43 characters and decodes to 32 bytes.
+std::string digest(const Json& value) {
+    if (!value.is_string() || value.get_ref<const std::string&>().size() != 43 || decode(value.get<std::string>()).size() != 32) invalid();
+    return value.get<std::string>();
+}
 }
 TicketVerifier::TicketVerifier(const Json& public_keys) {
     if (!public_keys.is_object() || public_keys.empty()) throw std::runtime_error("Public keys must be a nonempty object");
@@ -60,7 +65,14 @@ Ticket TicketVerifier::verify(std::string_view compact, std::int64_t now) const 
         }
         auto role = parse_role(j.at("role").get<std::string>());
         if (role != Role::service) require_text(j, "sid", 256);
-        return {j["sub"], j["name"], role == Role::service ? "" : j["sid"].get<std::string>(), j["jti"], role, exp};
+        Ticket ticket{j["sub"], j["name"], role == Role::service ? "" : j["sid"].get<std::string>(), j["jti"], role, exp};
+        if (j.contains("invite")) {
+            const auto& invite = j.at("invite");
+            if (role != Role::presenter || !invite.is_object() || invite.size() != 2) invalid();
+            ticket.invite_join = digest(invite.at("join")); ticket.invite_overlay = digest(invite.at("overlay"));
+            if (ticket.invite_join == ticket.invite_overlay) invalid();
+        }
+        return ticket;
     } catch (const Json::exception&) { invalid(); }
     catch (const ProtocolError&) { invalid(); }
 }

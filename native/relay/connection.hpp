@@ -1,5 +1,6 @@
 #pragma once
 #include "server.hpp"
+#include "web_assets.hpp"
 #include <boost/beast.hpp>
 #include <deque>
 
@@ -25,7 +26,10 @@ private:
     std::size_t queued_bytes_ = 0;
     Millis window_ = 0;
     unsigned messages_ = 0;
+    using Request = boost::beast::http::request<boost::beast::http::string_body>;
     void route();
+    void asset(const WebAsset& page);
+    void upgrade(const Request& request, Admission admission, std::function<Ticket()> admit);
     void response(unsigned status, const Json& body);
     void read();
     void send(const Json& body);

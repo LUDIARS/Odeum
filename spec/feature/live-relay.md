@@ -26,6 +26,10 @@ OpenSSL 3 は libdatachannel と共通のシステム開発依存 (`find_package
   認証後 welcome、presence、開いている投票を送る。接続上限などの参加拒否は WS error。
   送信キュー超過・不正フレーム・毎秒120を超えるメッセージでは切断する。
 
+- `GET /join`, `GET /overlay`, `GET /web/*`: ゲスト参加ページと番組オーバーレイ (バイナリ埋め込み)。
+- `GET /v1/guest?code=&name=` / `GET /v1/overlay?key=`: 参加コード・overlay 鍵で WS 参加。
+  照合結果は upgrade 後に WS error で返す。詳細は [SPEC-PROGRAM-OVERLAY-GUEST-JOIN](program-overlay-guest-join.md)。
+
 チケットの `alg=EdDSA`、kid、Ed25519 署名、iss=glab、aud=odeum-relay、sub/name/role/sid/jti/exp を検証。
 `now < exp <= now+300`。任意の iat があれば発行から300秒以内も検証。
 接続確立後の期限では切断しない。jti は HTTP と WS で共通、exp まで再利用を拒否。
@@ -77,6 +81,7 @@ NAT では同一 UDP port の転送が必要。TURN/srflx candidate は変更し
 明示された空値・不正値は起動失敗。表示名、本文、チケット、SDP をログに出さない。
 `config.cpp` → `WebAccess::from_environment` → `Connection::route` で Ex 注入 Host を検証する。
 loopback Host は常に許可。Origin のない native/Bearer 通信は許可し、ブラウザ Origin は完全一致のみ。
+relay 自身が配信するページとゲスト/overlay の受け口だけは、Origin が `http(s)://<許可済み Host>` の same-origin を許可する。
 GLab の公開 Origin を `ODEUM_RELAY_ALLOWED_ORIGINS` に設定する。公開URLの推測や公開設定変更は行わない。
 公開 TLS は外部 proxy、サービス自体は HTTP。UDP は HTTP tunnel を経由しない。
 

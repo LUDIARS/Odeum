@@ -1,5 +1,6 @@
 #include "signing.hpp"
 #include "authentication.hpp"
+#include "invitations.hpp"
 using namespace odeum;
 using namespace odeum::relay;
 int main() { return run([] {
@@ -26,4 +27,18 @@ int main() { return run([] {
     rejects([&] { authorize_sessions(endpoint,"",1000); },"invalid_ticket");
     claims["role"]="presenter"; claims["sid"]="s"; claims["jti"]="presenter-nonce";
     rejects([&] { authorize_sessions(endpoint,"Bearer "+key.sign(claims),1000); },"forbidden");
+
+    // Presenter tickets may carry GLab-held invitation digests; other roles may not.
+    const auto join=sha256_base64url("ABCDEFGH12"), overlay=sha256_base64url("overlay-key");
+    claims["jti"]="invite-nonce"; claims["invite"]={{"join",join},{"overlay",overlay}};
+    auto invited=verifier.verify(key.sign(claims),1000);
+    check(invited.invite_join==join && invited.invite_overlay==overlay,"Presenter invite digests");
+    claims.erase("invite");
+    check(verifier.verify(key.sign(claims),1000).invite_join.empty(),"Invite is optional");
+    auto bad=claims; bad["invite"]={{"join",join},{"overlay",join}}; rejects([&] { verifier.verify(key.sign(bad),1000); },"invalid_ticket");
+    bad=claims; bad["invite"]={{"join",join}}; rejects([&] { verifier.verify(key.sign(bad),1000); },"invalid_ticket");
+    bad=claims; bad["invite"]={{"join","short"},{"overlay",overlay}}; rejects([&] { verifier.verify(key.sign(bad),1000); },"invalid_ticket");
+    bad=claims; bad["invite"]={{"join",join},{"overlay",overlay},{"extra",overlay}}; rejects([&] { verifier.verify(key.sign(bad),1000); },"invalid_ticket");
+    bad=claims; bad["role"]="viewer"; bad["invite"]={{"join",join},{"overlay",overlay}};
+    rejects([&] { verifier.verify(key.sign(bad),1000); },"invalid_ticket");
 }); }

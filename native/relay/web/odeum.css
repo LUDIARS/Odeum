@@ -1,0 +1,69 @@
+/* Shared styles for relay-served pages: guest join (phone) and program overlay (OBS, transparent). */
+:root {
+  --od-bg: #f6f7f9;
+  --od-fg: #1d2129;
+  --od-card: #ffffff;
+  --od-muted: #5b6270;
+  --od-accent: #2f6fed;
+  --od-danger: #c62828;
+  --od-telop-bg: rgba(10, 12, 20, 0.82);
+  --od-telop-fg: #ffffff;
+  --od-post-bg: rgba(255, 255, 255, 0.94);
+  --od-post-fg: #1d2129;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --od-bg: #14161b;
+    --od-fg: #e8eaef;
+    --od-card: #1f232b;
+    --od-muted: #a2a9b6;
+    --od-accent: #6b9bff;
+  }
+}
+* { box-sizing: border-box; }
+
+/* Guest page */
+.od-join-body { margin: 0; background: var(--od-bg); color: var(--od-fg); font: 16px/1.5 system-ui, sans-serif; }
+.od-join { max-width: 520px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+.od-join h1 { font-size: 1.3rem; margin: 0 0 12px; }
+.od-card { background: var(--od-card); border-radius: 14px; padding: 16px; display: grid; gap: 10px; }
+.od-card label { display: grid; gap: 4px; font-size: 0.95rem; }
+.od-join input:not([type]), .od-join input[type="text"], .od-join textarea, .od-join #code, .od-join #name {
+  font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--od-muted); background: transparent; color: inherit; width: 100%;
+}
+.od-join button { font: inherit; padding: 10px 14px; border-radius: 10px; border: 0; background: var(--od-accent); color: #fff; }
+.od-good { width: 100%; min-height: 96px; font-size: 1.5rem !important; border-radius: 18px !important; }
+.od-pulse { animation: od-pulse 0.25s ease-out; }
+@keyframes od-pulse { from { transform: scale(0.96); } to { transform: scale(1); } }
+.od-stamp-row { display: flex; gap: 8px; justify-content: space-between; }
+.od-stamp-row button { flex: 1; font-size: 1.6rem; background: var(--od-card) !important; color: inherit !important; }
+.od-category { border: 0; padding: 0; margin: 0; display: flex; gap: 16px; }
+.od-category label, .od-visibility { display: flex !important; align-items: center; gap: 6px; }
+.od-counter { margin: 0; font-size: 0.85rem; color: var(--od-muted); text-align: right; }
+.od-counter.od-over { color: var(--od-danger); }
+.od-hint, .od-status, .od-feedback { margin: 0; color: var(--od-muted); font-size: 0.9rem; }
+
+/* Program overlay (OBS browser source 1920x1080, transparent) */
+.od-overlay-body { margin: 0; background: transparent; overflow: hidden; font: 600 32px/1.4 system-ui, sans-serif; }
+.od-overlay { position: fixed; inset: 0; pointer-events: none; }
+.od-overlay-status { position: fixed; left: 16px; top: 16px; padding: 6px 10px; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 18px; }
+.od-telops { position: absolute; left: 5%; right: 5%; bottom: 6%; display: grid; gap: 10px; justify-items: center; }
+.od-telop { max-width: 100%; padding: 10px 24px; border-radius: 12px; background: var(--od-telop-bg); color: var(--od-telop-fg); animation: od-in 0.2s ease-out; }
+.od-posts { position: absolute; right: 3%; top: 6%; width: 32%; display: grid; gap: 12px; }
+.od-post { padding: 14px 18px; border-radius: 14px; background: var(--od-post-bg); color: var(--od-post-fg); font-size: 26px; animation: od-in 0.2s ease-out; }
+.od-post-kind { font-size: 18px; padding: 2px 8px; border-radius: 8px; background: var(--od-accent); color: #fff; margin-right: 8px; }
+.od-post-name { font-size: 20px; opacity: 0.75; }
+.od-post-text { margin: 6px 0 0; overflow-wrap: anywhere; }
+.od-particles { position: absolute; inset: 0; }
+.od-particle { position: absolute; bottom: 0; font-size: 48px; animation: od-rise 2s ease-out forwards; }
+.od-stamps { position: absolute; left: 3%; top: 6%; display: flex; flex-wrap: wrap; gap: 8px; max-width: 30%; }
+.od-stamp { font-size: 44px; animation: od-in 0.2s ease-out; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); }
+.od-poll { position: absolute; left: 3%; bottom: 22%; width: 34%; padding: 16px; border-radius: 14px; background: var(--od-post-bg); color: var(--od-post-fg); font-size: 24px; }
+.od-poll-row { display: grid; grid-template-columns: 1fr 2fr auto; gap: 10px; align-items: center; margin-top: 6px; }
+.od-poll-bar { height: 14px; border-radius: 7px; background: var(--od-accent); }
+.od-poll-answered { margin-top: 8px; font-size: 18px; opacity: 0.75; }
+@keyframes od-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes od-rise { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-70vh); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .od-telop, .od-post, .od-stamp, .od-pulse { animation: none; }
+}
