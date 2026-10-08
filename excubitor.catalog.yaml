@@ -32,6 +32,9 @@ services:
     health:
       type: process
       interval_sec: 30
+  # Resident native server with an HTTP health probe. Excubitor has no `native` runtime:
+  # `node` spawns `command` as a port-owning resident process regardless of language.
+  # Guest phones need ODEUM_RELAY_BIND / LUDIARS_ALLOWED_HOSTS set per site (not here: catalog is shared).
   - code: odeum-relay
     name: Odeum live relay
     tier: personal
@@ -39,7 +42,7 @@ services:
     component: relay
     port: 4400
     repo: LUDIARS/Odeum
-    runtime: native
+    runtime: node
     cwd: ${ARS_ROOT}/Odeum
     command: native/build/bin/odeum-relay
     autostart: false
