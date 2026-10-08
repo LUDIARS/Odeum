@@ -130,6 +130,14 @@ tela::Document overlay_document(const OverlayViewInput& in) {
     y = stamps(doc, in, y);
     if (state.poll()) y = poll(doc, *state.poll(), y + 4);
     if (in.comments_visible) comments(doc, in, y + 4);
+    // Timed text changes only the overlay; it never touches capture or media playback.
+    float telop_y = 42;
+    std::size_t telop_index = 0;
+    for (const auto& telop : state.telops()) {
+        doc.text("telop-" + std::to_string(telop_index++), telop.kind_or_text,
+            at(pad, telop_y, overlay_width - pad * 2, 76, 3, 1.3f));
+        telop_y += 78;
+    }
     return doc;
 }
 }

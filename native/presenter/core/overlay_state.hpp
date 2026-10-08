@@ -12,6 +12,7 @@ struct OverlayLimits {
     Millis stamp_lifetime = 4000;
     std::size_t stamp_limit = 12;
     Millis comment_lifetime = 15000;
+    Millis telop_lifetime = 5000;
     std::size_t comment_limit = 8;
     // Bursts stay this long so their rising particles can finish.
     Millis burst_lifetime = 2500;
@@ -63,6 +64,7 @@ public:
     const std::map<std::string, std::int64_t>& stamp_totals() const noexcept { return stamp_totals_; }
     const std::deque<TimedReaction>& stamps() const noexcept { return stamps_; }
     const std::deque<TimedReaction>& comments() const noexcept { return comments_; }
+    const std::deque<TimedReaction>& telops() const noexcept { return telops_; }
     const std::optional<PollTally>& poll() const noexcept { return poll_; }
     std::int64_t viewer_count() const noexcept { return viewer_count_; }
     bool presenter_connected() const noexcept { return presenter_connected_; }
@@ -77,7 +79,7 @@ private:
     std::int64_t good_total_ = 0;
     std::deque<GoodBurst> bursts_;
     std::map<std::string, std::int64_t> stamp_totals_;
-    std::deque<TimedReaction> stamps_, comments_;
+    std::deque<TimedReaction> stamps_, comments_, telops_;
     std::optional<PollTally> poll_;
     std::int64_t viewer_count_ = 0;
     bool presenter_connected_ = false;

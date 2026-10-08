@@ -25,6 +25,15 @@ int main() { return run([] {
     rejects([] { parse_message(std::string(16385,'x')); }, "message_too_large");
     rejects([] { parse_message(R"({"type":"poll.answer","poll_id":"p","choices":[0,0]})"); });
     rejects([] { parse_message(R"({"type":"stamp","kind":"unknown"})"); });
+    rejects([] { parse_message(R"({"type":"submission","text":"private","category":"question"})"); });
+    rejects([] { parse_message(R"({"type":"submission","text":"private","category":"question","show_on_screen":"false"})"); });
+    rejects([] { parse_message(R"({"type":"submission","text":"private","category":"other","show_on_screen":false})"); });
+    rejects([] { parse_message(R"({"type":"telop","text":""})"); });
+    rejects([] { parse_message(Json{{"type","telop"},{"text",std::string(61,'a')}}.dump()); });
+    rejects([] { parse_message(R"({"type":"reaction.ready","version":2})"); });
+    parse_message(R"({"type":"submission","text":"question","category":"question","show_on_screen":false})");
+    parse_message(R"({"type":"submission","text":"impression","category":"impression","show_on_screen":true})");
+    parse_message(R"({"type":"reaction.ready","version":1})");
     std::string text; for (int i=0; i<280; ++i) text += "😀";
     parse_message(Json{{"type","comment"},{"text",text}}.dump());
     text += "a"; rejects([&] { parse_message(Json{{"type","comment"},{"text",text}}.dump()); });

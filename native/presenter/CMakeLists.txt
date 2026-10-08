@@ -57,7 +57,7 @@ add_library(odeum_presenter_transport transport/relay_link.cpp transport/media_s
 target_link_libraries(odeum_presenter_transport PUBLIC odeum_presenter_core datachannel PRIVATE opus)
 
 add_library(odeum_presenter_app app/labels.cpp app/settings_file.cpp app/presenter_controller.cpp app/good_fountain.cpp
-  app/overlay_view.cpp app/panel_view.cpp app/placement_mapping.cpp app/presenter_app.cpp)
+  app/overlay_view.cpp app/panel_view.cpp app/inbox_view.cpp app/placement_mapping.cpp app/presenter_app.cpp)
 target_link_libraries(odeum_presenter_app PUBLIC odeum_presenter_transport Tela::Core)
 
 if(WIN32)

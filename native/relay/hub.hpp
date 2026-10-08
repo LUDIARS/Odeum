@@ -22,6 +22,7 @@ private:
         Poll poll;
         std::int64_t started = 0;
         std::uint64_t presenter = 0;
+        bool reactions_ready = false;
     };
     boost::asio::io_context& io_;
     const Config& config_;

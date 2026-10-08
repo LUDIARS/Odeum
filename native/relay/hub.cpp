@@ -2,7 +2,8 @@
 
 namespace odeum::relay {
 Json Hub::presence(const Room& room) {
-    return {{"type", "presence"}, {"presenter_connected", room.presenter != 0}, {"viewer_count", room.members.size() - (room.presenter ? 1 : 0)}};
+    return {{"type", "presence"}, {"presenter_connected", room.presenter != 0}, {"viewer_count", room.members.size() - (room.presenter ? 1 : 0)},
+        {"reaction_version", room.reactions_ready ? 1 : 0}};
 }
 void Hub::broadcast(const Room& room, const Json& message) { for (const auto& [id, member] : room.members) member.send(message); }
 void Hub::join(std::uint64_t id, const Ticket& ticket, Send send, std::function<void()> close, Millis now, std::int64_t epoch) {
@@ -39,6 +40,12 @@ void Hub::message(std::uint64_t id, const Ticket& ticket, const Message& message
     auto it = rooms_.find(ticket.sid);
     if (it == rooms_.end() || !it->second.members.contains(id)) throw ProtocolError("session_closed", "Session closed");
     auto& room = it->second;
+    if (message.type == MessageType::reaction_ready) {
+        if (ticket.role != Role::presenter) throw ProtocolError("forbidden", "Presenter role required");
+        room.reactions_ready = true;
+        broadcast(room, presence(room));
+        return;
+    }
     if (message.type == MessageType::sdp || message.type == MessageType::candidate) { room.media->signal(id, message); return; }
     if (message.type == MessageType::poll_open || message.type == MessageType::poll_close) {
         if (ticket.role != Role::presenter) throw ProtocolError("forbidden", "Presenter role required");
@@ -50,11 +57,27 @@ void Hub::message(std::uint64_t id, const Ticket& ticket, const Message& message
     if (message.type == MessageType::poll_answer) {
         room.poll.answer(ticket.sub, message.body.at("poll_id"), message.body.at("choices").get<std::vector<int>>()); return;
     }
-    if (message.type != MessageType::good && message.type != MessageType::stamp && message.type != MessageType::comment)
+    const bool text_reaction = message.type == MessageType::telop || message.type == MessageType::submission;
+    if (text_reaction && (!room.presenter || !room.reactions_ready))
+        throw ProtocolError("reaction_unavailable", "An updated presenter must be connected");
+    if (message.type != MessageType::good && message.type != MessageType::stamp && message.type != MessageType::comment && !text_reaction)
         throw ProtocolError("forbidden", "Server message cannot be sent by a client");
     auto result = room.reactions.accept(ticket.sub, message, now);
     if (result.limited) throw ProtocolError("rate_limited", "Reaction rate limit exceeded");
     if (message.type == MessageType::good || !room.presenter) return;
+    if (text_reaction) {
+        Json forwarded = {{"type", message.type == MessageType::telop ? "telop" : "submission"}, {"text", message.body.at("text")},
+            {"from", {{"sub", ticket.sub}, {"name", ticket.name}}}, {"at", epoch}};
+        if (message.type == MessageType::submission) {
+            forwarded["category"] = message.body.at("category");
+            forwarded["show_on_screen"] = message.body.at("show_on_screen");
+        }
+        // Private text never enters a viewer socket; identity is always server-derived.
+        const bool public_text = message.type == MessageType::telop || message.body.at("show_on_screen").get<bool>();
+        if (public_text) broadcast(room, forwarded);
+        else room.members.at(room.presenter).send(forwarded);
+        return;
+    }
     Json forwarded = {{"type", message.type == MessageType::stamp ? "stamp" : "comment"},
         {"from", {{"sub", ticket.sub}, {"name", ticket.name}}}, {"at", epoch}};
     auto field = message.type == MessageType::stamp ? "kind" : "text"; forwarded[field] = message.body.at(field);

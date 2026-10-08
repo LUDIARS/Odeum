@@ -6,7 +6,7 @@
 namespace odeum {
 namespace {
 constexpr std::array names{"welcome", "sdp", "candidate", "good", "stamp", "comment", "poll.open",
-    "poll.close", "poll.closed", "poll.answer", "tally", "reaction.burst", "presence", "error"};
+    "poll.close", "poll.closed", "poll.answer", "tally", "reaction.burst", "presence", "error", "telop", "submission", "reaction.ready"};
 void require(bool condition) {
     if (!condition) throw ProtocolError("invalid_message", "Invalid message fields");
 }
@@ -58,6 +58,17 @@ Message parse_message(std::string_view wire) {
         if (it == names.end()) throw ProtocolError("unknown_type", "Unknown message type");
         auto type = static_cast<MessageType>(it - names.begin());
         switch (type) {
+        case MessageType::reaction_ready: count(j.at("version"), 1, 1); break;
+        case MessageType::telop:
+            require_text(j, "text", 60);
+            if (j.contains("from")) { identity(j.at("from")); count(j.at("at"), 0, INT64_MAX); }
+            break;
+        case MessageType::submission:
+            require_text(j, "text", 280);
+            require(j.at("show_on_screen").is_boolean());
+            require(j.at("category") == "question" || j.at("category") == "impression");
+            if (j.contains("from")) { identity(j.at("from")); count(j.at("at"), 0, INT64_MAX); }
+            break;
         case MessageType::good: count(j.at("count"), 1, 50); break;
         case MessageType::stamp: {
             require_text(j, "kind", 16); const auto k = j.at("kind").get<std::string>();

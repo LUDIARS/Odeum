@@ -45,6 +45,15 @@ bool OverlayState::apply(const Message& message, Millis now) {
         if (!body.contains("from")) return false;
         push(comments_, limits_.comment_limit, limits_.comment_lifetime, body, "text", now);
         return true;
+    case MessageType::telop:
+        if (!body.contains("from")) return false;
+        push(telops_, 3, limits_.telop_lifetime, body, "text", now);
+        return true;
+    case MessageType::submission:
+        // Never copy private text into the object accessible to the overlay renderer.
+        if (!body.contains("from") || !body.at("show_on_screen").get<bool>()) return false;
+        push(comments_, limits_.comment_limit, limits_.comment_lifetime, body, "text", now);
+        return true;
     case MessageType::poll_open: {
         PollTally poll;
         poll.poll_id = body.at("poll_id").get<std::string>();
@@ -82,12 +91,13 @@ void OverlayState::expire(Millis now) {
     const auto gone = [now](const TimedReaction& r) { return r.expires_at <= now; };
     std::erase_if(stamps_, gone);
     std::erase_if(comments_, gone);
+    std::erase_if(telops_, gone);
     std::erase_if(bursts_, [&](const GoodBurst& b) { return now - b.at >= limits_.burst_lifetime; });
     if (poll_ && !poll_->open && now - poll_->closed_at >= limits_.closed_poll_lifetime) poll_.reset();
 }
 
 bool OverlayState::animating() const noexcept {
-    return !bursts_.empty() || !stamps_.empty() || !comments_.empty() || (poll_ && !poll_->open);
+    return !bursts_.empty() || !stamps_.empty() || !comments_.empty() || !telops_.empty() || (poll_ && !poll_->open);
 }
 
 double OverlayState::heat(Millis now) const {
@@ -103,6 +113,7 @@ void OverlayState::reset() {
     stamp_totals_.clear();
     stamps_.clear();
     comments_.clear();
+    telops_.clear();
     poll_.reset();
     viewer_count_ = 0;
     presenter_connected_ = false;

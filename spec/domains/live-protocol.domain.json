@@ -2,6 +2,7 @@
   "name": "live-protocol",
   "description": "Odeum の OS 非依存メッセージと署名チケット契約。",
   "presetRules": [],
+  "specRefs": ["spec/feature/sender-reactions.md"],
   "templateRules": [],
   "membership": [{"pathPattern": "(^|/)native/protocol/(?:.*/)?[^/]+$"}]
 }

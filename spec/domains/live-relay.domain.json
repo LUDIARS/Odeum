@@ -2,6 +2,7 @@
   "name": "live-relay",
   "description": "ネイティブ中継、ビルド、導入と契約証跡。",
   "presetRules": [],
+  "specRefs": ["spec/feature/sender-reactions.md"],
   "templateRules": [],
   "membership": [
     {"pathPattern": "(^|/)native/relay/(?:.*/)?[^/]+$"},

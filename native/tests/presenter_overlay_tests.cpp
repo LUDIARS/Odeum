@@ -1,5 +1,6 @@
 #include "check.hpp"
 #include "core/overlay_state.hpp"
+#include "core/submission_inbox.hpp"
 using namespace odeum;
 using namespace odeum::presenter;
 
@@ -66,4 +67,21 @@ int main() { return run([] {
     check(!state.apply(parse_message(R"({"type":"candidate","candidate":"","mid":"0"})"), 40000), "Signalling is not overlay");
     state.reset();
     check(state.good_total() == 0 && state.viewer_count() == 0 && !state.poll() && state.stamps().empty(), "Reset");
+    SubmissionInbox inbox;
+    auto private_post = parse_message(R"({"type":"submission","text":"private question","category":"question","show_on_screen":false,"from":{"sub":"v","name":"N"},"at":1})");
+    inbox.accept(private_post);
+    check(!state.apply(private_post, 50000) && state.comments().empty(), "Private submission never enters drawable state");
+    check(inbox.size() == 1 && inbox.selected()->text == "private question", "Private submission remains readable in inbox");
+    auto public_post = private_post;
+    public_post.body["show_on_screen"] = true;
+    check(state.apply(public_post, 50000) && state.comments().size() == 1, "Sender-selected public submission is drawable");
+    auto telop = parse_message(R"({"type":"telop","text":"wait what!","from":{"sub":"v","name":"N"},"at":1})");
+    for (int i = 0; i < 8; ++i) state.apply(telop, 50000);
+    check(state.telops().size() == 3, "Telops are bounded without an unbounded queue");
+    state.expire(50000 + limits.telop_lifetime);
+    check(state.telops().empty(), "Telops expire without touching playback");
+    for (int i = 0; i < 105; ++i) inbox.accept(private_post);
+    check(inbox.size() == 100, "Inbox is bounded");
+    inbox.reset();
+    check(inbox.size() == 0 && inbox.selected() == nullptr, "Inbox reset discards session text");
 }); }

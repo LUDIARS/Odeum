@@ -59,6 +59,7 @@ void PresenterController::accept_launch(std::string_view text) {
         media_.stop();
         request_ = std::move(request);
         overlay_.reset();
+        inbox_.reset();
         polls_.reset();
         monitor_.start(expiry);
         link_.connect(relay_socket_url(*request_));
@@ -84,8 +85,11 @@ void PresenterController::handle(const Message& message) {
             return;
         }
         monitor_.welcomed();
+        // Only advertise after this receiver can separate private submissions from overlays.
+        link_.send({{"type", "reaction.ready"}, {"version", 1}});
         // The relay rebuilds the room whenever the presenter (re)joins, so its counts restart too.
         overlay_.reset();
+        inbox_.reset();
         overlay_.apply(message, now_);
         polls_.reset();
         media_.start(message.body.at("ice_servers"), settings_.stream.audio);
@@ -105,6 +109,7 @@ void PresenterController::handle(const Message& message) {
         return;
     }
     default:
+        inbox_.accept(message);
         overlay_.apply(message, now_);
         return;
     }

@@ -2,6 +2,7 @@
   "name": "live-presenter",
   "description": "発表者アプリ odeum-presenter: 画面取り込み・H.264 送信・Tela/Pictor の重ね表示と操作パネル、その仕様と契約。",
   "presetRules": [],
+  "specRefs": ["spec/feature/sender-reactions.md"],
   "templateRules": [],
   "membership": [
     {"pathPattern": "(^|/)native/presenter/(?:.*/)?[^/]+$"},

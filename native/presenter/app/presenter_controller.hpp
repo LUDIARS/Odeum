@@ -3,6 +3,7 @@
 #include "../core/connection_monitor.hpp"
 #include "../core/launch_url.hpp"
 #include "../core/overlay_state.hpp"
+#include "../core/submission_inbox.hpp"
 #include "../core/pcm_framer.hpp"
 #include "../core/poll_draft.hpp"
 #include "../core/presenter_settings.hpp"
@@ -52,6 +53,9 @@ public:
     void close_poll();
 
     void toggle_comments();
+    SubmissionInbox& inbox() noexcept { return inbox_; }
+    bool inbox_visible() const noexcept { return inbox_visible_; }
+    void toggle_inbox() noexcept { inbox_visible_ = !inbox_visible_; }
     void choose_corner(const std::string& corner);
     // The overlay was dragged and settled here.
     void overlay_moved(const OverlayPlacement& placement);
@@ -93,6 +97,8 @@ private:
     std::optional<LaunchRequest> request_;
     ConnectionMonitor monitor_;
     OverlayState overlay_;
+    SubmissionInbox inbox_;
+    bool inbox_visible_ = false;
     PollDraft draft_;
     PollControl polls_;
     PanelNotice notice_;

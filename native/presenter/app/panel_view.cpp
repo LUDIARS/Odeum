@@ -1,5 +1,6 @@
 #include "panel_view.hpp"
 #include "labels.hpp"
+#include "inbox_view.hpp"
 
 namespace odeum::presenter {
 namespace {
@@ -114,6 +115,8 @@ tela::Document panel_document(PresenterController& c, bool with_grip) {
     doc.panel("panel", [&] {
         if (with_grip) doc.text(panel_grip, "::: Odeum 発表者パネル", text_box(1, 1.1f), tela::InputPolicy::exclusive);
         else doc.text("title", "Odeum 発表者パネル", text_box(1, 1.1f));
+        if (c.inbox_visible()) { inbox_view(doc, c); return; }
+        doc.button("inbox", "質問・感想の受信箱 (" + std::to_string(c.inbox().size()) + ")", [&c] { c.toggle_inbox(); });
         connection(doc, c);
         capture(doc, c);
         poll(doc, c);
