@@ -10,7 +10,7 @@
     {"pathPattern": "(^|/)scripts/site/(?:.*/)?[^/]+$"},
     {"pathPattern": "(^|/)excubitor\\.(catalog\\.yaml|bootstrap\\.json)$"},
     {"pathPattern": "(^|/)augur\\.(contracts|inject)\\.json$"},
-    {"pathPattern": "(^|/)contracts/(?!presenter-)[^/]+$"},
+    {"pathPattern": "(^|/)contracts/(?!presenter-|program-)[^/]+$"},
     {"pathPattern": "(^|/)spec/(feature/live-relay\\.md|tasks/2026-10-04-relay-implementation\\.md|tasks/2026-10-09-odeum-relay-slots\\.md|domains/live-(protocol|relay)\\.domain\\.json)$"}
   ]
 }

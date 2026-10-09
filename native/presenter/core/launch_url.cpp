@@ -68,7 +68,9 @@ void validate_ticket(const std::string& ticket) {
 }
 }
 
-LaunchRequest parse_launch_url(std::string_view text) {
+LaunchRequest parse_launch_url(std::string_view text) { return parse_launch_url(text, "present"); }
+
+LaunchRequest parse_launch_url(std::string_view text, std::string_view expected_action) {
     text = trim(text);
     if (text.size() > max_url_bytes) throw LaunchUrlError("invalid_url", "The launch link is too long");
     const auto colon = text.find(':');
@@ -80,7 +82,8 @@ LaunchRequest parse_launch_url(std::string_view text) {
     const auto question = rest.find('?');
     auto action = rest.substr(0, question);
     while (!action.empty() && action.back() == '/') action.remove_suffix(1);
-    if (!equals_lower(action, "present")) throw LaunchUrlError("unsupported_action", "Only odeum://present is accepted");
+    if (!equals_lower(action, expected_action))
+        throw LaunchUrlError("unsupported_action", "Only odeum://" + std::string(expected_action) + " is accepted");
     std::optional<std::string> relay, ticket;
     auto query = question == std::string_view::npos ? std::string_view{} : rest.substr(question + 1);
     while (!query.empty()) {

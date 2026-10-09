@@ -1,0 +1,11 @@
+# find_package(Odeum CONFIG) -> Odeum::odeum_sender: screen capture, H.264/Opus encoding and the
+# WebRTC sender of odeum-presenter, for Cocoiru and other senders to a relay input slot.
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+find_dependency(Threads)
+find_dependency(OpenSSL 3)
+find_dependency(nlohmann_json 3.11)
+find_dependency(LibDataChannel)
+find_dependency(Opus)
+include("${CMAKE_CURRENT_LIST_DIR}/OdeumTargets.cmake")
+check_required_components(Odeum)

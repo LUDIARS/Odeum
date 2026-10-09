@@ -19,11 +19,14 @@ struct CaptureTarget {
 
 // One captured picture. `native` is the platform's frame object (a retained CVPixelBuffer on
 // macOS, a D3D11 texture on Windows); only the encoder of the same platform reads it, so Core
-// passes it along without touching OS types.
+// passes it along without touching OS types. A frame composed in memory (odeum-program) carries
+// `nv12` instead: tightly packed NV12 (BT.709 limited range) at width x height, which the
+// encoders take as is.
 struct VideoFrame {
     int width{}, height{};
     std::int64_t timestamp_us{};
     std::shared_ptr<void> native;
+    std::shared_ptr<const std::vector<std::uint8_t>> nv12;
 };
 
 enum class CapturePermission { granted, denied, undetermined };

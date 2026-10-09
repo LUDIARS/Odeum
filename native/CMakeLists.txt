@@ -9,11 +9,20 @@ include(CTest)
 option(ODEUM_BUILD_PRESENTER "Build the odeum-presenter desktop app (Tela/Pictor required)" OFF)
 # The presenter's OS-independent core and its tests, without Tela, Pictor or any OS media API.
 option(ODEUM_BUILD_PRESENTER_CORE "Build only the presenter core and its tests" OFF)
+# odeum_sender (capture, encoding and the WebRTC sender) with install rules and OdeumConfig.cmake,
+# for Cocoiru's find_package(Odeum CONFIG). Needs no Tela.
+option(ODEUM_BUILD_SENDER "Build and install the odeum_sender library" OFF)
+# odeum-program: the parent machine's program (switching, composition, YouTube Live, return feed).
+option(ODEUM_BUILD_PROGRAM "Build the odeum-program desktop app (Tela/Pictor required)" OFF)
+# odeum-program's OS-independent core (layout, mixer, FLV, RTMP, settings) and its tests.
+option(ODEUM_BUILD_PROGRAM_CORE "Build only the program core and its tests" OFF)
 # Older dependency releases predate CMake 4's removal of pre-3.5 policy modes.
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 find_package(OpenSSL 3 REQUIRED)
 find_package(Threads REQUIRED)
 set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
+# OdeumConfig.cmake finds nlohmann_json through its installed package.
+set(JSON_Install ${ODEUM_BUILD_SENDER} CACHE BOOL "" FORCE)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
   URL_HASH SHA256=d6c65aca6b1ed68e7a182f4757257b107ae403032760ed6ef121c9d55e81757d)
 set(NO_EXAMPLES ON CACHE BOOL "" FORCE)
@@ -48,8 +57,11 @@ else()
 endif()
 add_subdirectory(protocol)
 add_subdirectory(relay)
-if(ODEUM_BUILD_PRESENTER OR ODEUM_BUILD_PRESENTER_CORE)
+if(ODEUM_BUILD_PRESENTER OR ODEUM_BUILD_PRESENTER_CORE OR ODEUM_BUILD_SENDER OR ODEUM_BUILD_PROGRAM OR ODEUM_BUILD_PROGRAM_CORE)
   add_subdirectory(presenter)
+endif()
+if(ODEUM_BUILD_PROGRAM OR ODEUM_BUILD_PROGRAM_CORE)
+  add_subdirectory(program)
 endif()
 if(BUILD_TESTING)
   add_subdirectory(tests)

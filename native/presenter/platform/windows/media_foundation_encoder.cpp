@@ -36,6 +36,14 @@ bool set_codec(ICodecAPI* codec, const GUID& key, ULONG value) {
     return SUCCEEDED(codec->SetValue(&key, &variant));
 }
 
+UINT32 mf_profile(H264Profile profile) {
+    switch (profile) {
+    case H264Profile::main: return eAVEncH264VProfile_Main;
+    case H264Profile::high: return eAVEncH264VProfile_High;
+    default: return eAVEncH264VProfile_ConstrainedBase;
+    }
+}
+
 ComPtr<IMFMediaType> video_type(const GUID& subtype, const StreamSettings& s) {
     ComPtr<IMFMediaType> type;
     check(MFCreateMediaType(&type), "MFCreateMediaType");
@@ -111,6 +119,10 @@ struct MediaFoundationEncoder::State {
             LONGLONG time = 0;
             sample->GetSampleTime(&time);
             frame.timestamp_us = time / 10;
+            // With B-frames the MFT stamps the decode time separately; without them it equals the sample time.
+            UINT64 decode_time = 0;
+            frame.decode_timestamp_us = SUCCEEDED(sample->GetUINT64(MFSampleExtension_DecodeTimestamp, &decode_time))
+                ? static_cast<std::int64_t>(decode_time) / 10 : frame.timestamp_us;
             UINT32 clean = 0;
             frame.keyframe = SUCCEEDED(sample->GetUINT32(MFSampleExtension_CleanPoint, &clean)) ? clean != 0 : contains_nal(frame.data, nal_idr);
             if (parameter_sets.empty()) read_parameter_sets();
@@ -176,8 +188,13 @@ void MediaFoundationEncoder::configure(const StreamSettings& settings, Sink sink
     check(state->mft.As(&state->codec), "ICodecAPI");
     auto* codec = state->codec.Get();
     const ULONG peak = static_cast<ULONG>(settings.max_bitrate_kbps) * 1000;
-    // Rate control has to be chosen before the media types are set.
-    if (set_codec(codec, CODECAPI_AVEncCommonRateControlMode, eAVEncCommonRateControlMode_PeakConstrainedVBR)) {
+    const bool baseline = h264_.profile == H264Profile::constrained_baseline;
+    // Rate control has to be chosen before the media types are set. Main/High is the program
+    // feed for YouTube, which asks for constant bitrate.
+    if (!baseline) {
+        set_codec(codec, CODECAPI_AVEncCommonRateControlMode, eAVEncCommonRateControlMode_CBR);
+        set_codec(codec, CODECAPI_AVEncCommonMeanBitRate, peak);
+    } else if (set_codec(codec, CODECAPI_AVEncCommonRateControlMode, eAVEncCommonRateControlMode_PeakConstrainedVBR)) {
         set_codec(codec, CODECAPI_AVEncCommonMeanBitRate, peak / 10 * 7);
         set_codec(codec, CODECAPI_AVEncCommonMaxBitRate, peak);
     } else {
@@ -185,17 +202,22 @@ void MediaFoundationEncoder::configure(const StreamSettings& settings, Sink sink
         set_codec(codec, CODECAPI_AVEncCommonMeanBitRate, peak);
     }
     set_codec(codec, CODECAPI_AVEncMPVGOPSize, static_cast<ULONG>(settings.fps * settings.keyframe_interval_s));
-    set_codec(codec, CODECAPI_AVEncMPVDefaultBPictureCount, 0);
+    // B-frames only outside Baseline; an encoder that refuses the count simply emits none.
+    const auto b_frames = baseline ? 0 : std::clamp(h264_.b_frames, 0, 2);
+    if (!set_codec(codec, CODECAPI_AVEncMPVDefaultBPictureCount, static_cast<ULONG>(b_frames))) set_codec(codec, CODECAPI_AVEncMPVDefaultBPictureCount, 0);
     VARIANT low_latency{};
     low_latency.vt = VT_BOOL;
-    low_latency.boolVal = VARIANT_TRUE;
+    // Low-latency mode turns reordering off, so it stays on only when no B-frames are wanted.
+    low_latency.boolVal = b_frames == 0 ? VARIANT_TRUE : VARIANT_FALSE;
     codec->SetValue(&CODECAPI_AVLowLatencyMode, &low_latency);
 
     auto output = video_type(MFVideoFormat_H264, settings);
     check(output->SetUINT32(MF_MT_AVG_BITRATE, peak), "average bitrate");
-    check(output->SetUINT32(MF_MT_MPEG2_PROFILE, eAVEncH264VProfile_ConstrainedBase), "profile");
+    check(output->SetUINT32(MF_MT_MPEG2_PROFILE, mf_profile(h264_.profile)), "profile");
     if (FAILED(state->mft->SetOutputType(0, output.Get(), 0))) {
         // Older encoders only know plain Baseline; without B-frames and FMO it decodes the same.
+        // Main/High has no such fallback: the profile was asked for, so a refusal is an error.
+        if (!baseline) throw std::runtime_error("The H.264 encoder refused the requested profile");
         check(output->SetUINT32(MF_MT_MPEG2_PROFILE, eAVEncH264VProfile_Base), "profile");
         check(state->mft->SetOutputType(0, output.Get(), 0), "SetOutputType");
     }
@@ -211,9 +233,16 @@ void MediaFoundationEncoder::configure(const StreamSettings& settings, Sink sink
 }
 
 void MediaFoundationEncoder::encode(const VideoFrame& frame, bool force_keyframe) {
-    if (!state_ || !frame.native) return;
+    if (!state_ || (!frame.native && !frame.nv12)) return;
     auto& s = *state_;
-    s.stage(frame, static_cast<ID3D11Texture2D*>(frame.native.get()));
+    if (frame.nv12) {
+        // Composed in memory at the stream size already (odeum-program).
+        if (frame.width != s.settings.width || frame.height != s.settings.height || frame.nv12->size() < s.nv12.size())
+            throw std::invalid_argument("NV12 frame does not match the stream size");
+        std::memcpy(s.nv12.data(), frame.nv12->data(), s.nv12.size());
+    } else {
+        s.stage(frame, static_cast<ID3D11Texture2D*>(frame.native.get()));
+    }
     ComPtr<IMFMediaBuffer> buffer;
     check(MFCreateMemoryBuffer(static_cast<DWORD>(s.nv12.size()), &buffer), "MFCreateMemoryBuffer");
     BYTE* bytes = nullptr;

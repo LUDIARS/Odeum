@@ -38,6 +38,11 @@ int main() { return run([] {
     refuses([&] { parse_launch_url("https://glab.example/present?relay=wss://r&ticket=" + t); }, "unsupported_scheme");
     refuses([&] { parse_launch_url("odeum-x://present?relay=wss://r&ticket=" + t); }, "unsupported_scheme");
     refuses([&] { parse_launch_url("odeum://view?relay=wss://r&ticket=" + t); }, "unsupported_action");
+    // odeum-program's producer link: same rules, another action, and neither accepts the other's.
+    check(parse_launch_url("odeum://produce?relay=wss://r.example&ticket=" + t, "produce").relay == "wss://r.example", "Producer link");
+    refuses([&] { parse_launch_url("odeum://produce?relay=wss://r&ticket=" + t); }, "unsupported_action");
+    refuses([&] { parse_launch_url("odeum://present?relay=wss://r&ticket=" + t, "produce"); }, "unsupported_action");
+    refuses([&] { parse_launch_url("odeum://produce?relay=ws://r&ticket=" + t, "produce"); }, "insecure_relay");
     refuses([&] { parse_launch_url("odeum://present?relay=ws://r.example&ticket=" + t); }, "insecure_relay");
     refuses([&] { parse_launch_url("odeum://present?relay=https://r.example&ticket=" + t); }, "insecure_relay");
     refuses([&] { parse_launch_url("odeum://present?ticket=" + t); }, "relay_missing");

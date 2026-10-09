@@ -23,6 +23,9 @@ struct LaunchUrlError : std::runtime_error {
 // surrounding whitespace ignored so a pasted link works). Rejects every other scheme or action,
 // a relay that is not wss://, and a missing or malformed ticket. Throws LaunchUrlError.
 LaunchRequest parse_launch_url(std::string_view text);
+// The same for another action: odeum-program takes `odeum://produce?relay=...&ticket=...`.
+// `expected_action` is lower case.
+LaunchRequest parse_launch_url(std::string_view text, std::string_view expected_action);
 
 // The relay's WebSocket endpoint for this ticket: <relay>/v1/ws?ticket=<ticket>.
 std::string relay_socket_url(const LaunchRequest&);

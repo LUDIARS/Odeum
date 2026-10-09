@@ -1,0 +1,14 @@
+{
+  "name": "program-production",
+  "description": "番組制作プロセス odeum-program: 入力 1〜4 の受信・切替・合成・リアクション合成、YouTube Live への FLV/RTMPS 送出、番組返送と操作パネル、その仕様と契約。",
+  "presetRules": [],
+  "specRefs": ["spec/feature/program-production.md", "spec/plan/2026-10-09-odeum-self-made-program-pipeline.md"],
+  "templateRules": [],
+  "membership": [
+    {"pathPattern": "(^|/)native/program/(?:.*/)?[^/]+$"},
+    {"pathPattern": "(^|/)native/cmake/(?:.*/)?[^/]+$"},
+    {"pathPattern": "(^|/)native/tests/program_[^/]+$"},
+    {"pathPattern": "(^|/)contracts/program-[^/]+$"},
+    {"pathPattern": "(^|/)spec/(feature/program-production\\.md|tasks/2026-10-09-odeum-program\\.md|domains/program-production\\.domain\\.json)$"}
+  ]
+}

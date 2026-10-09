@@ -122,10 +122,28 @@ odeum-presenter [odeum://present?...] [--font F.ttf] [--width W --height H] [--f
 macOS は `Arial Unicode.ttf`、Windows は `NotoSansJP-VF.ttf` など Windows 同梱の単体 .ttf。日本語の名前や
 コメントを正しく出すには日本語グリフを持つ .ttf を `--font` か `font` で指定する。
 
+## 送信ライブラリ odeum_sender
+
+取り込み・符号化・送信 (`transport/` と `platform/{windows,macos}/` の取り込み・符号化・音声) は静的ライブラリ
+`odeum_sender` にまとめ、odeum-presenter・odeum-program ([番組制作](program-production.md))・Cocoiru が link する。
+
+- `-DODEUM_BUILD_SENDER=ON` で `cmake --install` が `odeum_sender` / `odeum_presenter_core` / `odeum_protocol`、ヘッダ
+  (`include/odeum-sender/{core,transport,platform/<os>}`、`include/odeum`)、`lib/cmake/Odeum/OdeumConfig.cmake` を入れる。
+  依存の LibDataChannel・Opus・nlohmann_json も同じ prefix に CMake パッケージとして入る。利用側は
+  `find_package(Odeum CONFIG)` → `Odeum::odeum_sender` (OpenSSL 3 は利用側の環境から探す)。
+- `VideoEncoder::options(H264Options)` で profile (Constrained Baseline / Main / High) と B フレーム数 (0〜2) を指定できる。
+  既定は Constrained Baseline・B フレームなしで、presenter の送出は変わらない。Main/High は CBR、B フレームありでは
+  低遅延モードを切る。`EncodedFrame::decode_timestamp_us` は B フレームの並べ替え用。
+- `VideoFrame::nv12` に合成済みの NV12 (ストリームサイズ) を入れると、取り込みの OS フレームの代わりにそれを符号化する。
+- `parse_launch_url(text, action)` は `odeum://<action>` の起動リンクを同じ規則で検証する (program は `produce`)。
+- `ice_servers(json)` (welcome の ICE サーバ変換) と Windows の `windows_shell` (クリップボード・AppData・フォント候補) は共通部品。
+
 ## ビルド
 
 既定 (`ODEUM_BUILD_PRESENTER=OFF`) では中継サーバだけをビルドし、Tela/Pictor を要求しない。
 `ODEUM_BUILD_PRESENTER_CORE=ON` は Tela 無しで Core とそのテストだけを作る。
+`ODEUM_BUILD_SENDER=ON` は Tela 無しで `odeum_sender` とその install 規則を作る。
+Tela の取り込み (`native/cmake/tela.cmake`) と libopus (`native/cmake/opus.cmake`) は presenter と program で共通。
 
 ```sh
 # Windows (Tela は -DTELA_BUILD_WINDOWS=ON 相当で同時にビルドされる)
