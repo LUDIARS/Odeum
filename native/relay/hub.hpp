@@ -2,6 +2,7 @@
 #include "media.hpp"
 #include "invitations.hpp"
 #include "poll.hpp"
+#include "slots.hpp"
 #include <odeum/ticket.hpp>
 
 namespace odeum::relay {
@@ -27,7 +28,8 @@ private:
         Reactions reactions;
         Poll poll;
         std::int64_t started = 0;
-        std::uint64_t presenter = 0;
+        // slot -> sending participant (presenters and the producer). The room lives while any slot is held.
+        std::map<std::string, std::uint64_t> slots;
         bool reactions_ready = false;
     };
     boost::asio::io_context& io_;
@@ -36,6 +38,10 @@ private:
     Invitations invitations_;
     static std::size_t count(const Room& room, Role role);
     static void broadcast(const Room& room, const Json& message);
-    static Json presence(const Room& room);
+    // Per-person notices and private text go to presenters only, never to the producer or viewers.
+    static void notify_presenters(const Room& room, const Json& message);
+    static bool release_slot(Room& room, std::uint64_t id);
+    Json slots(const Room& room) const;
+    Json presence(const Room& room) const;
 };
 }

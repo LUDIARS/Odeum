@@ -41,6 +41,11 @@ TicketVerifier::TicketVerifier(const Json& public_keys) {
         keys_.emplace(kid, std::move(key));
     }
 }
+std::string sender_slot(const Ticket& ticket) {
+    if (ticket.role == Role::producer) return std::string(program_slot);
+    if (ticket.role != Role::presenter) return {};
+    return ticket.slot.empty() ? std::string(program_slot) : ticket.slot;
+}
 Ticket TicketVerifier::verify(std::string_view compact, std::int64_t now) const {
     try {
         if (compact.size() > 8192) invalid();
@@ -66,9 +71,16 @@ Ticket TicketVerifier::verify(std::string_view compact, std::int64_t now) const 
         auto role = parse_role(j.at("role").get<std::string>());
         if (role != Role::service) require_text(j, "sid", 256);
         Ticket ticket{j["sub"], j["name"], role == Role::service ? "" : j["sid"].get<std::string>(), j["jti"], role, exp};
+        const bool sender = role == Role::presenter || role == Role::producer;
+        if (j.contains("slot")) {
+            const auto& slot = j.at("slot");
+            if (!sender || !slot.is_string() || !valid_slot(slot.get_ref<const std::string&>())) invalid();
+            if (role == Role::producer && slot.get_ref<const std::string&>() != program_slot) invalid();
+            ticket.slot = slot.get<std::string>();
+        } else if (sender) ticket.slot = program_slot;
         if (j.contains("invite")) {
             const auto& invite = j.at("invite");
-            if (role != Role::presenter || !invite.is_object() || invite.size() != 2) invalid();
+            if (!sender || !invite.is_object() || invite.size() != 2) invalid();
             ticket.invite_join = digest(invite.at("join")); ticket.invite_overlay = digest(invite.at("overlay"));
             if (ticket.invite_join == ticket.invite_overlay) invalid();
         }

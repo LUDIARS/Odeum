@@ -1,4 +1,5 @@
 #include <odeum/message.hpp>
+#include <odeum/slot.hpp>
 #include <array>
 #include <algorithm>
 #include <set>
@@ -6,7 +7,7 @@
 namespace odeum {
 namespace {
 constexpr std::array names{"welcome", "sdp", "candidate", "good", "stamp", "comment", "poll.open",
-    "poll.close", "poll.closed", "poll.answer", "tally", "reaction.burst", "presence", "error", "telop", "submission", "reaction.ready"};
+    "poll.close", "poll.closed", "poll.answer", "tally", "reaction.burst", "presence", "error", "telop", "submission", "reaction.ready", "track.closed"};
 void require(bool condition) {
     if (!condition) throw ProtocolError("invalid_message", "Invalid message fields");
 }
@@ -99,9 +100,22 @@ Message parse_message(std::string_view wire) {
         case MessageType::reaction_burst:
             count(j.at("good"), 0, INT64_MAX); require(j.at("stamps").is_object());
             for (const auto& [k, v] : j["stamps"].items()) { require(k == "clap" || k == "laugh" || k == "wow" || k == "question" || k == "agree"); count(v, 0, INT64_MAX); } break;
-        case MessageType::presence: require(j.at("presenter_connected").is_boolean()); count(j.at("viewer_count"), 0, INT64_MAX); break;
+        case MessageType::presence:
+            require(j.at("presenter_connected").is_boolean()); count(j.at("viewer_count"), 0, INT64_MAX);
+            if (j.contains("program_connected")) require(j["program_connected"].is_boolean());
+            if (j.contains("slots")) {
+                require(j["slots"].is_object());
+                for (const auto& [slot, live] : j["slots"].items()) require(valid_slot(slot) && live.is_boolean());
+            }
+            break;
+        case MessageType::track_closed: {
+            const auto& mids = j.at("mids"); require(mids.is_array() && !mids.empty() && mids.size() <= 2 * max_input_slots);
+            for (const auto& mid : mids) { require(mid.is_string()); auto n = utf8_length(mid.get_ref<const std::string&>()); require(n > 0 && n <= 64); }
+            break;
+        }
         case MessageType::welcome:
-            require_text(j, "sid", 256); require(j.at("role") == "presenter" || j.at("role") == "viewer" || j.at("role") == "overlay");
+            require_text(j, "sid", 256); require(j.at("role") == "presenter" || j.at("role") == "viewer" || j.at("role") == "overlay" || j.at("role") == "producer");
+            if (j.contains("slot")) { require_text(j, "slot", 16); require(valid_slot(j["slot"].get<std::string>())); }
             identity(j.at("self")); require(j.at("ice_servers").is_array()); break;
         case MessageType::error: require_text(j, "code", 64); require_text(j, "message", 1000); break;
         }
@@ -115,10 +129,12 @@ std::string serialize_message(const Message& message) {
     return wire;
 }
 std::string role_name(Role r) {
-    return r == Role::presenter ? "presenter" : r == Role::viewer ? "viewer" : r == Role::overlay ? "overlay" : "service";
+    return r == Role::presenter ? "presenter" : r == Role::viewer ? "viewer" : r == Role::overlay ? "overlay"
+        : r == Role::producer ? "producer" : "service";
 }
 Role parse_role(std::string_view r) {
     if (r == "presenter") return Role::presenter; if (r == "viewer") return Role::viewer; if (r == "service") return Role::service;
+    if (r == "producer") return Role::producer;
     throw ProtocolError("invalid_ticket", "Invalid ticket");
 }
 Json error_message(std::string_view code, std::string_view message) { return {{"type", "error"}, {"code", code}, {"message", message}}; }

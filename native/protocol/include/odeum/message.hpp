@@ -8,9 +8,10 @@ namespace odeum {
 using Json = nlohmann::json;
 inline constexpr std::size_t max_message_bytes = 16 * 1024;
 // overlay is relay-internal (program overlay key); tickets never carry it.
-enum class Role { presenter, viewer, service, overlay };
+// producer receives every input slot of a room and sends its program slot (odeum-program).
+enum class Role { presenter, viewer, service, overlay, producer };
 enum class MessageType { welcome, sdp, candidate, good, stamp, comment, poll_open,
-    poll_close, poll_closed, poll_answer, tally, reaction_burst, presence, error, telop, submission, reaction_ready };
+    poll_close, poll_closed, poll_answer, tally, reaction_burst, presence, error, telop, submission, reaction_ready, track_closed };
 struct ProtocolError : std::runtime_error {
     std::string code;
     ProtocolError(std::string c, std::string message) : runtime_error(message), code(std::move(c)) {}

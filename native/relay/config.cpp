@@ -1,4 +1,5 @@
 #include "config.hpp"
+#include <odeum/slot.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <charconv>
 #include <cstdlib>
@@ -23,6 +24,7 @@ Config load_config() {
     c.web_access = WebAccess::from_environment(c.port);
     c.max_viewers = integer(env("ODEUM_RELAY_MAX_VIEWERS", "300"), 10000);
     c.max_sessions = integer(env("ODEUM_RELAY_MAX_SESSIONS", "32"), 1024);
+    c.max_inputs = integer(env("ODEUM_RELAY_MAX_INPUTS", "4"), max_input_slots);
     auto path = env("ODEUM_RELAY_TICKET_PUBKEYS"); if (path.empty()) throw std::runtime_error("ODEUM_RELAY_TICKET_PUBKEYS is required");
     std::ifstream keys(path, std::ios::binary); if (!keys) throw std::runtime_error("Cannot read public key file"); keys >> c.keys;
     auto range = env("ODEUM_RELAY_UDP_PORT_RANGE", "1024-65535"); auto dash = range.find('-');

@@ -30,7 +30,7 @@ odeum-presenter ──WS──▶ odeum-relay ── room に invite hash を登
 
 ## チケットの invite claim
 
-presenter チケットだけが任意の `invite` を持てる:
+presenter と producer のチケットだけが任意の `invite` を持てる (producer は [live-relay](live-relay.md) の「入力スロットと producer」):
 `{"join": "<base64url(SHA-256(参加コード))>", "overlay": "<base64url(SHA-256(鍵))>"}`。
 どちらも 43 文字の base64url。viewer/service チケットに `invite` があれば invalid。
 無ければその room のゲスト参加・overlay は無効 (従来互換)。

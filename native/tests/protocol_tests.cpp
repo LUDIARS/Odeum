@@ -13,6 +13,9 @@ int main() { return run([] {
         {{"type","reaction.burst"},{"good",1},{"stamps",{{"clap",1}}}},
         {{"type","presence"},{"presenter_connected",true},{"viewer_count",2}},
         {{"type","welcome"},{"sid","s"},{"role","viewer"},{"self",{{"sub","u"},{"name","名前"}}},{"ice_servers",Json::array()}},
+        {{"type","welcome"},{"sid","s"},{"role","producer"},{"slot","program"},{"self",{{"sub","u"},{"name","名前"}}},{"ice_servers",Json::array()}},
+        {{"type","presence"},{"presenter_connected",true},{"viewer_count",0},{"program_connected",false},{"slots",{{"input1",true},{"program",false}}}},
+        {{"type","track.closed"},{"mids",{"input1-1","input1-2"}}},
         error_message("unknown_type","Unknown type")
     };
     for (const auto& example : examples) {
@@ -37,6 +40,13 @@ int main() { return run([] {
     std::string text; for (int i=0; i<280; ++i) text += "😀";
     parse_message(Json{{"type","comment"},{"text",text}}.dump());
     text += "a"; rejects([&] { parse_message(Json{{"type","comment"},{"text",text}}.dump()); });
+    rejects([] { parse_message(R"({"type":"track.closed","mids":[]})"); });
+    rejects([] { parse_message(R"({"type":"track.closed","mids":[""]})"); });
+    rejects([] { parse_message(R"({"type":"presence","presenter_connected":true,"viewer_count":0,"slots":{"input9":true}})"); });
+    rejects([] { parse_message(R"({"type":"presence","presenter_connected":true,"viewer_count":0,"slots":{"input1":1}})"); });
+    rejects([] { parse_message(R"({"type":"welcome","sid":"s","role":"viewer","slot":"main","self":{"sub":"u","name":""},"ice_servers":[]})"); });
+    check(parse_role("producer") == Role::producer && role_name(Role::producer) == "producer", "Producer role name");
+    rejects([] { parse_role("overlay"); }, "invalid_ticket");
     check(utf8_length("日本語😀") == 4, "Unicode scalar count");
     rejects([] { utf8_length(std::string("\xc0\xaf",2)); });
     rejects([] { utf8_length(std::string("\xed\xa0\x80",3)); });

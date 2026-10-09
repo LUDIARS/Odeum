@@ -41,4 +41,25 @@ int main() { return run([] {
     bad=claims; bad["invite"]={{"join",join},{"overlay",overlay},{"extra",overlay}}; rejects([&] { verifier.verify(key.sign(bad),1000); },"invalid_ticket");
     bad=claims; bad["role"]="viewer"; bad["invite"]={{"join",join},{"overlay",overlay}};
     rejects([&] { verifier.verify(key.sign(bad),1000); },"invalid_ticket");
+
+    // Media slots: presenters default to program; only presenter and producer tickets carry a slot.
+    check(verifier.verify(key.sign(claims),1000).slot=="program","Omitted slot is program");
+    for (auto slot : {"input1","input4","input8","program"}) {
+        auto slotted=claims; slotted["slot"]=slot; check(verifier.verify(key.sign(slotted),1000).slot==slot,"Known slot");
+    }
+    for (auto slot : {"input0","input9","input01","Input1","main",""}) {
+        bad=claims; bad["slot"]=slot; rejects([&] { verifier.verify(key.sign(bad),1000); },"invalid_ticket");
+    }
+    bad=claims; bad["slot"]=1; rejects([&] { verifier.verify(key.sign(bad),1000); },"invalid_ticket");
+    for (auto role : {"viewer","service"}) {
+        bad=claims; bad["role"]=role; bad["slot"]="input1"; rejects([&] { verifier.verify(key.sign(bad),1000); },"invalid_ticket");
+    }
+    auto viewer=claims; viewer["role"]="viewer"; check(verifier.verify(key.sign(viewer),1000).slot.empty(),"Viewers have no slot");
+    auto producer=claims; producer["role"]="producer"; producer["invite"]={{"join",join},{"overlay",overlay}};
+    auto produced=verifier.verify(key.sign(producer),1000);
+    check(produced.role==Role::producer && produced.slot=="program" && produced.invite_join==join,"Producer ticket with invite");
+    producer["slot"]="program"; check(verifier.verify(key.sign(producer),1000).slot=="program","Producer may name program");
+    producer["slot"]="input1"; rejects([&] { verifier.verify(key.sign(producer),1000); },"invalid_ticket");
+    check(sender_slot(Ticket{"p","P","s","j",Role::presenter,0})=="program","Unset presenter slot is program");
+    check(sender_slot(Ticket{"v","V","s","j",Role::viewer,0}).empty(),"Viewers send nothing");
 }); }

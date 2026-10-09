@@ -2,7 +2,7 @@
   "name": "live-relay",
   "description": "ネイティブ中継、ビルド、導入と契約証跡。",
   "presetRules": [],
-  "specRefs": ["spec/feature/sender-reactions.md"],
+  "specRefs": ["spec/feature/sender-reactions.md", "spec/feature/live-relay.md"],
   "templateRules": [],
   "membership": [
     {"pathPattern": "(^|/)native/relay/(?:.*/)?[^/]+$"},
@@ -11,6 +11,6 @@
     {"pathPattern": "(^|/)excubitor\\.(catalog\\.yaml|bootstrap\\.json)$"},
     {"pathPattern": "(^|/)augur\\.(contracts|inject)\\.json$"},
     {"pathPattern": "(^|/)contracts/(?!presenter-)[^/]+$"},
-    {"pathPattern": "(^|/)spec/(feature/live-relay\\.md|tasks/2026-10-04-relay-implementation\\.md|domains/live-(protocol|relay)\\.domain\\.json)$"}
+    {"pathPattern": "(^|/)spec/(feature/live-relay\\.md|tasks/2026-10-04-relay-implementation\\.md|tasks/2026-10-09-odeum-relay-slots\\.md|domains/live-(protocol|relay)\\.domain\\.json)$"}
   ]
 }

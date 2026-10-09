@@ -1,75 +1,28 @@
 #include "media.hpp"
+#include "slots.hpp"
 #include <boost/asio/post.hpp>
-#include <sstream>
 
 namespace odeum::relay {
 namespace {
-unsigned byte(const rtc::binary& p, std::size_t i) { return std::to_integer<unsigned>(p.at(i)); }
-bool is_rtcp(const rtc::binary& p) { return p.size() >= 4 && (byte(p, 0) >> 6) == 2 && byte(p, 1) >= 192 && byte(p, 1) <= 223; }
 void send_packet(const std::shared_ptr<rtc::Track>& track, const rtc::binary& packet) {
     if (!track->isOpen()) return;
     try { track->send(packet); }
     catch (const std::exception&) { /* A concurrent transport close drops this packet; no payload is logged. */ }
 }
-bool supported_codec(const rtc::Description::Media& media, int pt) {
-    const auto* codec = media.rtpMap(pt);
-    if (media.type() == "audio") return (codec->format == "opus" || codec->format == "OPUS") && codec->clockRate == 48000;
-    if (codec->format != "H264" || codec->clockRate != 90000) return false;
-    bool mode = false, profile = false;
-    for (const auto& fmt : codec->fmtps) {
-        mode |= fmt.find("packetization-mode=1") != std::string::npos;
-        profile |= fmt.find("profile-level-id=42e0") != std::string::npos || fmt.find("profile-level-id=42c0") != std::string::npos;
-    }
-    return mode && profile;
+void close_link(const std::shared_ptr<rtc::PeerConnection>& pc) { if (pc) { pc->resetCallbacks(); pc->close(); } }
+// Marks the section removed before closing so the next relay offer rejects it (port 0).
+void retire(const std::shared_ptr<rtc::Track>& track) {
+    auto description = track->description(); description.markRemoved();
+    try { track->setDescription(std::move(description)); } catch (const std::exception&) { /* already detached */ }
+    track->close();
 }
-void validate_media(const rtc::Description& description, Role role) {
-    if (description.hasApplication() || description.mediaCount() < 1 || description.mediaCount() > 2)
-        throw ProtocolError("invalid_sdp", "One H264 video and optional Opus audio are required");
-    int videos = 0, audios = 0;
-    for (int i = 0; i < description.mediaCount(); ++i) {
-        auto entry = description.media(i);
-        auto media = std::get_if<const rtc::Description::Media*>(&entry);
-        if (!media || (*media)->isRemoved()) throw ProtocolError("invalid_sdp", "Invalid media section");
-        const auto& m = **media;
-        if (m.direction() != (role == Role::presenter ? rtc::Description::Direction::SendOnly : rtc::Description::Direction::RecvOnly))
-            throw ProtocolError("invalid_sdp", "Invalid media direction");
-        if (m.type() == "video") ++videos; else if (m.type() == "audio") ++audios; else throw ProtocolError("invalid_sdp", "Unsupported media");
-        if (role == Role::presenter && m.getSSRCs().size() != 1) throw ProtocolError("invalid_sdp", "Each source must declare one SSRC");
-        bool supported = false;
-        for (auto pt : m.payloadTypes()) {
-            supported |= supported_codec(m, pt);
-        }
-        if (!supported) throw ProtocolError("invalid_sdp", "Unsupported codec profile");
-    }
-    if (videos != 1 || audios > 1) throw ProtocolError("invalid_sdp", "Invalid media count");
-}
-}
-bool contains_keyframe_request(const rtc::binary& packet) {
-    if (!is_rtcp(packet)) return false;
-    for (std::size_t offset = 0; offset + 4 <= packet.size();) {
-        auto size = ((byte(packet, offset + 2) << 8) | byte(packet, offset + 3)) * 4 + 4;
-        if (size < 4 || offset + size > packet.size()) return false;
-        auto fmt = byte(packet, offset) & 31;
-        if (byte(packet, offset + 1) == 206 && ((fmt == 1 && size >= 12) || (fmt == 4 && size >= 20))) return true;
-        offset += size;
-    }
-    return false;
-}
-std::string public_candidate(std::string candidate, const std::string& address) {
-    if (address.empty()) return candidate;
-    std::istringstream input(candidate); std::vector<std::string> parts; std::string part;
-    while (input >> part) parts.push_back(part);
-    if (parts.size() < 8 || parts[6] != "typ" || parts[7] != "host" || (parts[2] != "UDP" && parts[2] != "udp")) return candidate;
-    parts[4] = address;
-    std::ostringstream result; for (std::size_t i = 0; i < parts.size(); ++i) { if (i) result << ' '; result << parts[i]; }
-    return result.str();
 }
 MediaRoom::MediaRoom(boost::asio::io_context& io, const Config& config) : io_(io), config_(config) {}
-MediaRoom::~MediaRoom() { for (auto& [id, peer] : peers_) { peer.pc->resetCallbacks(); peer.pc->close(); } }
-void MediaRoom::join(std::uint64_t id, Role role, Send send) {
-    auto pc = std::make_shared<rtc::PeerConnection>(config_.rtc);
+MediaRoom::~MediaRoom() { for (auto& [id, peer] : peers_) { close_link(peer.up.pc); close_link(peer.down.pc); } }
+MediaRoom::Link MediaRoom::link(std::uint64_t id) {
+    Link result{std::make_shared<rtc::PeerConnection>(config_.rtc)};
     auto weak = weak_from_this();
-    pc->onLocalDescription([weak, id](rtc::Description description) {
+    result.pc->onLocalDescription([weak, id](rtc::Description description) {
         if (auto self = weak.lock()) boost::asio::post(self->io_, [weak, id, description = std::move(description)] {
             if (auto room = weak.lock(); room && room->peers_.contains(id)) {
                 auto& peer = room->peers_.at(id);
@@ -77,96 +30,178 @@ void MediaRoom::join(std::uint64_t id, Role role, Send send) {
             }
         });
     });
-    pc->onLocalCandidate([weak, id](rtc::Candidate candidate) {
+    result.pc->onLocalCandidate([weak, id](rtc::Candidate candidate) {
         if (auto self = weak.lock()) boost::asio::post(self->io_, [weak, id, candidate = std::move(candidate)] {
             if (auto room = weak.lock(); room && room->peers_.contains(id)) room->peers_.at(id).send({{"type", "candidate"},
                 {"candidate", public_candidate(std::string(candidate), room->config_.public_ip)}, {"mid", candidate.mid()}});
         });
     });
-    peers_.emplace(id, Peer{role, std::move(send), pc, {}, {}, false});
-    if (role == Role::presenter) presenter_ = id; else { subscribe(id); keyframe_pending_ = true; }
+    return result;
+}
+void MediaRoom::join(std::uint64_t id, Role role, const std::string& slot, Send send) {
+    Peer peer{role, slot, std::move(send)};
+    const bool sends = role == Role::presenter || role == Role::producer, receives = role != Role::presenter;
+    if (sends) peer.up = link(id);
+    if (receives) peer.down = link(id);
+    peers_.emplace(id, std::move(peer));
+    if (receives) refresh(id);
 }
 void MediaRoom::leave(std::uint64_t id) {
     auto it = peers_.find(id); if (it == peers_.end()) return;
-    it->second.pc->resetCallbacks(); it->second.pc->close(); peers_.erase(it);
-    if (id == presenter_) { presenter_ = 0; sources_.clear(); keyframe_pending_ = false; }
+    close_link(it->second.up.pc); close_link(it->second.down.pc);
+    const auto slot = it->second.slot; peers_.erase(it);
+    if (auto source = sources_.find(slot); source != sources_.end() && source->second.peer == id) {
+        sources_.erase(source); refresh_receivers();
+    }
 }
-void MediaRoom::attach(std::uint64_t id, const std::string& mid, const std::shared_ptr<rtc::Track>& track) {
+std::set<std::string> MediaRoom::wanted(const Peer& peer) const {
+    std::set<std::string> live, result;
+    for (const auto& [slot, source] : sources_) live.insert(slot);
+    if (peer.role == Role::producer) {
+        for (const auto& slot : live) if (slot != program_slot) result.insert(slot);
+    } else if (auto slot = viewer_slot(live)) result.insert(*slot);
+    return result;
+}
+void MediaRoom::refresh(std::uint64_t id) {
+    auto& peer = peers_.at(id);
+    const auto want = wanted(peer);
+    Json closed = Json::array();
+    for (auto it = peer.feeds.begin(); it != peer.feeds.end();) {
+        auto source = sources_.find(it->second.slot);
+        if (want.contains(it->second.slot) && source != sources_.end() && source->second.peer == it->second.source) { ++it; continue; }
+        if (auto track = peer.down.tracks.find(it->first); track != peer.down.tracks.end()) { retire(track->second); peer.down.tracks.erase(track); }
+        closed.push_back(it->first); it = peer.feeds.erase(it);
+    }
+    std::set<std::string> fed; for (const auto& [mid, feed] : peer.feeds) fed.insert(feed.slot);
+    bool added = false;
+    for (const auto& slot : want) {
+        if (fed.contains(slot)) continue;
+        auto& source = sources_.at(slot);
+        for (const auto& [source_mid, media] : source.media) {
+            const auto mid = slot + "-" + std::to_string(++peer.next_mid);
+            auto track = peer.down.pc->addTrack(downstream_media(media, mid));
+            peer.down.tracks.emplace(mid, track); peer.down_mids.insert(mid);
+            peer.feeds.emplace(mid, Feed{slot, source.peer, source_mid});
+            attach(id, false, mid, track);
+        }
+        source.keyframe_pending = true; added = true;
+    }
+    // The producer learns which sections ended before the offer that removes them.
+    if (peer.role == Role::producer && !closed.empty()) peer.send({{"type", "track.closed"}, {"mids", closed}});
+    if (added || !closed.empty()) negotiate(peer);
+}
+void MediaRoom::refresh_receivers() {
+    for (auto& [id, peer] : peers_) if (peer.role != Role::presenter) refresh(id);
+}
+void MediaRoom::negotiate(Peer& peer) {
+    // One offer at a time; a change during an outstanding offer is re-offered after the answer.
+    if (peer.awaiting_answer) { peer.renegotiate = true; return; }
+    peer.awaiting_answer = true; peer.down.pc->setLocalDescription(rtc::Description::Type::Offer);
+}
+void MediaRoom::request_keyframe(const std::string& slot) {
+    if (auto source = sources_.find(slot); source != sources_.end()) source->second.keyframe_pending = true;
+}
+void MediaRoom::attach(std::uint64_t id, bool upstream, const std::string& mid, const std::shared_ptr<rtc::Track>& track) {
     auto weak = weak_from_this();
-    track->onMessage([weak, id, mid](rtc::message_variant data) {
+    track->onMessage([weak, id, upstream, mid](rtc::message_variant data) {
         auto packet = std::get_if<rtc::binary>(&data); if (!packet) return;
         if (auto room = weak.lock()) {
             if (room->queued_packets_.fetch_add(1) >= 512) { --room->queued_packets_; return; }
-            boost::asio::post(room->io_, [weak, id, mid, packet = std::move(*packet)] {
-                if (auto self = weak.lock()) { --self->queued_packets_; self->receive(id, mid, packet); }
+            boost::asio::post(room->io_, [weak, id, upstream, mid, packet = std::move(*packet)] {
+                if (auto self = weak.lock()) { --self->queued_packets_; self->receive(id, upstream, mid, packet); }
             });
         }
     });
-    track->onOpen([weak] {
-        if (auto room = weak.lock()) boost::asio::post(room->io_, [weak] { if (auto self = weak.lock()) self->keyframe_pending_ = true; });
+    track->onOpen([weak, id, upstream, mid] {
+        if (auto room = weak.lock()) boost::asio::post(room->io_, [weak, id, upstream, mid] {
+            auto self = weak.lock(); if (!self || !self->peers_.contains(id)) return;
+            const auto& peer = self->peers_.at(id);
+            if (upstream) self->request_keyframe(peer.slot);
+            else if (auto feed = peer.feeds.find(mid); feed != peer.feeds.end()) self->request_keyframe(feed->second.slot);
+        });
     });
 }
-void MediaRoom::subscribe(std::uint64_t id) {
-    auto& viewer = peers_.at(id); if (sources_.empty() || viewer.offered) return;
-    for (const auto& [mid, source] : sources_) {
-        auto description = source; description.setDirection(rtc::Description::Direction::SendOnly);
-        auto track = viewer.pc->addTrack(description); viewer.tracks.emplace(mid, track); attach(id, mid, track);
+void MediaRoom::publish(std::uint64_t id, const rtc::Description& offer) {
+    auto& peer = peers_.at(id);
+    auto description = offer;
+    Source source{id};
+    for (int i = 0; i < description.mediaCount(); ++i) {
+        auto media = *std::get<rtc::Description::Media*>(description.media(i));
+        // Keep only negotiated primary codecs; RTP remains byte-for-byte unchanged.
+        for (auto pt : media.payloadTypes()) {
+            if (!supported_codec(media, pt)) media.removeRtpMap(pt);
+        }
+        source.media.emplace(media.mid(), media);
+        media.setDirection(rtc::Description::Direction::RecvOnly);
+        auto track = peer.up.pc->addTrack(media); peer.up.tracks.emplace(media.mid(), track); attach(id, true, media.mid(), track);
     }
-    viewer.offered = true; viewer.pc->setLocalDescription(rtc::Description::Type::Offer);
+    peer.offered = true; peer.up.pc->setRemoteDescription(description); peer.up.pc->setLocalDescription(rtc::Description::Type::Answer);
+    for (const auto& candidate : peer.up.candidates) peer.up.pc->addRemoteCandidate(candidate);
+    peer.up.candidates.clear();
+    sources_.insert_or_assign(peer.slot, std::move(source));
+    refresh_receivers();
 }
 void MediaRoom::signal(std::uint64_t id, const Message& message) {
     auto& peer = peers_.at(id);
     if (message.type == MessageType::candidate) {
         auto value = message.body.at("candidate").get<std::string>(); if (value.empty()) return;
-        rtc::Candidate candidate(value, message.body.at("mid").get<std::string>());
-        if (peer.pc->remoteDescription()) peer.pc->addRemoteCandidate(candidate);
-        else { if (peer.candidates.size() >= 128) throw ProtocolError("capacity", "Too many ICE candidates"); peer.candidates.push_back(candidate); }
+        const auto mid = message.body.at("mid").get<std::string>();
+        // A producer's candidates belong to the relay offer when they name a relay-assigned mid.
+        auto& link = peer.role == Role::viewer || (peer.role == Role::producer && peer.down_mids.contains(mid)) ? peer.down : peer.up;
+        rtc::Candidate candidate(value, mid);
+        if (link.pc->remoteDescription()) link.pc->addRemoteCandidate(candidate);
+        else { if (link.candidates.size() >= 128) throw ProtocolError("capacity", "Too many ICE candidates"); link.candidates.push_back(candidate); }
         return;
     }
     const auto& body = message.body.at("sdp");
     rtc::Description description(body.at("sdp").get<std::string>(), body.at("type").get<std::string>());
-    validate_media(description, peer.role);
-    if (peer.role == Role::presenter) {
-        if (description.type() != rtc::Description::Type::Offer || peer.offered) throw ProtocolError("invalid_sdp", "Presenter must send one offer per connection");
-        for (int i = 0; i < description.mediaCount(); ++i) {
-            auto source = *std::get<rtc::Description::Media*>(description.media(i));
-            // Keep only negotiated primary codecs; RTP remains byte-for-byte unchanged.
-            for (auto pt : source.payloadTypes()) {
-                if (!supported_codec(source, pt)) source.removeRtpMap(pt);
-            }
-            sources_.emplace(source.mid(), source);
-            source.setDirection(rtc::Description::Direction::RecvOnly);
-            auto track = peer.pc->addTrack(source); peer.tracks.emplace(source.mid(), track); attach(id, source.mid(), track);
-        }
-        peer.offered = true; peer.pc->setRemoteDescription(description); peer.pc->setLocalDescription(rtc::Description::Type::Answer);
-        for (auto& [viewer_id, viewer] : peers_) if (viewer.role == Role::viewer) subscribe(viewer_id);
-    } else {
-        if (description.type() != rtc::Description::Type::Answer || !peer.offered) throw ProtocolError("invalid_sdp", "Viewer must answer the relay offer");
-        peer.pc->setRemoteDescription(description);
+    if (description.type() == rtc::Description::Type::Offer) {
+        if (peer.role == Role::viewer) throw ProtocolError("invalid_sdp", "Viewer must answer the relay offer");
+        if (peer.offered) throw ProtocolError("invalid_sdp", "Presenter must send one offer per connection");
+        validate_offer(description);
+        publish(id, description);
+        return;
     }
-    for (const auto& candidate : peer.candidates) peer.pc->addRemoteCandidate(candidate);
-    peer.candidates.clear(); keyframe_pending_ = true;
+    if (peer.role == Role::presenter) throw ProtocolError("invalid_sdp", "Presenter must send one offer per connection");
+    if (description.type() != rtc::Description::Type::Answer || !peer.awaiting_answer)
+        throw ProtocolError("invalid_sdp", "Viewer must answer the relay offer");
+    std::set<std::string> live; for (const auto& [mid, track] : peer.down.tracks) live.insert(mid);
+    validate_answer(description, peer.down_mids, live, peer.role == Role::producer ? 2 * config_.max_inputs : 2);
+    peer.down.pc->setRemoteDescription(description);
+    for (const auto& candidate : peer.down.candidates) peer.down.pc->addRemoteCandidate(candidate);
+    peer.down.candidates.clear(); peer.awaiting_answer = false;
+    for (const auto& [mid, feed] : peer.feeds) request_keyframe(feed.slot);
+    if (peer.renegotiate) { peer.renegotiate = false; negotiate(peer); }
 }
-void MediaRoom::receive(std::uint64_t id, const std::string& mid, rtc::binary packet) {
-    if (!peers_.contains(id)) return;
-    if (id == presenter_) {
-        for (const auto& [viewer_id, peer] : peers_) {
-            if (peer.role != Role::viewer) continue;
-            if (auto track = peer.tracks.find(mid); track != peer.tracks.end()) send_packet(track->second, packet);
+void MediaRoom::receive(std::uint64_t id, bool upstream, const std::string& mid, rtc::binary packet) {
+    auto it = peers_.find(id); if (it == peers_.end()) return;
+    if (upstream) {
+        auto source = sources_.find(it->second.slot);
+        if (source == sources_.end() || source->second.peer != id) return;
+        for (const auto& [receiver_id, receiver] : peers_) {
+            for (const auto& [down_mid, feed] : receiver.feeds) {
+                if (feed.source != id || feed.source_mid != mid) continue;
+                if (auto track = receiver.down.tracks.find(down_mid); track != receiver.down.tracks.end()) send_packet(track->second, packet);
+            }
         }
-    } else if (contains_keyframe_request(packet)) keyframe_pending_ = true;
-    // Receiver reports and NACK are intentionally terminated per viewer; PLI/FIR alone affect the source.
+    } else if (contains_keyframe_request(packet)) {
+        // A viewer's request goes to its current source; the producer's to the slot of that section.
+        if (auto feed = it->second.feeds.find(mid); feed != it->second.feeds.end()) request_keyframe(feed->second.slot);
+    }
+    // Receiver reports and NACK are intentionally terminated per receiver; PLI/FIR alone affect the source.
 }
 void MediaRoom::tick(Millis now) {
-    if (!keyframe_pending_ || !presenter_ || now - last_keyframe_ < 1000) return;
-    for (const auto& [mid, description] : sources_) {
-        if (description.type() != "video") continue;
-        auto track = peers_.at(presenter_).tracks.at(mid); if (!track->isOpen()) return;
-        const auto ssrc = description.getSSRCs().at(0);
-        rtc::binary pli(12, std::byte{0}); pli[0] = std::byte{0x81}; pli[1] = std::byte{206}; pli[3] = std::byte{2};
-        for (unsigned i = 0; i < 4; ++i) pli[8 + i] = static_cast<std::byte>((ssrc >> (24 - 8 * i)) & 255);
-        send_packet(track, pli);
+    for (auto& [slot, source] : sources_) {
+        if (!source.keyframe_pending || now - source.last_keyframe < 1000) continue;
+        const auto& sender = peers_.at(source.peer);
+        bool open = true;
+        for (const auto& [mid, description] : source.media) {
+            if (description.type() != "video") continue;
+            const auto& track = sender.up.tracks.at(mid);
+            if (!track->isOpen()) { open = false; continue; }
+            send_packet(track, picture_loss_indication(description.getSSRCs().at(0)));
+        }
+        if (open) { source.last_keyframe = now; source.keyframe_pending = false; }
     }
-    last_keyframe_ = now; keyframe_pending_ = false;
 }
 }
