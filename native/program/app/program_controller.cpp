@@ -2,6 +2,7 @@
 #include "program_labels.hpp"
 #include "program_settings_file.hpp"
 #include "../core/producer_routing.hpp"
+#include "../core/archive_reader.hpp"
 #include "app/labels.hpp"
 #include "core/keyframe_request.hpp"
 #include "../render/nv12_canvas.hpp"
@@ -36,7 +37,9 @@ ProgramController::ProgramController(presenter::EventQueue& queue, ProgramPlatfo
               const auto delay = supervisor_.failed(now_);
               tell(publish_error_label(code) + " (" + std::to_string(delay / 1000) + " 秒後に再接続)", true);
           },
-          [this] { if (engine_) engine_->request_program_keyframe(); }}),
+          [this] { if (engine_) engine_->request_program_keyframe(); },
+          [this] { supervisor_.stop(); replaying_ = false; tell("アーカイブの配信が終了しました"); }}),
+      recorder_(metadata(settings_)),
       sender_(queue, presenter::MediaSender::Callbacks{
           [this](const Json& message) {
               try { link_.send(message); }
@@ -73,8 +76,8 @@ ProgramController::ProgramController(presenter::EventQueue& queue, ProgramPlatfo
     std::array<InputPipeline*, input_count> inputs{};
     for (int i = 0; i < input_count; ++i) inputs[static_cast<std::size_t>(i)] = pipelines_[static_cast<std::size_t>(i)].get();
     engine_ = std::make_unique<ProgramEngine>(platform, settings_, inputs, mixer_, ProgramEngine::Outputs{
-        [this](const presenter::EncodedFrame& frame) { publisher_.video(frame); },
-        [this](const AacPacket& packet) { publisher_.audio(packet); },
+        [this](const presenter::EncodedFrame& frame) { publisher_.video(frame); recorder_.video(frame); },
+        [this](const AacPacket& packet) { publisher_.audio(packet); recorder_.audio(packet); },
         [this](const presenter::EncodedFrame& frame) { sender_.send_video(frame); },
         [this](std::span<const std::byte> packet, std::int64_t timestamp_us) { sender_.send_audio(packet, timestamp_us); }});
 }
@@ -86,6 +89,7 @@ ProgramController::~ProgramController() {
     publisher_.stop();
     sender_.stop();
     engine_.reset();
+    recorder_.stop();
 }
 
 void ProgramController::tell(std::string text, bool error) { notice_ = {std::move(text), error}; }
@@ -132,6 +136,15 @@ void ProgramController::accept_launch(std::string_view text) {
         auto request = presenter::parse_launch_url(text, "produce");
         const auto expiry = presenter::ticket_expiry(request.ticket);
         if (expiry <= epoch_s_) { tell("このリンクのチケットは期限切れです。GLab で番組リンクを再発行してください", true); return; }
+        if (recorder_.status().recording || returning_ || supervisor_.status() != PublishStatus::stopped) {
+            tell("配信と録画を止めてから別の番組リンクを開いてください", true); return;
+        }
+        // GLab context is local metadata only; relay still verifies the producer ticket.
+        if (!request.project_id.empty()) {
+            settings_.project_id = request.project_id;
+            selected_archive_.reset();
+            save();
+        }
         link_.close();
         receiver_.stop();
         sender_.stop();
@@ -162,6 +175,7 @@ void ProgramController::handle(const Message& message) {
             return;
         }
         monitor_.welcomed();
+        if (!recorder_.status().recording) start_recording();
         // The program draws public telops and submissions, so it may announce readiness too.
         link_.send({{"type", "reaction.ready"}, {"version", 1}});
         overlay_.reset();
@@ -169,7 +183,7 @@ void ProgramController::handle(const Message& message) {
         ice_servers_ = message.body.at("ice_servers");
         receiver_.start(*ice_servers_);
         if (returning_) sender_.start(*ice_servers_, true);
-        tell("中継に接続しました");
+        if (recorder_.status().recording) tell("中継に接続し、録画を始めました");
         return;
     case MessageType::sdp:
     case MessageType::candidate:
@@ -255,11 +269,17 @@ void ProgramController::begin_publish() {
         tell("YouTube のストリームキーが設定されていません。「キーを貼り付け」で設定してください", true);
         return;
     }
-    publisher_.start(parse_rtmps_url(settings_.youtube_url), std::move(*key));
+    try {
+        if (replaying_ && selected_archive_) publisher_.start_archive(parse_rtmps_url(settings_.youtube_url), std::move(*key), *selected_archive_);
+        else publisher_.start(parse_rtmps_url(settings_.youtube_url), std::move(*key));
+    } catch (const std::exception&) { supervisor_.stop(); replaying_ = false; tell("アーカイブを読み込めません", true); }
 }
 
 void ProgramController::start_youtube() {
     if (supervisor_.status() != PublishStatus::stopped) return;
+    if (!recorder_.status().recording) start_recording();
+    if (!recorder_.status().recording) return;
+    replaying_ = false;
     supervisor_.start();
     begin_publish();
     if (supervisor_.status() == PublishStatus::connecting) tell("YouTube に接続しています");
@@ -268,6 +288,7 @@ void ProgramController::start_youtube() {
 void ProgramController::stop_youtube() {
     supervisor_.stop();
     publisher_.stop();
+    replaying_ = false;
     tell("YouTube への送出を止めました");
 }
 
@@ -297,6 +318,8 @@ void ProgramController::erase_stream_key() {
 
 void ProgramController::start_return() {
     if (returning_) return;
+    if (!recorder_.status().recording) start_recording();
+    if (!recorder_.status().recording) return;
     returning_ = true;
     if (ice_servers_ && monitor_.status() == presenter::LinkStatus::connected) sender_.start(*ice_servers_, true);
     tell("番組の返送を始めました");
@@ -310,5 +333,57 @@ void ProgramController::stop_return() {
 
 void ProgramController::quit() {
     if (hooks_.quit) hooks_.quit();
+}
+
+void ProgramController::paste_project() {
+    if (recorder_.status().recording || returning_ || supervisor_.status() != PublishStatus::stopped) {
+        tell("配信と録画を止めてからプロジェクトを変更してください", true); return;
+    }
+    auto next = settings_;
+    next.project_id = trimmed(platform_.clipboard_text());
+    try {
+        validate(next);
+        if (next.project_id.empty()) throw std::invalid_argument("empty project");
+        settings_ = std::move(next); selected_archive_.reset(); save(); tell("GLab のプロジェクト ID を設定しました");
+    } catch (const std::invalid_argument&) { tell("GLab のプロジェクト ID を貼り付けてください", true); }
+}
+
+void ProgramController::start_recording() {
+    if (recorder_.status().recording) return;
+    try {
+        const auto root = settings_.archive_directory.empty() ? settings_path_.parent_path() / "archives" :
+            std::filesystem::path(settings_.archive_directory);
+        recorder_.start(root, settings_.project_id);
+        if (engine_) engine_->request_program_keyframe();
+        tell("合成済みの番組を録画しています");
+    } catch (const std::exception&) { tell("録画を始められません。プロジェクト ID と保存先を確認してください", true); }
+}
+
+void ProgramController::stop_recording() {
+    recorder_.stop();
+    tell(recorder_.status().error.empty() ? "録画を保存しました" : "録画の保存に失敗しました", !recorder_.status().error.empty());
+}
+
+void ProgramController::next_archive() {
+    if (supervisor_.status() != PublishStatus::stopped) { tell("送出を止めてから録画を選んでください", true); return; }
+    try {
+        const auto root = settings_.archive_directory.empty() ? settings_path_.parent_path() / "archives" : std::filesystem::path(settings_.archive_directory);
+        const auto files = project_archives(root, settings_.project_id);
+        if (files.empty()) { selected_archive_.reset(); tell("このプロジェクトには保存済み録画がありません"); return; }
+        auto it = selected_archive_ ? std::find(files.begin(), files.end(), *selected_archive_) : files.end();
+        selected_archive_ = it == files.end() || ++it == files.end() ? files.front() : *it;
+        tell("保存済み録画を選びました。配信ボタンで後日配信できます");
+    } catch (const std::exception&) { tell("録画一覧を読み込めません。プロジェクトと保存先を確認してください", true); }
+}
+
+std::string ProgramController::archive_label() const {
+    return selected_archive_ ? selected_archive_->parent_path().filename().string() : "未選択";
+}
+
+void ProgramController::replay_archive() {
+    if (supervisor_.status() != PublishStatus::stopped) { tell("現在の送出を止めてください", true); return; }
+    if (!selected_archive_) { tell("先に保存済み録画を選んでください", true); return; }
+    replaying_ = true;
+    supervisor_.start(); begin_publish();
 }
 }

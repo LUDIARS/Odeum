@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <!-- iOS 13+ は user-scalable=no を無視するので touch-action でも止める (styles.css) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Custos — Remote Test Runner</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/windows.css">
+  <link rel="stylesheet" href="/css/pad.css">
+  <link rel="stylesheet" href="/css/audience.css">
+</head>
+<body data-role="free">
+  <header class="app-header">
+    <div class="title">CUSTOS <span class="subtitle">remote test runner</span></div>
+    <div class="header-controls">
+      <select id="appSelect" aria-label="アプリ選択">
+        <option value="">— 起動対象を選択 —</option>
+      </select>
+      <span class="header-actions" id="headerActions">
+        <button id="btnBuild" class="action build" disabled title="Build → Run を一気に流す (build が無い app は Run のみ)">BOOT</button>
+        <button id="btnRun"   class="action run"   disabled>Run</button>
+        <button id="btnTest"  class="action test"  disabled>Test</button>
+        <button id="btnKill"  class="action kill"  disabled>Kill</button>
+      </span>
+      <!-- スマホではこれを押すと操作メニュー (statusMenu) が開く -->
+      <button type="button" class="status-pill" id="statusPill" data-state="idle" aria-expanded="false" aria-controls="statusMenu">idle</button>
+      <span class="role-badge" id="roleBadge" hidden></span>
+    </div>
+    <!-- ウインドウの出し入れ。PC はフローティングウインドウ、スマホは下から出るシート。 -->
+    <nav class="window-toggles" aria-label="ウインドウ">
+      <button type="button" class="window-toggle desktop-only" data-window-toggle="view">VIEW</button>
+      <button type="button" class="window-toggle desktop-only" data-window-toggle="pad">PAD</button>
+      <button type="button" class="window-toggle" data-window-toggle="logs">LOG</button>
+      <button id="audienceHistory" type="button" class="window-toggle" disabled>観戦ログ ↗</button>
+      <button type="button" class="window-toggle" data-window-toggle="tests">TEST</button>
+      <button type="button" class="window-toggle" data-window-toggle="settings">SETTINGS</button>
+      <button type="button" class="window-toggle ghost desktop-only" id="btnResetLayout" title="ウインドウの配置を既定に戻す">⟲</button>
+    </nav>
+  </header>
+
+  <!-- スマホ用の操作メニュー。BOOT 等と Unity の操作・状態をここへ移して表示する (status-menu.js) -->
+  <div class="status-menu" id="statusMenu" hidden>
+    <header class="status-menu-header">
+      <span class="status-menu-title">操作</span>
+      <button type="button" class="fw-btn status-menu-close" id="statusMenuClose" title="閉じる" aria-label="閉じる">×</button>
+    </header>
+    <div class="status-menu-section" id="statusMenuActions"></div>
+    <div class="status-menu-section" id="statusMenuUnity"></div>
+  </div>
+
+  <main class="desk" id="desk">
+
+    <!-- ─── VIEW: 配信映像。Unity ブリッジの app では Unity パネルになる ─── -->
+    <section class="fw" data-window="view" aria-label="VIEW">
+      <header class="fw-titlebar">
+        <span class="fw-title">VIEW</span>
+        <button type="button" class="fw-snapshot" id="btnAudio" title="音を出す" hidden>🔇</button>
+        <button type="button" class="fw-snapshot" id="btnSnapshot" title="今の画面を PNG で保存">📷</button>
+        <button type="button" class="fw-btn" data-fw-minimize title="最小化">–</button>
+        <button type="button" class="fw-btn" data-fw-close title="閉じる">×</button>
+      </header>
+      <div class="fw-body view-body">
+        <!-- Unity パネル上段 (body.unity-mode のときだけ表示) -->
+        <div class="unity-only unity-strip" id="unityStrip">
+          <header class="unity-header">
+            <span id="unityBridge" class="unity-bridge" data-state="down">reloading / offline</span>
+            <strong id="unityVersion">Unity</strong>
+            <span id="unityMode">Edit mode</span>
+            <span id="unityScene">No active scene</span>
+          </header>
+          <div class="unity-actions">
+            <button type="button" data-unity-action="play">▶ Play</button>
+            <button type="button" data-unity-action="stop">■ Stop</button>
+            <button type="button" data-unity-action="compile">⟳ Recompile</button>
+            <button type="button" data-unity-action="refresh">↻ Refresh</button>
+            <button type="button" data-unity-action="publish-capture">📷 Send to Session</button>
+            <span id="unityActionStatus" class="unity-action-status"></span>
+          </div>
+        </div>
+
+        <div class="view-main">
+          <section class="unity-only unity-hierarchy-pane">
+            <h2>Hierarchy</h2>
+            <p id="unityHierarchyTruncated" class="unity-truncated" hidden>Hierarchy results were truncated.</p>
+            <div id="unityHierarchy" class="unity-hierarchy"></div>
+          </section>
+
+          <section class="stream-area" aria-label="アプリ画面">
+            <div class="stream-frame" id="streamFrame">
+              <video id="streamVideo" autoplay playsinline muted></video>
+              <img   id="streamImage" alt="latest frame" />
+              <div class="stream-placeholder" id="streamPlaceholder">
+                <div class="ph-title" id="streamPlaceholderTitle">No app selected</div>
+                <div class="ph-hint" id="streamPlaceholderHint">上のセレクタからアプリを選ぶと映像につながります。</div>
+              </div>
+              <div class="spectator-banner" id="spectatorBanner" hidden>観戦中 — 他のユーザがプレイしています</div>
+              <div id="audienceMessages" class="audience-messages" aria-live="polite" aria-label="観戦メッセージ"></div>
+              <div id="audienceStampsOverlay" class="audience-stamps-overlay" aria-hidden="true"></div>
+            </div>
+          </section>
+        </div>
+
+        <section class="unity-only unity-console-pane">
+          <div class="unity-console-toolbar">
+            <strong>Console</strong>
+            <button type="button" class="active" data-unity-log-filter="all">All</button>
+            <button type="button" data-unity-log-filter="error" id="unityErrorCount">Error 0</button>
+            <button type="button" data-unity-log-filter="warn" id="unityWarningCount">Warn 0</button>
+            <button type="button" data-unity-log-filter="log">Log</button>
+          </div>
+          <div id="unityConsole" class="unity-console" aria-live="polite"></div>
+        </section>
+      </div>
+      <div class="fw-resize" data-fw-resize aria-hidden="true"></div>
+    </section>
+
+    <!-- ─── PAD: バーチャルパッド。スマホでは映像の下の操作部分になる ─── -->
+    <section class="fw" data-window="pad" aria-label="PAD">
+      <header class="fw-titlebar">
+        <span class="fw-title">PAD</span>
+        <!-- 遠隔プレイの操作説明 (play-input.js)。遠隔プレイは常に有効で自動判定 -->
+        <span class="play-hint" id="playHint"></span>
+        <button type="button" class="fw-btn" data-fw-minimize title="最小化">–</button>
+        <button type="button" class="fw-btn" data-fw-close title="閉じる">×</button>
+      </header>
+      <div class="fw-body pad-body" id="padRoot">
+        <div class="vk-empty">アプリを選択するとバーチャルパッドが表示されます。</div>
+      </div>
+      <!-- 観戦中はパッドの代わりにメッセージとスタンプを送れる。 -->
+      <div class="fw-body spectator-panel" id="spectatorPanel" hidden>
+        <p class="spectator-panel-title">👁 見てるだけ</p>
+        <p class="spectator-panel-hint">他の人がプレイ中です。感想を送るとプレイ中の人の画面に出ます。</p>
+        <form class="audience-form" id="audienceForm">
+          <div id="audienceStamps" class="audience-stamps" aria-label="スタンプ"></div>
+          <input type="text" id="audienceText" maxlength="280" aria-label="観戦メッセージ" placeholder="感想を書く（280文字まで）" autocomplete="off" enterkeyhint="send" />
+          <button type="submit">送る</button>
+        </form>
+        <p id="audienceStatus" class="audience-status" role="status"></p>
+      </div>
+      <div class="fw-resize" data-fw-resize aria-hidden="true"></div>
+    </section>
+
+    <!-- ─── LOG ─── -->
+    <section class="fw" data-window="logs" aria-label="LOG">
+      <header class="fw-titlebar">
+        <span class="fw-title">LOG</span>
+        <button type="button" class="fw-option" data-clear-log="logStream">Clear</button>
+        <button type="button" class="fw-btn" data-fw-minimize title="最小化">–</button>
+        <button type="button" class="fw-btn" data-fw-close title="閉じる">×</button>
+      </header>
+      <div class="fw-body"><pre class="log-stream" id="logStream"></pre></div>
+      <div class="fw-resize" data-fw-resize aria-hidden="true"></div>
+    </section>
+
+    <!-- ─── TEST ─── -->
+    <section class="fw" data-window="tests" aria-label="TEST">
+      <header class="fw-titlebar">
+        <span class="fw-title">TEST</span>
+        <button type="button" class="fw-option" data-clear-log="testStream">Clear</button>
+        <button type="button" class="fw-btn" data-fw-minimize title="最小化">–</button>
+        <button type="button" class="fw-btn" data-fw-close title="閉じる">×</button>
+      </header>
+      <div class="fw-body"><pre class="log-stream" id="testStream"></pre></div>
+      <div class="fw-resize" data-fw-resize aria-hidden="true"></div>
+    </section>
+
+    <!-- ─── SETTINGS (runtime オーバーライド) ─── -->
+    <section class="fw" data-window="settings" aria-label="SETTINGS">
+      <header class="fw-titlebar">
+        <span class="fw-title">SETTINGS</span>
+        <button type="button" class="fw-btn" data-fw-minimize title="最小化">–</button>
+        <button type="button" class="fw-btn" data-fw-close title="閉じる">×</button>
+      </header>
+      <div class="fw-body">
+        <div class="settings-card">
+          <h2>Stream settings</h2>
+          <p class="settings-hint">
+            映像がつながるまでの静止画 (auto-stream) の <strong>転送間隔</strong> と
+            <strong>最大解像度</strong> を上書き。サーバー側に保持されるので
+            全クライアントに影響します。Custos 再起動でリセット
+            (apps.json の既定値に戻る)。
+          </p>
+          <form id="settingsForm" class="settings-form" autocomplete="off">
+            <label>
+              転送間隔 <span class="unit">(秒)</span>
+              <input type="number" id="settingIntervalSec" min="0" max="60" step="0.1" inputmode="decimal" />
+              <small>0 で auto-stream を停止。空欄で apps.json 既定値に戻す。</small>
+            </label>
+            <label>
+              最大解像度 (横) <span class="unit">(px)</span>
+              <input type="number" id="settingMaxWidth" min="0" max="7680" step="1" inputmode="numeric" />
+              <small>0 / 空欄で元解像度のまま。指定時は ffmpeg で縮小してから配信。</small>
+            </label>
+            <div class="settings-actions">
+              <button type="submit" id="settingSave" class="primary">Save</button>
+              <button type="button" id="settingReset" class="ghost">Reset to defaults</button>
+              <span id="settingStatus" class="settings-status"></span>
+            </div>
+          </form>
+          <div class="settings-current">
+            <h3>Current overrides</h3>
+            <pre id="settingsCurrent">…</pre>
+          </div>
+        </div>
+      </div>
+      <div class="fw-resize" data-fw-resize aria-hidden="true"></div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <span id="wsStatus" class="ws-status disconnected">WS disconnected</span>
+    <span id="rtcStatus" class="rtc-status">video: idle</span>
+    <span class="grow"></span>
+    <span class="hint">Custos v0.1.0</span>
+  </footer>
+
+  <!-- 同 origin 構成: API も WS も /api/* / /ws の相対 URL で叩ける。 -->
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

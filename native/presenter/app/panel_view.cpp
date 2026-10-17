@@ -52,6 +52,11 @@ void connection(tela::Document& doc, PresenterController& c) {
 }
 
 void capture(tela::Document& doc, PresenterController& c) {
+    doc.panel("source-kind", [&] {
+        doc.button("source-window", "ウインドウ", [&c] { c.choose_source(CaptureKind::window); }, button_box(130));
+        doc.button("source-display", "画面全体", [&c] { c.choose_source(CaptureKind::display); }, button_box(130));
+        doc.button("source-region", "画面の一部", [&c] { c.choose_source(CaptureKind::display, true); }, button_box(130));
+    }, row_box());
     doc.text("target", target_text(c), text_box(2, 0.9f));
     doc.panel("target-row", [&] {
         doc.button("target-previous", "前へ", [&c] {
@@ -64,6 +69,23 @@ void capture(tela::Document& doc, PresenterController& c) {
         if (c.permission() != CapturePermission::granted)
             doc.button("permission", "画面収録を許可", [&c] { c.request_permission(); }, button_box(140));
     }, row_box());
+    if (c.region()) {
+        const auto r = *c.region();
+        doc.text("region", "範囲 (%): 左 " + std::to_string(r.x) + " / 上 " + std::to_string(r.y) +
+                 " / 幅 " + std::to_string(r.width) + " / 高さ " + std::to_string(r.height), text_box(1, 0.8f));
+        doc.panel("region-move", [&] {
+            doc.button("left", "←", [&c] { c.adjust_region(-5,0,0,0); }, button_box(65));
+            doc.button("right", "→", [&c] { c.adjust_region(5,0,0,0); }, button_box(65));
+            doc.button("up", "↑", [&c] { c.adjust_region(0,-5,0,0); }, button_box(65));
+            doc.button("down", "↓", [&c] { c.adjust_region(0,5,0,0); }, button_box(65));
+        }, row_box());
+        doc.panel("region-size", [&] {
+            doc.button("narrow", "幅 −", [&c] { c.adjust_region(0,0,-5,0); }, button_box(90));
+            doc.button("wide", "幅 ＋", [&c] { c.adjust_region(0,0,5,0); }, button_box(90));
+            doc.button("short", "高さ −", [&c] { c.adjust_region(0,0,0,-5); }, button_box(90));
+            doc.button("tall", "高さ ＋", [&c] { c.adjust_region(0,0,0,5); }, button_box(90));
+        }, row_box());
+    }
 }
 
 void poll(tela::Document& doc, PresenterController& c) {

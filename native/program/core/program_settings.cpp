@@ -24,6 +24,8 @@ template<class T> void read(const Json& object, const char* key, T& target) {
 }
 
 void validate(const ProgramSettings& s) {
+    if (s.project_id.size() > 80 || s.project_id.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_") != std::string::npos)
+        throw std::invalid_argument("project_id must be a GLab project identifier");
     range(s.video_bitrate_kbps, 6000, 10000, "video.bitrate_kbps");
     range(s.keyframe_interval_s, 1, 4, "video.keyframe_interval_s");
     if (s.profile == presenter::H264Profile::constrained_baseline) throw std::invalid_argument("video.profile must be main or high");
@@ -54,6 +56,8 @@ ProgramSettings settings_from_json(const Json& json) {
     }
     if (json.contains("youtube")) read(json.at("youtube"), "url", s.youtube_url);
     read(json, "font", s.font);
+    read(json, "project_id", s.project_id);
+    read(json, "archive_directory", s.archive_directory);
     read(json, "volume", s.volume);
     if (json.contains("muted")) {
         const auto& muted = json.at("muted");
@@ -75,6 +79,8 @@ Json settings_to_json(const ProgramSettings& s) {
         {"return", {{"bitrate_kbps", s.return_bitrate_kbps}, {"audio_kbps", s.return_audio_kbps}}},
         {"youtube", {{"url", s.youtube_url}}},
         {"font", s.font},
+        {"project_id", s.project_id},
+        {"archive_directory", s.archive_directory},
         {"volume", s.volume},
         {"muted", s.muted},
     };

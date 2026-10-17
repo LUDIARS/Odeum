@@ -1,0 +1,164 @@
+/**
+ * Custos エントリポイント。
+ *
+ * **単一 Hono アプリを 4649 と 7676 の両方で listen** させる:
+ *   - http://localhost:4649/  (frontend port、慣例)
+ *   - http://localhost:7676/  (backend port、慣例)
+ *   - どちらを開いても同じ内容 (静的 UI + /api/* + /ws)
+ *
+ * これにより CORS / 別 origin の罠を完全排除する。フロント JS は相対 URL
+ * (`/api/...` / `/ws`) だけ使えばよく、`/config.js` 注入も不要。
+ *
+ * ポートは `CUSTOS_PORT` (主) と `CUSTOS_FRONTEND_PORT` (副) で上書きでき、
+ * どちらか片方だけ無効化したい場合は値を `0` にする。
+ */
+
+import { serve } from "@hono/node-server";
+import type { Server as HttpServer } from "node:http";
+import { loadAppsConfig } from "./config/apps-config.js";
+import { AppsRegistry }   from "./apps/registry.js";
+import { AppsRunner }     from "./apps/runner.js";
+import { buildApp }       from "./app.js";
+import { attachWebSocketBroker } from "./ws/handler.js";
+import { ControlLease } from "./input/control-lease.js";
+import { AudienceRoom } from "./audience/room.js";
+import { createVideoSourcePool } from "./capture/shared-rtp-source.js";
+import { createAudioSourcePool } from "./capture/audio-source.js";
+import { IceServerProvider } from "./capture/ice-servers.js";
+import { WebRTCBroker } from "./capture/webrtc-broker.js";
+import { ScreenshotStreamer } from "./capture/screenshot-stream.js";
+import { RuntimeStreamPrefs } from "./runtime/stream-prefs.js";
+import { logger } from "./shared/logger.js";
+import { loadFarmRuntime } from "./farm/runtime.js";
+import { resolve } from "node:path";
+import { PlayLogRecorder } from "./playlog/playlog-recorder.js";
+import { hashPlayer, resolvePlayerSalt } from "./playlog/player-hash.js";
+
+const BACKEND_PORT  = Number(process.env.CUSTOS_PORT          ?? 7676);
+const FRONTEND_PORT = Number(process.env.CUSTOS_FRONTEND_PORT ?? 4649);
+// 既定は loopback。Custos は app 起動 (任意コマンド実行) / キー・マウス注入 /
+// スクリーンショット取得ができるため、無認証で LAN へ晒すと第三者が全操作可能 (CWE-668)。
+const HOST          = process.env.CUSTOS_HOST                  ?? "127.0.0.1";
+
+let started = false;
+process.on("uncaughtException", (err: Error & { code?: string }) => {
+    if (!started || err.code === "EADDRINUSE") {
+        logger.error({ err }, "fatal during startup");
+        process.exit(1);
+    }
+    logger.error({ err }, "uncaughtException — server continues");
+});
+process.on("unhandledRejection", (reason) => {
+    if (!started) {
+        logger.error({ reason: String(reason) }, "fatal during startup (rejection)");
+        process.exit(1);
+    }
+    logger.error({ reason: String(reason) }, "unhandledRejection — server continues");
+});
+
+async function main() {
+    const cfg = loadAppsConfig();
+    const farm = loadFarmRuntime();
+    const authMode = process.env.CUSTOS_OPEN === "1"
+        ? "open (CUSTOS_OPEN=1)"
+        : process.env.CERNERE_URL
+            ? `cernere (${process.env.CERNERE_URL})`
+            : process.env.CUSTOS_AUTH_REQUIRED === "1"
+                ? "stub (token required)"
+                : "anonymous (no auth)";
+    logger.info({ apps: cfg.apps.length, authMode }, "apps config loaded");
+
+    const registry = new AppsRegistry(cfg.apps);
+    const runner   = new AppsRunner(registry);
+    // 映像源と音声源は app ごとに 1 本を全 session で共有する (spec/feature/floating-ui-and-shared-video.md §3)。
+    const broker   = new WebRTCBroker(
+        createVideoSourcePool(),
+        createAudioSourcePool({ getRunPid: (appId) => runner.getRunPid(appId) }),
+        new IceServerProvider(),
+    );
+    // 操作権は全ポートの WS broker と REST で 1 つを共有する (どちらのポートから繋いでも同じ player)。
+    const control  = new ControlLease();
+    const audience = new AudienceRoom();
+    const prefs    = new RuntimeStreamPrefs();
+    const streamer = new ScreenshotStreamer(registry, prefs);
+    // 行動ログ (spec/feature/remote-play-and-play-log.md)。salt はログを書くときだけ要るので
+    // playLog を持つ app が 1 つも無ければ作らない。
+    const playLogDir = resolve(process.env.CUSTOS_PLAYLOG_DIR ?? resolve(process.cwd(), "logs", "plays"));
+    let playerSalt: string | null = null;
+    const playLog = new PlayLogRecorder({
+        dir:        playLogDir,
+        getConfig:  (appId) => registry.getConfig(appId),
+        hashPlayer: (userId) => hashPlayer(playerSalt ??= resolvePlayerSalt(playLogDir), userId),
+    });
+
+    runner.on("exit", (appId, kind) => {
+        if (kind === "run") {
+            broker.closeAllForApp(appId);
+            playLog.closeApp(appId, "exit");
+            // アプリ終了で auto-stream も止める。再起動後 subscribe があれば
+            // streamer.acquire 経由で再開される。
+            streamer.stop(appId);
+        }
+    });
+
+    // 単一の app instance を 2 ポートで listen させる。
+    const app = buildApp({ registry, runner, broker, prefs, control, farm, playLogDir });
+    const servers: HttpServer[] = [];
+
+    // 非 loopback に bind するなら認証必須。CERNERE_URL 未設定 (anonymous 許可) や
+    // CUSTOS_OPEN=1 の素通しのまま 0.0.0.0 等で待ち受けると、LAN の第三者が
+    // 任意コマンド実行・入力注入・画面取得を無認証で行える。fail-fast で拒否する。
+    const isLoopbackHost = HOST === "127.0.0.1" || HOST === "::1" || HOST === "localhost";
+    const authIsAnonymous =
+        process.env.CUSTOS_OPEN === "1" ||
+        (!process.env.CERNERE_URL && process.env.CUSTOS_AUTH_REQUIRED !== "1");
+    if (!isLoopbackHost && authIsAnonymous) {
+        logger.error(
+            { host: HOST },
+            "refusing to bind a non-loopback host without authentication — set CERNERE_URL " +
+            "(or CUSTOS_AUTH_REQUIRED=1), or keep CUSTOS_HOST on loopback. " +
+            "Custos can run commands / inject input / capture the screen.",
+        );
+        process.exit(1);
+    }
+
+    const ports: { port: number; label: string }[] = [];
+    if (FRONTEND_PORT > 0) ports.push({ port: FRONTEND_PORT, label: "frontend" });
+    if (BACKEND_PORT  > 0 && BACKEND_PORT !== FRONTEND_PORT) {
+        ports.push({ port: BACKEND_PORT, label: "backend" });
+    }
+
+    for (const { port, label } of ports) {
+        const s = serve({ fetch: app.fetch, hostname: HOST, port }, (info) => {
+            logger.info({ host: info.address, port: info.port, label }, "listening");
+        });
+        // WS broker は全ポートで attach する (どちらに繋いでも /ws が動く)。
+        attachWebSocketBroker(s as unknown as HttpServer, { registry, runner, streamer, playLog, control, audience }, "/ws");
+        servers.push(s as unknown as HttpServer);
+    }
+
+    started = true;
+
+    // eslint-disable-next-line no-console
+    console.log(`\n  ▶ Open Custos: http://localhost:${FRONTEND_PORT}/   (or http://localhost:${BACKEND_PORT}/)\n`);
+
+    const shutdown = (sig: NodeJS.Signals) => {
+        logger.info({ sig }, "shutting down");
+        broker.shutdown();
+        streamer.shutdown();
+        playLog.shutdown();
+        runner.shutdown();
+        for (const s of servers) {
+            try { s.close(); } catch { /* ignore */ }
+        }
+        setTimeout(() => process.exit(0), 200).unref();
+        setTimeout(() => process.exit(1), 5000).unref();
+    };
+    process.on("SIGINT",  shutdown);
+    process.on("SIGTERM", shutdown);
+}
+
+main().catch((err) => {
+    logger.error({ err }, "fatal");
+    process.exit(1);
+});

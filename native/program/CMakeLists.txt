@@ -3,7 +3,7 @@
 # to the relay's program slot. Core has no OS API and is what the tests exercise.
 add_library(odeum_program_core core/program_state.cpp core/layout.cpp core/audio_mixer.cpp core/amf0.cpp core/flv.cpp
   core/flv_feed.cpp core/rtmp_handshake.cpp core/rtmp_chunk.cpp core/rtmp_publisher.cpp core/publish_supervisor.cpp
-  core/program_settings.cpp core/producer_routing.cpp)
+  core/program_settings.cpp core/producer_routing.cpp core/archive_recorder.cpp core/archive_reader.cpp)
 target_include_directories(odeum_program_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(odeum_program_core PUBLIC odeum_presenter_core)
 

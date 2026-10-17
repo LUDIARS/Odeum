@@ -49,8 +49,9 @@ int run(const PresenterOptions& options, windows::WindowsPlatform& platform, con
     surface.grip = overlay_grip;
     surface.moved = [&app](const tela::DesktopPlacement& placement) { app.overlay_moved(placement); };
     // The audience must not see their own reactions echoed back in the stream.
-    surface.exclude_from_capture = true;
     tela::WindowsDesktopOverlay overlay(app.overlay_runtime(), overlay_renderer, std::move(surface));
+    if (!SetWindowDisplayAffinity(reinterpret_cast<HWND>(overlay.native_window()), WDA_EXCLUDEFROMCAPTURE))
+        throw std::runtime_error("Cannot keep the reaction overlay out of screen capture");
     app.on_place_overlay([&overlay](const tela::DesktopPlacement& placement) { overlay.place(placement); });
     tela::WindowsView panel(app.panel_runtime(), panel_renderer, "Odeum 発表者", static_cast<int>(panel_width),
                             static_cast<int>(panel_height), false);

@@ -1,0 +1,163 @@
+/*
+ * バーチャルパッド。左に方向入力 (スティック / 十字)、右に ABXY、上に肩ボタン、
+ * 中央にメニュー、下に割り当て先の無いボタン。
+ */
+
+.pad-body { padding: 8px 10px 14px; }
+.vk-pad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "top         top"
+    "mid-left    mid-right"
+    "bottom-left bottom-right";
+  gap: 10px 8px;
+  align-items: center;
+  justify-items: center;
+}
+.vk-zone          { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.vk-zone-top      { grid-area: top; width: 100%; flex-direction: row; justify-content: space-between; gap: 6px; }
+.vk-mid-left      { grid-area: mid-left; }
+.vk-mid-right     { grid-area: mid-right; }
+.vk-bottom-left   { grid-area: bottom-left; }
+.vk-bottom-right  { grid-area: bottom-right; }
+.vk-shoulder-row  { display: flex; gap: 6px; }
+.vk-menu-row      { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.vk-btn[data-kind="shoulder"] { min-width: 52px; }
+
+/* 十字 (D-pad) と ABXY は同じ 3×3 grid */
+.vk-plus, .vk-diamond {
+  display: grid;
+  gap: 4px;
+  width: clamp(120px, 34vw, 156px); aspect-ratio: 1;
+}
+.vk-plus {
+  grid-template:
+    ".    up    .    "
+    "left .     right"
+    ".    down  .    " / 1fr 1fr 1fr;
+}
+.vk-diamond {
+  grid-template:
+    ".  y  . "
+    "x  .  b "
+    ".  a  . " / 1fr 1fr 1fr;
+}
+
+/* アナログスティック: 外周 (base) の中を knob が動く */
+.vk-stick {
+  position: relative;
+  width: clamp(120px, 34vw, 156px); aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--bg-elev) 0%, var(--bg-alt) 70%);
+  border: 1px solid var(--border);
+  touch-action: none;
+}
+.vk-stick-knob {
+  position: absolute; left: 50%; top: 50%;
+  width: 42%; aspect-ratio: 1;
+  margin: -21% 0 0 -21%;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  pointer-events: none;
+  transition: transform 60ms ease-out;
+}
+.vk-stick.active .vk-stick-knob { transition: none; background: #2a3556; }
+.vk-stick-knob { display: grid; place-items: center; font: 600 10px/1 system-ui, sans-serif; color: var(--fg-faint); }
+.vk-stick.pressed .vk-stick-knob { background: var(--accent); color: var(--bg); }
+.vk-stick-dir {
+  position: absolute; font-size: 10px; color: var(--fg-faint); pointer-events: none;
+}
+.vk-stick-dir.up    { top: 4px; left: 50%; transform: translateX(-50%); }
+.vk-stick-dir.down  { bottom: 4px; left: 50%; transform: translateX(-50%); }
+.vk-stick-dir.left  { left: 6px; top: 50%; transform: translateY(-50%); }
+.vk-stick-dir.right { right: 6px; top: 50%; transform: translateY(-50%); }
+.vk-stick-dir.on    { color: var(--accent); }
+
+/* ボタン本体 */
+.vk-btn {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 48px; min-height: 44px;
+  padding: 6px 10px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: 600 13px/1 system-ui, sans-serif;
+  cursor: pointer;
+  touch-action: none;
+  transition: transform 60ms ease, background 80ms ease, box-shadow 80ms ease;
+}
+.vk-btn:hover:not(:disabled):not(.placeholder) { border-color: var(--accent); }
+.vk-btn.active {
+  transform: translateY(1px);
+  background: #2a3556;
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.vk-btn.placeholder {
+  background: transparent; color: var(--fg-faint);
+  border-style: dashed; cursor: default; opacity: 0.4;
+}
+.vk-btn.danger { border-color: var(--kill); color: var(--kill); }
+
+.vk-btn[data-kind="dir"],
+.vk-btn[data-kind^="act-"] {
+  border-radius: 50%;
+  font-size: 18px;
+  min-width: 0; min-height: 0;
+  width: 100%; height: 100%;
+  padding: 0;
+}
+.vk-btn[data-kind="dir"] { font-weight: 700; font-size: 22px; }
+/* Xbox 配色 (コントローラの慣習に合わせる) */
+.vk-btn[data-kind="act-a"] { color: #98e6a0; border-color: rgba(72,200,120,0.55); }
+.vk-btn[data-kind="act-b"] { color: #f08e8a; border-color: rgba(220,80,80,0.55); }
+.vk-btn[data-kind="act-x"] { color: #8fb4ff; border-color: rgba(80,130,255,0.55); }
+.vk-btn[data-kind="act-y"] { color: #f0d680; border-color: rgba(220,180,80,0.55); }
+.vk-btn[data-kind="act-a"].active { background: rgba(72,200,120,0.18); }
+.vk-btn[data-kind="act-b"].active { background: rgba(220,80,80,0.18); }
+.vk-btn[data-kind="act-x"].active { background: rgba(80,130,255,0.18); }
+.vk-btn[data-kind="act-y"].active { background: rgba(220,180,80,0.18); }
+.vk-btn[data-kind="menu"] { min-width: 72px; border-radius: 999px; }
+
+/* キー文字の小ラベル (W / Up など) */
+.vk-keytag {
+  position: absolute; bottom: 2px; right: 4px;
+  font: 400 9px/1 ui-monospace, Consolas, monospace;
+  color: var(--fg-faint);
+  pointer-events: none;
+}
+.vk-btn[data-kind="dir"] .vk-keytag,
+.vk-btn[data-kind^="act-"] .vk-keytag { bottom: 3px; right: 50%; transform: translateX(50%); }
+
+/* 観戦中はパッドを出さず、「見てるだけ」パネル (comment-panel.js) を出す */
+body[data-role="spectator"] #padRoot { display: none !important; }
+.spectator-panel[hidden] { display: none !important; }
+.spectator-panel {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 12px; overflow: auto;
+}
+.spectator-panel-title { margin: 0; font-size: 16px; font-weight: 700; color: var(--warn); }
+.spectator-panel-hint  { margin: 0; font-size: 12px; color: var(--fg-faint); }
+.comment-form { display: flex; gap: 6px; }
+.comment-form input {
+  flex: 1 1 auto; min-width: 0;
+  padding: 8px 10px; font: inherit; font-size: 16px;   /* 16px 未満だと iOS が入力時に拡大する */
+  background: var(--bg-card); color: var(--fg);
+  border: 1px solid var(--border); border-radius: 8px;
+  -webkit-user-select: text; user-select: text;
+}
+.comment-form button { flex: 0 0 auto; padding: 8px 14px; }
+.comment-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.comment-list time { color: var(--fg-faint); font-size: 11px; }
+
+/* スマホ: 3 段を縦画面に収める (スティック・ボタンは画面幅に合わせて縮む) */
+body.layout-mobile .vk-pad { gap: 6px 4px; }
+body.layout-mobile .vk-stick,
+body.layout-mobile .vk-plus,
+body.layout-mobile .vk-diamond { width: clamp(96px, 30vw, 140px); }
+body.layout-mobile .vk-btn[data-kind="shoulder"] { min-width: 40px; min-height: 36px; padding: 4px 6px; }
+body.layout-mobile .vk-btn[data-kind="menu"] { min-width: 56px; padding: 4px 8px; }

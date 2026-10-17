@@ -23,6 +23,8 @@ struct ProgramSettings {
     int return_audio_kbps = 64;     // Opus, 16..256
     std::string youtube_url = "rtmps://a.rtmps.youtube.com:443/live2";
     std::string font;               // TrueType for the panel and the reaction layer
+    std::string project_id;         // GLab project ID; required before recording/broadcasting
+    std::string archive_directory;  // empty means a sibling archives/ beside program.json
     double volume = 1.0;            // 0..2
     std::array<bool, input_count> muted{};
     bool operator==(const ProgramSettings&) const = default;

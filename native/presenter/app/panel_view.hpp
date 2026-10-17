@@ -3,7 +3,7 @@
 #include <tela/document.hpp>
 
 namespace odeum::presenter {
-inline constexpr float panel_width = 460, panel_height = 760;
+inline constexpr float panel_width = 460, panel_height = 960;
 // On macOS the panel is a desktop surface too (Tela has no AppKit window host); this is its grip.
 inline constexpr const char* panel_grip = "panel-grip";
 

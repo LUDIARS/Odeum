@@ -9,6 +9,7 @@ namespace odeum::presenter {
 struct LaunchRequest {
     std::string relay;  // wss://host[:port][/prefix] without a trailing slash
     std::string ticket; // JWS compact
+    std::string project_id; // optional GLab context; never an authorization credential
     bool operator==(const LaunchRequest&) const = default;
 };
 

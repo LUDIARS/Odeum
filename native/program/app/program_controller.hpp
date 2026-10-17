@@ -3,6 +3,7 @@
 #include "platform.hpp"
 #include "program_engine.hpp"
 #include "../core/publish_supervisor.hpp"
+#include "../core/archive_recorder.hpp"
 #include "../transport/input_receiver.hpp"
 #include "../transport/youtube_publisher.hpp"
 #include "core/connection_monitor.hpp"
@@ -50,6 +51,13 @@ public:
     void start_return();
     void stop_return();
     void quit();
+    void paste_project();
+    void start_recording();
+    void stop_recording();
+    void next_archive();
+    void replay_archive();
+    std::string archive_label() const;
+    RecordingStatus recording_status() const { return recorder_.status(); }
 
     // Called by the app every frame with the freshly drawn text layers.
     void publish_layers(std::vector<Layer> layers);
@@ -89,6 +97,7 @@ private:
     AudioMixer mixer_;
     std::array<std::unique_ptr<InputPipeline>, input_count> pipelines_;
     YouTubePublisher publisher_;
+    ArchiveRecorder recorder_;
     presenter::MediaSender sender_;
     InputReceiver receiver_;
     std::unique_ptr<ProgramEngine> engine_;
@@ -101,5 +110,7 @@ private:
     std::int64_t epoch_s_ = 0;
     bool returning_ = false, key_set_ = false;
     Notice notice_;
+    std::optional<std::filesystem::path> selected_archive_;
+    bool replaying_ = false;
 };
 }

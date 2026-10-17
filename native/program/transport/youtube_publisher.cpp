@@ -1,6 +1,7 @@
 #include "youtube_publisher.hpp"
 #include "tls_connection.hpp"
 #include "../core/rtmp_publisher.hpp"
+#include "../core/archive_reader.hpp"
 #include <random>
 
 namespace odeum::program {
@@ -32,8 +33,19 @@ YouTubePublisher::~YouTubePublisher() { stop(); }
 
 void YouTubePublisher::start(const RtmpEndpoint& endpoint, std::string stream_key) {
     stop();
+    { std::lock_guard lock(mutex_); replaying_ = false; }
     const auto generation = ++*generation_;
     worker_ = std::thread([this, endpoint, key = std::move(stream_key), generation]() mutable { run(endpoint, std::move(key), generation); });
+}
+
+void YouTubePublisher::start_archive(const RtmpEndpoint& endpoint, std::string stream_key, std::filesystem::path file) {
+    ArchiveReader validate(file); // Fail before contacting the external ingest.
+    stop();
+    { std::lock_guard lock(mutex_); replaying_ = true; }
+    const auto generation = ++*generation_;
+    worker_ = std::thread([this, endpoint, key = std::move(stream_key), file = std::move(file), generation]() mutable {
+        run(endpoint, std::move(key), generation, std::move(file));
+    });
 }
 
 void YouTubePublisher::stop() {
@@ -75,7 +87,7 @@ void YouTubePublisher::video(const presenter::EncodedFrame& frame) {
     std::vector<FlvTag> tags;
     {
         std::lock_guard lock(mutex_);
-        if (!publishing_) return;
+        if (!publishing_ || replaying_) return;
         tags = feed_.video(frame);
     }
     enqueue(std::move(tags), frame.keyframe, true);
@@ -85,7 +97,7 @@ void YouTubePublisher::audio(const AacPacket& packet) {
     std::vector<FlvTag> tags;
     {
         std::lock_guard lock(mutex_);
-        if (!publishing_) return;
+        if (!publishing_ || replaying_) return;
         tags = feed_.audio(packet.data, packet.timestamp_us);
     }
     enqueue(std::move(tags), false, false);
@@ -96,7 +108,7 @@ PublishStats YouTubePublisher::stats() const {
     return {bytes_sent_, dropped_, bitrate_kbps_};
 }
 
-void YouTubePublisher::run(RtmpEndpoint endpoint, std::string key, std::uint64_t generation) {
+void YouTubePublisher::run(RtmpEndpoint endpoint, std::string key, std::uint64_t generation, std::filesystem::path archive) {
     auto current = generation_;
     const auto alive = [&] { return current->load() == generation; };
     auto post = [this, current, generation](std::function<void()> work) {
@@ -127,6 +139,28 @@ void YouTubePublisher::run(RtmpEndpoint endpoint, std::string key, std::uint64_t
         }
         if (callbacks_.keyframe_needed) callbacks_.keyframe_needed();
         post([this] { if (callbacks_.live) callbacks_.live(); });
+        if (!archive.empty()) {
+            ArchiveReader recording(archive);
+            const auto started = std::chrono::steady_clock::now();
+            while (alive()) {
+                const auto tag = recording.next();
+                if (!tag) {
+                    { std::lock_guard lock(mutex_); publishing_ = false; }
+                    post([this] { if (callbacks_.completed) callbacks_.completed(); });
+                    return;
+                }
+                const auto due = started + std::chrono::milliseconds(tag->timestamp_ms);
+                while (alive() && std::chrono::steady_clock::now() < due) {
+                    if (const auto n = tls.read(buffer, 20ms); n > 0)
+                        if (auto reply = rtmp.receive(std::span(buffer).first(n)); !reply.empty()) tls.write(reply);
+                }
+                if (!alive()) return;
+                std::vector<std::byte> encoded;
+                rtmp.send(*tag, encoded); tls.write(encoded);
+                { std::lock_guard lock(mutex_); bytes_sent_ += encoded.size(); }
+            }
+            return;
+        }
         std::vector<std::byte> out;
         while (alive()) {
             std::deque<FlvTag> batch;

@@ -84,7 +84,7 @@ LaunchRequest parse_launch_url(std::string_view text, std::string_view expected_
     while (!action.empty() && action.back() == '/') action.remove_suffix(1);
     if (!equals_lower(action, expected_action))
         throw LaunchUrlError("unsupported_action", "Only odeum://" + std::string(expected_action) + " is accepted");
-    std::optional<std::string> relay, ticket;
+    std::optional<std::string> relay, ticket, project;
     auto query = question == std::string_view::npos ? std::string_view{} : rest.substr(question + 1);
     while (!query.empty()) {
         const auto amp = query.find('&');
@@ -96,9 +96,15 @@ LaunchRequest parse_launch_url(std::string_view text, std::string_view expected_
         // A repeated key is ambiguous, so it is refused rather than resolved silently.
         if (key == "relay") { if (relay) throw LaunchUrlError("invalid_url", "relay appears twice"); relay = value; }
         else if (key == "ticket") { if (ticket) throw LaunchUrlError("invalid_url", "ticket appears twice"); ticket = value; }
+        else if (key == "projectId") {
+            if (project || value.empty() || value.size() > 80 || value.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_") != std::string::npos)
+                throw LaunchUrlError("invalid_url", "Invalid GLab project ID");
+            project = value;
+        }
     }
     LaunchRequest request{validate_relay(relay.value_or("")), ticket.value_or("")};
     validate_ticket(request.ticket);
+    request.project_id = project.value_or("");
     return request;
 }
 

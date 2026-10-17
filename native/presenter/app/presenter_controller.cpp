@@ -161,7 +161,35 @@ void PresenterController::select_target(std::size_t index) {
     if (index >= targets_.size()) return;
     const bool changed = selected_ != index;
     selected_ = index;
+    if (targets_[index].kind != CaptureKind::display) region_.reset();
     if (changed && capturing_) { stop_capture(); update_capture(); }
+}
+
+void PresenterController::choose_source(CaptureKind kind, bool region) {
+    if (targets_.empty()) refresh_targets();
+    for (std::size_t i = 0; i < targets_.size(); ++i) {
+        if (targets_[i].kind != kind) continue;
+        // Source changes require a fresh start so another surface is never sent silently.
+        stop_stream();
+        selected_ = i;
+        region_ = region ? std::optional<CaptureRegion>({25, 25, 50, 50}) : std::nullopt;
+        tell(region ? "範囲を調整してから配信開始を押してください" : "配信元を選び、配信開始を押してください");
+        return;
+    }
+    tell("選べる配信元がありません。一覧を更新してください", true);
+}
+
+void PresenterController::adjust_region(int dx, int dy, int dw, int dh) {
+    if (!region_ || !selected_) return;
+    auto next = *region_;
+    next.width = std::clamp(next.width + dw, 5, 100);
+    next.height = std::clamp(next.height + dh, 5, 100);
+    next.x = std::clamp(next.x + dx, 0, 100 - next.width);
+    next.y = std::clamp(next.y + dy, 0, 100 - next.height);
+    if (next == *region_) return;
+    stop_stream();
+    region_ = next;
+    tell("範囲を変更しました。配信開始で送信します");
 }
 
 void PresenterController::request_permission() {
@@ -179,7 +207,9 @@ void PresenterController::update_capture() {
 void PresenterController::start_capture() {
     try {
         pipeline_.start(settings_.stream, [this](const EncodedFrame& frame) { media_.send_video(frame); });
-        capture_->start(targets_.at(*selected_), settings_.stream,
+        auto target = targets_.at(*selected_);
+        target.region = region_;
+        capture_->start(target, settings_.stream,
             [this](const VideoFrame& frame) { pipeline_.on_frame(frame); },
             [this](const std::string& message) {
                 queue_.post([this, message] { streaming_ = false; stop_capture(); tell("画面の取り込みが止まりました: " + message, true); });

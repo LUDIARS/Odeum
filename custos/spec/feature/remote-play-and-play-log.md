@@ -1,0 +1,202 @@
+# 遠隔プレイ (ポインタ / 物理キー) と行動ログ
+
+- 作成日: 2026-10-11 (neco 指示「Unity のゲームを遠隔プレイできるようにする。ついでに行動ログを保存し、オートプレイヤーの参考にする」)
+- 依頼文: `spec/tasks/2026-10-11-remote-play-action-log.md`
+- 関連: `spec/feature/unity-bridge.md` (ブリッジ protocol)、Commentarii `spec/feature/human-plays.md` (人間プレイログ取り込み)
+
+## 0. 現状と不足
+
+| 既にあるもの | 不足 |
+|---|---|
+| Unity ブリッジ `/stream` → WebRTC で画面配信 | 配信画面の上でマウス / タッチ操作できない (ブリッジに pointer 入口が無い) |
+| `/key` で仮想キーボード注入、画面下の仮想ボタン | ブラウザの物理キーボードがゲームに届かない (仮想ボタンだけ) |
+| WS で key / click を受けて forwarder に渡す | 操作が記録に残らない |
+
+## 1. 遠隔プレイ
+
+### 1.1 ブリッジ protocol の追加 (後方互換、既存 endpoint は不変)
+
+| Method | Path | Request | Response |
+|---|---|---|---|
+| POST | `/pointer` | `{ "x": 0..1, "y": 0..1, "button": 0\|1\|2, "phase": "down"\|"up"\|"move" }` | `200 {"ok":true}` (fire-and-forget) |
+| GET | `/state` | - | `200 {"isPlaying": bool, "state": <object\|null>}` |
+
+- `x` / `y` は **画面左上原点の正規化座標** (配信映像の比率)。ブリッジ側で `Screen.width/height` を掛け、Input System の左下原点に反転する。
+  解像度を知らなくても送れ、配信の縮小 (`maxLongEdge`) と独立する。
+- `/pointer` は専用の仮想 `Mouse` デバイス (`VirtualPointerInjector`) に `MouseState` のフルステートを queue する (キーボードと同じ方式)。
+  タッチ専用 UI は Input System の Mouse→Pointer で `Pointer.current` 経由に届く。uGUI の `InputSystemUIInputModule` も Mouse を拾う。
+- `/state` はゲーム側が `CustosPlayState.Register(Func<string> json)` で登録した JSON (1 オブジェクト) を main thread で取って返す。
+  未登録・例外時は `state: null`。ブリッジはゲームの中身を知らない (ゲーム固有の観測はゲームが決める)。
+- 対応しない ergo ブリッジは 404 を返す。Custos 側は 404 を「未対応」として黙って扱う (warn は 1 回だけ)。
+
+### 1.2 Custos (TS)
+
+- WS `ClientMessage` に `pointer { appId, x, y, button, phase }` を追加 (`src/shared/types.ts` と `public/js/app.js` を同時更新)。
+- `sendPointer(app, …)` (`src/input/forwarder.ts`): `allowMouse` が false なら破棄。`allowMouse` の既定は **true**
+  (2026-10-14 変更。スマホのタップ操作を前提にするため。明示的に `false` の app だけ止める)。`inAppBridge` があれば `/pointer` へ。
+  ブリッジ無しの desktop は `phase:"down"` のときだけ従来の nut-js click (ウィンドウ座標は不明なので未対応扱いで warn)。
+- 正規化座標は 0..1 に clamp、`phase` / `button` は zod で検証してから転送。
+
+### 1.3 フロントエンド
+
+- **ゲームが止まっている間**は PAD の見出しに「⏸ ゲームが止まっています」と出す (2026-10-15)。Unity ブリッジの app は Play
+  していないとき、それ以外は run が動いていないとき。状態がまだ届いていない間は出さない (`isGameStopped`、`public/js/app.js`)。
+- 遠隔プレイは**常に有効で自動判定** (切り替えるトグルは置かない。OFF にする意味が無いため、2026-10-15 neco 指示)。
+  app を選んでいて操作権を持てる (player / free) ときに送り、観戦中は送らない。操作の説明は PAD の見出しに出す (`#playHint`)。送る内容:
+  - 映像 (`<video>` / snapshot `<img>`) 上の pointerdown / pointermove / pointerup を正規化座標で送る。
+    `object-fit: contain` のレターボックスを除いた映像矩形で割る (`public/js/play-input.js` の純関数、vitest 対象)。
+    move は押下中・非押下中とも 30Hz に間引く。contextmenu は抑止。
+  - 映像にフォーカスがある間の keydown / keyup を `KeyboardEvent.code` → Custos のキー名 (`KEY_TABLE` 名) に変換して送る。
+    auto-repeat は捨てる。未対応キーは送らない。フォーカスが外れたら押下中のキーを全て up で送る (押しっぱなし事故防止)。
+- `allowMouse` / `allowKeyboard` が false の app は PAD の見出しにその旨を表示し、その種別は送らない。
+- **タッチ (スマホ前提)**: 1 本指のタッチをマウス操作に変換する (`touchGestureStep`、`public/js/play-input-logic.js`、vitest 対象)。
+  - タップ (動かさずに離す) → 左クリック (down → up)
+  - ドラッグ (8px 以上動かす) → 左ボタンを押したまま移動
+  - 長押し (動かさずに 500ms) → 右クリック
+  - 押した瞬間には送らない (タップ / ドラッグ / 長押しは、動いたか・時間が来たか・離したかで決まるため)。2 本目の指は無視。
+  - 映像の上ではブラウザの拡大縮小・スクロールを止める (`touch-action: none`)。
+- **バーチャルパッド**: 左に方向入力 (アナログスティック / 十字キーを切り替え、選択はブラウザに保存)、右に ABXY、上に肩ボタン、
+  中央にメニュー、下に割り当て先の無いボタン。割り当ては `input.buttons` のキー (`public/js/virtual-pad-logic.js`)。
+  スティックは傾きを 8 方向に分け (デッドゾーン 0.3)、WASD (無い方向は矢印キー) の押下 / 解放として送る。
+
+### 1.4 操作権と観戦モード
+
+Custos は複数人が同時に操作することを想定しない。app ごとに操作権を 1 接続だけに持たせる (`src/input/control-lease.ts`)。
+
+- **player**: 最初に入力 (`key` / `click` / `pointer` / `button`) を送った接続。入力を送った時点でサーバーが操作権を渡す。
+- **spectator (観戦)**: 他の接続が player の間の接続。映像・ログは見られるが、入力は WS で捨てられ、Unity の状態を変える
+  REST (`compile` / `refresh` / `play` / `stop` / `publish-capture`) は 409 になる (`src/routes/control-guard.ts`)。
+- **free**: 誰も操作していない。最初に操作した接続が player になる。Unity の REST は誰でも通る。
+- 操作権は player が unsubscribe する (app を切り替える)、切断するで解放される。`control { want: false }` も受け付ける
+  (画面から手放す操作は今は置いていない)。
+  奪う手段は持たない (観戦者は player が手放すのを待つ)。
+- WS: 接続直後に `welcome { clientId }`、subscribe 直後と持ち主が変わるたびに `control { appId, role }` を送る。
+  ブラウザは REST に `x-custos-client: <clientId>` を付ける (これで REST の呼び出し元を WS の接続と結び付ける)。
+- 操作権は全ポートの WS broker と REST で 1 つを共有する (`src/main.ts`)。
+
+### 1.5 観戦者の「見てるだけ」と感想 (2026-10-15 neco 指示)
+
+観戦者はパッドを使えないので、パッドを出さず「👁 見てるだけ」パネルを出し、感想を送れるようにする。
+
+- **画面**: 観戦中 (`role=spectator`) は PAD の中身 (`#padRoot`) を隠し、`#spectatorPanel` (見出し・説明・入力欄・送信・届いた感想の一覧) を出す
+  (`public/js/comment-panel.js`)。player / free では出さない。
+- **WS**: クライアント → サーバー `comment { appId, text }`。サーバーは subscribe 中の接続からだけ受け、本文を整形して
+  (改行・タブは空白、他の制御文字は除去、前後の空白を落とす)、1〜200 文字 (code point) だけを通す。1 接続 1 秒に 1 件まで
+  (超えた分は黙って捨てる、`src/ws/comment-message.ts`)。サーバー → その app を subscribe している全接続へ
+  `comment { appId, text, ts }`。送った人の識別子は配らない。
+- **操作中の人の画面**: 届いた感想を映像の上に 6 秒出す (最大 3 件、押しても映像へ通す、`public/js/comment-overlay.js`)。
+  観戦者のパネルの一覧にも足す (自分の送ったものもサーバーから戻った時点で載る)。
+- **行動ログ**: その app で記録中の run (= 操作中の人のプレイ) に `comment` 行を書く (§2.4)。記録中の run が無ければ書かない
+  (感想だけで run は開かない)。
+
+## 2. 行動ログ (play log)
+
+### 2.1 目的と方針
+
+- オートプレイヤー (Commentarii) が `guide import plays` でそのまま読める **1 行 1 イベントの JSONL** を Custos が書く。
+- 列は全てトップレベルのキー (Commentarii の mapping は列名で引く)。ゲームの状態は `state.<key>` という **ドット入りのキー名** に平らに展開する
+  (例: `state.stage`, `state.pos`, `state.hp`)。構造値 (位置配列・エンティティ配列) は値のまま置く。
+- 生のユーザー識別子は書かない。`player` は HMAC-SHA256(Custos の salt, ユーザー ID) の先頭 16 桁。salt は `CUSTOS_PLAYLOG_SALT`、
+  無ければ `<playlog dir>/.salt` を初回に乱数生成して使い回す。Commentarii は取り込み時に自分の salt でもう一度ハッシュする。
+
+### 2.2 有効化
+
+app 設定に任意の `playLog` を追加。無ければ記録しない。
+
+```jsonc
+"playLog": {
+  "enabled": true,
+  "statePollMs": 500,      // /state の取得間隔 (100..10000)。inAppBridge が無い app は state 列なし
+  "idleStopSec": 300       // 入力も状態変化も無い時間がこれを超えたら記録を閉じる
+}
+```
+
+### 2.3 記録の単位 (run)
+
+- 1 run = (app, WS セッション) の連続した操作。最初の入力 (key / pointer / button) で開く。
+- 閉じる契機: unsubscribe、WS 切断、`idleStopSec` 超過、app の run プロセス終了 (`exit`)、Custos 停止。
+- 置き場所: `<CUSTOS_PLAYLOG_DIR (既定 logs/plays)>/<appId>/<run>.jsonl`。`run` = `YYYYMMDD-HHmmss-<6 桁乱数>`。
+
+### 2.4 行の形
+
+全行共通:
+
+| 列 | 型 | 意味 |
+|---|---|---|
+| `run` | string | run ID |
+| `player` | string | ハッシュ済みプレイヤー |
+| `app` | string | appId |
+| `seq` | int | run 内で 0 から狭義単調増加 (Commentarii の `tick`) |
+| `t_ms` | int | run 開始からのミリ秒 (Commentarii の `t`, scale 0.001) |
+| `at` | string | ISO 8601 時刻 (先頭行を `started_at` に使える) |
+| `kind` | string | `start` / `input` / `state` / `comment` / `end` |
+| `state.<key>` | any | 直近に取得したゲーム状態 (全行に最新値を載せる。未取得なら列なし) |
+
+`kind` ごとの追加列:
+
+| kind | 列 |
+|---|---|
+| `start` | `source` (`ws`) |
+| `input` | `input` (操作名、下記)、`device` (`key`/`pointer`/`button`)、`key`、`down`、`x`、`y`、`button`、`phase`、`pos` (`[x, y, 0]`、pointer のみ) |
+| `state` | なし (状態が前回と変わったときだけ出す。変化検出は JSON 文字列比較) |
+| `comment` | `comment` (感想の本文、整形済み)、`commenter` (送った人の HMAC。`player` と同じハッシュ。生の ID は書かない) (§1.5) |
+| `end` | `reason` (`unsubscribe`/`disconnect`/`idle`/`exit`/`shutdown`) |
+
+`input` 列は Commentarii の `action.verbs` に書きやすい粒度にする:
+
+- キー押下 `key:<名前>` (例 `key:Space`)。離す行は `key:<名前>:up`。
+- ポインタ押下 `pointer:<left|right|middle>`、離す `pointer:<…>:up`、移動 `pointer:move` (押下中のみ記録、10Hz に間引く)。
+- 仮想ボタン `button:<id>`。
+
+### 2.5 取得 API
+
+| Method | Path | 説明 |
+|---|---|---|
+| GET | `/api/playlogs?appId=` | run 一覧 (`appId`, `run`, `bytes`, `updatedAt`、新しい順) |
+| GET | `/api/playlogs/:appId/:run` | JSONL 本体 (`application/x-ndjson`) |
+
+パス要素は `^[a-z0-9-]+$` / `^\d{8}-\d{6}-[a-z0-9]{6}$` で検証し、ディレクトリ外を読まない。
+
+### 2.6 Commentarii 側の mapping 例
+
+```jsonc
+{
+  "player": { "column": "player" }, "run": { "column": "run" },
+  "tick": { "column": "seq" }, "t": { "column": "t_ms", "scale": 0.001 },
+  "started_at": { "column": "at" },
+  "stage": { "column": "state.stage" },
+  "self": { "pos": "state.pos" },
+  "action": { "column": "input", "verbs": { "key:Space": { "verb": "use_skill", "operand": "…" } } }
+}
+```
+
+`state.stage` はゲームが `/state` に入れない限り存在しない。入れていないゲームのログは Custos 上の操作記録としてだけ使える。
+
+## 3. 構成 (SRP)
+
+| ファイル | 責務 |
+|---|---|
+| `src/playlog/playlog-row.ts` | 行の型と組み立て (純関数) |
+| `src/playlog/playlog-writer.ts` | 1 run のファイル追記 |
+| `src/playlog/playlog-recorder.ts` | run の開閉・seq/t 採番・idle 判定・状態の差分 |
+| `src/playlog/state-poller.ts` | `/state` の周期取得 (refcount) |
+| `src/playlog/player-hash.ts` | salt 解決と HMAC |
+| `src/routes/playlog-routes.ts` | 一覧 / 取得 API |
+| `src/capture/ergo-custos-client.ts` | `sendPointer` / `fetchState` を追加 |
+| `public/js/play-input.js` | 座標正規化・キー名変換の純関数 |
+| `src/ws/comment-message.ts` | 感想メッセージの検証・本文整形・連投制限 (純関数) |
+| `public/js/comment-panel.js` | 観戦者の「見てるだけ」パネル (感想の送信と一覧) |
+| `public/js/comment-overlay.js` | 感想を映像の上に一時表示 |
+| Unity `Runtime/Input/VirtualPointerInjector.cs` | 仮想 Mouse への注入 |
+| Unity `Runtime/Protocol/PointerPayload.cs` | `/pointer` DTO |
+| Unity `Runtime/CustosPlayState.cs` | ゲームが状態を登録する入口 |
+
+## 4. 受け入れ条件
+
+1. Unity ブリッジ経由の app で、配信画面のクリック / ドラッグと物理キーがゲームに届く (ブリッジの `/pointer` `/key` に正しい値が来る)。
+2. `playLog.enabled` の app を操作すると `logs/plays/<appId>/<run>.jsonl` に上記形式の行が出て、切断で `end` 行が付く。
+3. 生のユーザー ID がログに出ない。
+4. vitest: 座標正規化・キー名変換・行組み立て・recorder (開閉・seq・idle・状態差分)・API のパス検証。Unity: HidKeyMap と同様に pointer 座標変換を EditMode テスト。
+5. `npm run build` / `npm test` が通る。
+6. 観戦中はパッドが消えて「見てるだけ」パネルが出て、送った感想が操作中の人の映像の上に出る。playLog 有効なら記録中の run に `comment` 行が残る (§1.5)。
+   Commentarii は mapping で名指しした列しか読まないので、`comment` / `commenter` 列を足しても取り込み設定は変わらない (自由記述は明示許可が要る)。

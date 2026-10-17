@@ -9,6 +9,7 @@
 #include <functional>
 #include <mutex>
 #include <thread>
+#include <filesystem>
 
 namespace odeum::program {
 struct PublishStats {
@@ -29,6 +30,7 @@ public:
         std::function<void()> live;                       // UI thread
         std::function<void(const std::string& code)> failed; // UI thread; code is a fixed word
         std::function<void()> keyframe_needed;            // any thread
+        std::function<void()> completed;                  // UI thread, archive reached EOF
     };
     YouTubePublisher(presenter::EventQueue& ui, StreamMetadata metadata, Callbacks callbacks);
     ~YouTubePublisher();
@@ -36,12 +38,13 @@ public:
     YouTubePublisher& operator=(const YouTubePublisher&) = delete;
     // Replaces any running attempt. The key is kept only for this attempt's commands.
     void start(const RtmpEndpoint& endpoint, std::string stream_key);
+    void start_archive(const RtmpEndpoint& endpoint, std::string stream_key, std::filesystem::path file);
     void stop();
     void video(const presenter::EncodedFrame& frame);
     void audio(const AacPacket& packet);
     PublishStats stats() const;
 private:
-    void run(RtmpEndpoint endpoint, std::string key, std::uint64_t generation);
+    void run(RtmpEndpoint endpoint, std::string key, std::uint64_t generation, std::filesystem::path archive = {});
     void enqueue(std::vector<FlvTag> tags, bool keyframe, bool video);
     presenter::EventQueue& ui_;
     Callbacks callbacks_;
@@ -51,6 +54,7 @@ private:
     std::deque<FlvTag> queue_;
     std::size_t queued_bytes_ = 0;
     bool publishing_ = false, skip_to_keyframe_ = false;
+    bool replaying_ = false;
     std::uint64_t bytes_sent_ = 0, dropped_ = 0, window_bytes_ = 0;
     double bitrate_kbps_ = 0;
     std::chrono::steady_clock::time_point window_start_;

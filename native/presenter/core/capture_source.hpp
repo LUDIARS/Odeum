@@ -1,5 +1,7 @@
 #pragma once
 #include "stream_settings.hpp"
+#include "capture_region.hpp"
+#include <optional>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -14,6 +16,7 @@ struct CaptureTarget {
     CaptureKind kind{};
     std::string name;
     int width{}, height{};
+    std::optional<CaptureRegion> region;
     bool operator==(const CaptureTarget&) const = default;
 };
 

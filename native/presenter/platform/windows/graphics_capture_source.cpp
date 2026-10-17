@@ -133,6 +133,7 @@ struct GraphicsCaptureSource::Session {
     ComPtr<capture::IGraphicsCaptureSession> capture;
     EventRegistrationToken arrived{}, closed{};
     SizeInt32 size{};
+    std::optional<CaptureRegion> region;
     std::mutex mutex;
     bool running = true;
     FrameSink frames;
@@ -156,12 +157,32 @@ struct GraphicsCaptureSource::Session {
                 check(frame->get_Surface(&surface), "Surface");
                 ComPtr<::Windows::Graphics::DirectX::Direct3D11::IDirect3DDxgiInterfaceAccess> access;
                 check(surface.As(&access), "IDirect3DDxgiInterfaceAccess");
-                ID3D11Texture2D* texture = nullptr;
+                ComPtr<ID3D11Texture2D> texture;
                 check(access->GetInterface(IID_PPV_ARGS(&texture)), "GetInterface");
+                int width = content.Width, height = content.Height;
+                if (region) {
+                    const auto rect = capture_pixels(*region, width, height);
+                    D3D11_TEXTURE2D_DESC desc{};
+                    texture->GetDesc(&desc);
+                    desc.Width = static_cast<UINT>(rect.width);
+                    desc.Height = static_cast<UINT>(rect.height);
+                    desc.MipLevels = 1; desc.ArraySize = 1;
+                    desc.Usage = D3D11_USAGE_DEFAULT;
+                    desc.CPUAccessFlags = 0; desc.MiscFlags = 0;
+                    ComPtr<ID3D11Texture2D> cropped;
+                    check(d3d->CreateTexture2D(&desc, nullptr, &cropped), "Create cropped texture");
+                    ComPtr<ID3D11DeviceContext> context;
+                    d3d->GetImmediateContext(&context);
+                    const D3D11_BOX box{static_cast<UINT>(rect.x), static_cast<UINT>(rect.y), 0,
+                        static_cast<UINT>(rect.x + rect.width), static_cast<UINT>(rect.y + rect.height), 1};
+                    context->CopySubresourceRegion(cropped.Get(), 0, 0, 0, 0, texture.Get(), 0, &box);
+                    texture = std::move(cropped);
+                    width = rect.width; height = rect.height;
+                }
                 ABI::Windows::Foundation::TimeSpan time{};
                 frame->get_SystemRelativeTime(&time);
-                VideoFrame video{content.Width, content.Height, time.Duration / 10,
-                                 std::shared_ptr<void>(texture, [](void* p) { static_cast<ID3D11Texture2D*>(p)->Release(); })};
+                VideoFrame video{width, height, time.Duration / 10,
+                                 std::shared_ptr<void>(texture.Detach(), [](void* p) { static_cast<ID3D11Texture2D*>(p)->Release(); })};
                 frames(video);
             }
         } catch (const std::exception& error) {
@@ -191,6 +212,11 @@ void GraphicsCaptureSource::start(const CaptureTarget& target, const StreamSetti
     stop();
     if (!supported()) throw std::runtime_error("Windows Graphics Capture is not available (Windows 10 1903 or later is required)");
     auto session = std::make_shared<Session>();
+    if (target.region) {
+        if (target.kind != CaptureKind::display) throw std::invalid_argument("Region capture requires a display");
+        capture_pixels(*target.region, target.width, target.height);
+        session->region = target.region;
+    }
     session->frames = std::move(frames);
     session->errors = std::move(errors);
     ComPtr<ID3D11DeviceContext> context;

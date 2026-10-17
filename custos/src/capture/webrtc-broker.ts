@@ -1,0 +1,470 @@
+/**
+ * WebRTC peer connection broker。
+ *
+ * フロー:
+ *   1. ブラウザ from offer SDP
+ *   2. werift PC を作る (codec H.264 を明示)、sendonly トランシーバ追加
+ *   3. app の映像源 (SharedRtpSourcePool) を購読する。映像源は app ごとに 1 本で、
+ *      ffmpeg が `-f rtp rtp://127.0.0.1:<port>` で送る RTP datagram を
+ *      購読中の全 session に配る (観戦者が増えても ffmpeg は増えない)
+ *   4. datagram = 1 RTP packet を `track.writeRtp(buf)` に流し込む
+ *   5. werift が peer に転送
+ *
+ * 旧来の「Annex-B NAL を直接 writeRtp に渡す」アプローチは werift が
+ * H.264 RTP packetizer を提供しないため動かなかった。ffmpeg の RTP muxer
+ * (RFC 6184 準拠) を使うのが最短。
+ */
+
+import { randomUUID } from "node:crypto";
+import { EventEmitter } from "node:events";
+import { childLogger } from "../shared/logger.js";
+import type { AppConfig } from "../config/apps-config.js";
+import { createVideoSourcePool, type SharedRtpSourcePool, type VideoPipeline } from "./shared-rtp-source.js";
+import type { AudioSourcePipeline } from "./audio-source.js";
+import { OPUS_PAYLOAD_TYPE } from "./audio-pipeline.js";
+import { IceServerProvider, toWeriftIceServers, type IceServer } from "./ice-servers.js";
+
+const log = childLogger("webrtc-broker");
+
+/// 診断用: 過去 10 セッションぶんのトレース。`/api/apps/:id/rtc/diagnostic` から見られる。
+interface SessionDiag {
+    sessionId:       string;
+    appId:           string;
+    createdAt:       number;
+    closedAt?:       number;
+    rtpPort:         number;
+    rtpReceived:     number;
+    firstRtpAtMs?:   number;
+    pcStates:        string[];
+    iceStates:       string[];
+    ffmpegStderr:    readonly string[];
+    answerSdpLines:  number;
+    /** 音声トラックに流した RTP の数 (音声が無い app・offer では 0)。 */
+    audioRtpReceived: number;
+    /** 音声を載せられなかった理由。映像は流し続ける。 */
+    audioError?:     string;
+}
+const DIAG_HISTORY_MAX = 10;
+/** ICE が disconnected のまま戻らなければ session を閉じるまでの猶予。 */
+const ICE_DISCONNECT_GRACE_MS = 10_000;
+/** ブラウザの帯域推定 (REMB) を読む間隔。 */
+const ESTIMATE_POLL_MS = 1_000;
+const diagHistory: SessionDiag[] = [];
+
+export function getRtcDiagnostics(): SessionDiag[] {
+    return diagHistory.slice().reverse();
+}
+
+interface RTCRtpCodecParametersLike {
+    new (props: {
+        mimeType:    string;
+        clockRate:   number;
+        channels?:   number;
+        payloadType: number;
+        rtcpFeedback?: { type: string; parameter?: string }[];
+        parameters?:  string;
+    }): unknown;
+}
+
+/** werift の RTCRtpSender のうち、ブラウザからのフィードバックに使う部分。 */
+interface SenderLike {
+    receiverEstimatedMaxBitrate?: bigint;
+    onPictureLossIndication?: { subscribe: (cb: () => void) => unknown };
+}
+
+interface TransceiverLike {
+    sender?: SenderLike;
+}
+
+interface PCLike {
+    addTransceiver:       (trackOrKind: unknown, options?: { direction?: string }) => TransceiverLike | unknown;
+    createAnswer:         () => Promise<{ sdp: string; type: string }>;
+    setLocalDescription:  (desc: { sdp: string; type: string }) => Promise<void>;
+    setRemoteDescription: (desc: { sdp: string; type: string }) => Promise<void>;
+    localDescription:     { sdp: string; type: string } | null;
+    close:                () => void;
+    connectionState:      string;
+    on?:                  (ev: string, cb: (v: unknown) => void) => void;
+    iceGatheringStateChange?: { subscribe: (cb: (s: string) => void) => void };
+}
+
+interface MediaTrackLike {
+    kind:     string;
+    writeRtp: (rtp: Buffer) => void;
+}
+
+interface WeriftLike {
+    RTCPeerConnection:        new (config?: unknown) => PCLike;
+    MediaStreamTrack:         new (init: { kind: "video" | "audio"; codec?: unknown }) => MediaTrackLike;
+    RTCRtpCodecParameters:    RTCRtpCodecParametersLike;
+}
+
+let weriftPromise: Promise<WeriftLike | null> | null = null;
+async function getWerift(): Promise<WeriftLike | null> {
+    if (!weriftPromise) {
+        weriftPromise = (async () => {
+            try {
+                const mod = await import("werift") as unknown as WeriftLike;
+                if (!mod.RTCPeerConnection || !mod.MediaStreamTrack || !mod.RTCRtpCodecParameters) {
+                    log.warn("werift loaded but API unexpected");
+                    return null;
+                }
+                return mod;
+            } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err);
+                log.warn({ msg }, "werift not available");
+                return null;
+            }
+        })();
+    }
+    return weriftPromise;
+}
+
+interface CaptureSession {
+    id:          string;
+    appId:       string;
+    pc:          PCLike;
+    createdAt:   number;
+    diag:        SessionDiag;
+    /** フィードバックの購読を止める。 */
+    stopFeedback: () => void;
+}
+
+export interface BrokerEvents {
+    "session-closed": (sessionId: string) => void;
+}
+
+export class WebRTCBroker extends EventEmitter {
+    private sessions = new Map<string, CaptureSession>();
+
+    /**
+     * @param sources      映像源のプール
+     * @param audioSources 音声源のプール。null なら音声を扱わない (audio 設定のある app でも映像だけ)
+     * @param ice          STUN / TURN。ブラウザにも同じものを渡す (iceServers())
+     */
+    constructor(
+        private readonly sources: SharedRtpSourcePool<VideoPipeline> = createVideoSourcePool(),
+        private readonly audioSources: SharedRtpSourcePool<AudioSourcePipeline> | null = null,
+        private readonly ice: IceServerProvider = new IceServerProvider(),
+    ) {
+        super();
+    }
+
+    /** ブラウザが RTCPeerConnection に渡す ICE サーバー (サーバー側と同じ STUN / TURN)。 */
+    iceServers(): Promise<IceServer[]> {
+        return this.ice.get();
+    }
+
+    /** werift が使えるか + capture 設定があるかの事前チェック。 */
+    async available(): Promise<boolean> {
+        return Boolean(await getWerift());
+    }
+
+    /**
+     * offer を受け取って answer を返す。session id は内部で生成し、
+     * client は次の close 呼び出しで使う。
+     *
+     * video source 選択:
+     *   - `app.inAppBridge` が設定されていれば bridge-stream source を使う。
+     *     bridge の `GET /stream` に接続して raw BGRA8 を ffmpeg stdin に流す。
+     *   - それ以外 (`app.capture` のみ) は従来の gdigrab/x11grab source。
+     */
+    async createSession(app: AppConfig, offerSdp: string): Promise<{ sessionId: string; answer: { sdp: string; type: string }; audioError?: string }> {
+        if (!app.capture && !app.inAppBridge) {
+            throw new Error(`app ${app.id} has neither capture nor inAppBridge config`);
+        }
+        const w = await getWerift();
+        if (!w) throw new Error("werift not available");
+
+        // H.264 baseline を明示。WebRTC 標準の payload_type 96 + level-asymmetry-allowed=1
+        // + packetization-mode=1 + profile-level-id=42e01f (baseline 3.1)。
+        const h264 = new w.RTCRtpCodecParameters({
+            mimeType:    "video/H264",
+            clockRate:   90000,
+            payloadType: 96,
+            parameters:  "level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f",
+            rtcpFeedback: [
+                { type: "nack" },
+                { type: "nack", parameter: "pli" },
+                { type: "ccm",  parameter: "fir" },
+                { type: "goog-remb" },
+            ],
+        });
+
+        // 音声はブラウザが音声の受信枠 (m=audio) を出したときだけ載せる (音声の無い app では出さない)。
+        const audioSources = app.audio && offerSdp.includes("m=audio") ? this.audioSources : null;
+        const opus = audioSources ? new w.RTCRtpCodecParameters({
+            mimeType:    "audio/opus",
+            clockRate:   48000,
+            channels:    2,
+            payloadType: OPUS_PAYLOAD_TYPE,
+            parameters:  "minptime=10;useinbandfec=1",
+        }) : null;
+
+        // STUN で NAT の外側のアドレスも候補に出す (同じ LAN にいないブラウザとも直接つながるように)。
+        const pc = new w.RTCPeerConnection({
+            codecs: opus ? { video: [h264], audio: [opus] } : { video: [h264] },
+            iceServers: toWeriftIceServers(await this.ice.get()),
+        });
+
+        // codec を track にも紐付けると writeRtp が payloadType=96 に rewrite する。
+        const track = new w.MediaStreamTrack({ kind: "video", codec: h264 });
+        const videoTransceiver = pc.addTransceiver(track, { direction: "sendonly" }) as TransceiverLike | undefined;
+        const audioTrack = opus ? new w.MediaStreamTrack({ kind: "audio", codec: opus }) : null;
+        if (audioTrack) pc.addTransceiver(audioTrack, { direction: "sendonly" });
+
+        const sessionId = randomUUID();
+        const diag: SessionDiag = {
+            sessionId, appId: app.id, createdAt: Date.now(),
+            rtpPort: 0, rtpReceived: 0,
+            pcStates: [], iceStates: [], ffmpegStderr: [],
+            answerSdpLines: 0, audioRtpReceived: 0,
+        };
+
+        let rtpReceived = 0;
+        const onPacket = (msg: Buffer) => {
+            try {
+                track.writeRtp(msg);
+                rtpReceived++;
+                diag.rtpReceived = rtpReceived;
+                if (rtpReceived === 1) {
+                    diag.firstRtpAtMs = Date.now() - diag.createdAt;
+                    log.info({ sessionId, firstRtpAtMs: diag.firstRtpAtMs, size: msg.length },
+                             "first RTP datagram arrived");
+                }
+            } catch (err) {
+                const msgErr = err instanceof Error ? err.message : String(err);
+                log.warn({ err: msgErr, sessionId, datagramSize: msg.length },
+                         "writeRtp failed");
+            }
+        };
+
+        // ── PC state hooks ───────────────────────────────────────
+        const onState = (state: string) => {
+            diag.pcStates.push(`${Date.now() - diag.createdAt}ms:${state}`);
+            log.info({ sessionId, state, pcStateHistory: diag.pcStates }, "pc state");
+            // つながった時点でキーフレームを要求する。接続前に出た IDR (映像源の起動直後・途中参加時) は
+            // DTLS が張れる前なので届いておらず、GOP の長い H.264 の映像源だと次の IDR まで描けない。
+            if (state === "connected") this.sources.feedback(app.id, sessionId, { kind: "pli" });
+            if (state === "failed" || state === "disconnected" || state === "closed") {
+                this.closeSession(sessionId);
+            }
+        };
+        // werift の event 購読は version で違うので両対応。
+        const pcAny = pc as unknown as Record<string, unknown>;
+        if (typeof pc.on === "function") {
+            pc.on("connectionstatechange", () => onState(pc.connectionState));
+        }
+        // ICE 状態変化も購読 (werift 0.22+ は Event objects を expose する)。
+        const subscribe = (key: string, cb: (v: string) => void) => {
+            const ev = pcAny[key] as { subscribe?: (cb: (v: string) => void) => void } | undefined;
+            if (ev && typeof ev.subscribe === "function") {
+                ev.subscribe(cb);
+            }
+        };
+        subscribe("iceGatheringStateChange", (s) => {
+            diag.iceStates.push(`${Date.now() - diag.createdAt}ms:gather=${s}`);
+            log.info({ sessionId, iceGatheringState: s }, "ice gathering state");
+        });
+        // ブラウザが去っても werift の connectionState は connected のまま残り、ICE だけが
+        // disconnected になる。ICE で判断して閉じないと、相手のいない session に送り続ける。
+        // disconnected は一時的な途切れのこともあるので猶予を置く。
+        let iceGraceTimer: ReturnType<typeof setTimeout> | null = null;
+        subscribe("iceConnectionStateChange", (s) => {
+            diag.iceStates.push(`${Date.now() - diag.createdAt}ms:conn=${s}`);
+            log.info({ sessionId, iceConnectionState: s }, "ice connection state");
+            if (iceGraceTimer) { clearTimeout(iceGraceTimer); iceGraceTimer = null; }
+            if (s === "failed" || s === "closed") {
+                this.closeSession(sessionId);
+            } else if (s === "disconnected") {
+                iceGraceTimer = setTimeout(() => {
+                    log.info({ sessionId }, "ICE stayed disconnected — closing session");
+                    this.closeSession(sessionId);
+                }, ICE_DISCONNECT_GRACE_MS);
+            }
+        });
+        subscribe("connectionStateChange", (s) => {
+            // 既に on(connectionstatechange) で取れているはずだが冗長に。
+            diag.pcStates.push(`${Date.now() - diag.createdAt}ms:conn=${s}`);
+            log.info({ sessionId, connectionState: s }, "pc connection state (event)");
+        });
+
+        // ── SDP exchange ─────────────────────────────────────────
+        log.info({ sessionId, offerSdpLines: offerSdp.split("\n").length },
+                 "received offer");
+        await pc.setRemoteDescription({ sdp: offerSdp, type: "offer" });
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        const finalAnswer = await waitForIceGatheringComplete(pc);
+        diag.answerSdpLines = finalAnswer.sdp.split("\n").length;
+        // SDP の m=video 行と payloadType / fmtp / candidate を抜粋して log。
+        const summary = sdpSummary(finalAnswer.sdp);
+        log.info({ sessionId, ...summary }, "answer SDP summary");
+
+        // ── 映像源の購読 ─────────────────────────────────────────
+        // 映像源 (ffmpeg) は app ごとに共有。無ければここで起動される。
+        try {
+            diag.rtpPort = await this.sources.acquire(app, sessionId, {
+                onPacket,
+                onEnd: () => this.closeSession(sessionId),
+            });
+        } catch (err) {
+            try { pc.close(); } catch { /* 応答前の失敗。後始末なので best-effort */ }
+            throw err;
+        }
+        diag.ffmpegStderr = this.sources.stderrTail(app.id);
+
+        // ── 音声源の購読 ─────────────────────────────────────────
+        // 音声が取れなくても映像は流す。理由は診断と応答 (audioError) に残し、ブラウザが LOG に出す。
+        if (audioSources && audioTrack) {
+            try {
+                await audioSources.acquire(app, sessionId, {
+                    onPacket: (msg: Buffer) => {
+                        try {
+                            audioTrack.writeRtp(msg);
+                            diag.audioRtpReceived++;
+                        } catch (err) {
+                            log.warn({ err: err instanceof Error ? err.message : String(err), sessionId }, "audio writeRtp failed");
+                        }
+                    },
+                    onEnd: () => log.warn({ sessionId, appId: app.id }, "audio source ended — video keeps streaming"),
+                });
+            } catch (err) {
+                diag.audioError = err instanceof Error ? err.message : String(err);
+                log.warn({ sessionId, appId: app.id, err: diag.audioError }, "audio unavailable — streaming video only");
+            }
+        }
+        log.info({ sessionId, appId: app.id, subscribers: this.sources.subscriberCount(app.id), audio: Boolean(audioSources) && !diag.audioError },
+                 "capture session opened");
+
+        const stopFeedback = this.watchFeedback(app.id, sessionId, videoTransceiver?.sender);
+        const session: CaptureSession = {
+            id: sessionId, appId: app.id, pc, createdAt: Date.now(), diag, stopFeedback,
+        };
+        this.sessions.set(sessionId, session);
+
+        // 診断履歴に登録。
+        diagHistory.push(diag);
+        if (diagHistory.length > DIAG_HISTORY_MAX) diagHistory.shift();
+
+        // 5 秒後に RTP がまだ届いていなければ警告 (ffmpeg / window 不在の typical)。
+        setTimeout(() => {
+            if (this.sessions.has(sessionId) && rtpReceived === 0) {
+                log.warn({
+                    sessionId,
+                    rtpReceived,
+                    pcStates:    diag.pcStates,
+                    iceStates:   diag.iceStates,
+                    ffmpegTail:  this.sources.stderrTail(app.id).slice(-5),
+                }, "no RTP after 5s — check ffmpeg / window title");
+            }
+        }, 5000);
+
+        return diag.audioError
+            ? { sessionId, answer: finalAnswer, audioError: diag.audioError }
+            : { sessionId, answer: finalAnswer };
+    }
+
+    closeSession(sessionId: string): boolean {
+        const s = this.sessions.get(sessionId);
+        if (!s) return false;
+        // 先に map から外す。pc.close() が connectionstatechange 経由で再入しても二重に閉じない。
+        this.sessions.delete(sessionId);
+        s.stopFeedback();
+        this.sources.release(s.appId, sessionId);
+        this.audioSources?.release(s.appId, sessionId);
+        try { s.pc.close(); } catch { /* 既に閉じていることがある。後始末なので best-effort */ }
+        s.diag.closedAt = Date.now();
+        this.emit("session-closed", sessionId);
+        log.info({
+            sessionId,
+            rtpReceived:  s.diag.rtpReceived,
+            firstRtpMs:   s.diag.firstRtpAtMs,
+            pcStates:     s.diag.pcStates,
+            iceStates:    s.diag.iceStates,
+        }, "capture session closed");
+        return true;
+    }
+
+    /**
+     * ブラウザからの PLI (キーフレームが欲しい) と帯域推定 (REMB) を映像源へ渡す。
+     * 映像源が H.264 のブリッジならキーフレーム要求とビットレート変更になる (ffmpeg の映像源では何もしない)。
+     */
+    private watchFeedback(appId: string, sessionId: string, sender: SenderLike | undefined): () => void {
+        if (!sender) return () => { /* sender が取れない werift の版: フィードバック無しで流す */ };
+        let active = true;
+        sender.onPictureLossIndication?.subscribe(() => {
+            if (active) this.sources.feedback(appId, sessionId, { kind: "pli" });
+        });
+        let lastEstimate = 0n;
+        const timer = setInterval(() => {
+            const estimate = sender.receiverEstimatedMaxBitrate ?? 0n;
+            if (estimate <= 0n || estimate === lastEstimate) return;
+            lastEstimate = estimate;
+            this.sources.feedback(appId, sessionId, { kind: "estimate", bps: Number(estimate) });
+        }, ESTIMATE_POLL_MS);
+        timer.unref?.();
+        return () => {
+            active = false;
+            clearInterval(timer);
+        };
+    }
+
+    closeAllForApp(appId: string): void {
+        for (const [sid, s] of this.sessions) {
+            if (s.appId === appId) this.closeSession(sid);
+        }
+    }
+
+    shutdown(): void {
+        for (const sid of [...this.sessions.keys()]) this.closeSession(sid);
+        this.sources.shutdown();
+        this.audioSources?.shutdown();
+    }
+}
+
+/// SDP から重要行 (m=video, a=rtpmap:H264, a=fmtp, a=candidate) を抜粋。
+function sdpSummary(sdp: string): {
+    mLines: string[];
+    rtpmaps: string[];
+    fmtps:   string[];
+    candidates: number;
+    setup:   string;
+}{
+    const mLines:  string[] = [];
+    const rtpmaps: string[] = [];
+    const fmtps:   string[] = [];
+    let   candidates = 0;
+    let   setup = "";
+    for (const raw of sdp.split(/\r?\n/)) {
+        if (raw.startsWith("m=")) mLines.push(raw);
+        else if (/^a=rtpmap:.*(?:H264|VP8|VP9|AV1)/i.test(raw)) rtpmaps.push(raw);
+        else if (raw.startsWith("a=fmtp:")) fmtps.push(raw);
+        else if (raw.startsWith("a=candidate:")) candidates++;
+        else if (raw.startsWith("a=setup:")) setup = raw;
+    }
+    return { mLines, rtpmaps, fmtps, candidates, setup };
+}
+
+/** localDescription が ICE gathering complete で確定するまで待つ。 */
+async function waitForIceGatheringComplete(
+    pc: PCLike,
+    timeoutMs = 5000,
+): Promise<{ sdp: string; type: string }> {
+    return new Promise((resolveOuter) => {
+        const start = Date.now();
+        const tick = () => {
+            if (pc.localDescription && pc.localDescription.sdp.includes("a=end-of-candidates")) {
+                resolveOuter(pc.localDescription);
+                return;
+            }
+            if (Date.now() - start >= timeoutMs) {
+                resolveOuter(pc.localDescription ?? { sdp: "", type: "answer" });
+                return;
+            }
+            setTimeout(tick, 50);
+        };
+        tick();
+    });
+}

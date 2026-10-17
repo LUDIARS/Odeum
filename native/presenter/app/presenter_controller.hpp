@@ -44,6 +44,9 @@ public:
     void stop_stream();
     void refresh_targets();
     void select_target(std::size_t index);
+    void choose_source(CaptureKind kind, bool region = false);
+    void adjust_region(int dx, int dy, int dw, int dh);
+    const std::optional<CaptureRegion>& region() const noexcept { return region_; }
     void request_permission();
 
     void paste_question();
@@ -114,6 +117,7 @@ private:
     RelayLink link_;
     std::vector<CaptureTarget> targets_;
     std::optional<std::size_t> selected_;
+    std::optional<CaptureRegion> region_;
     CapturePermission permission_ = CapturePermission::undetermined;
     bool streaming_ = false, capturing_ = false;
 };

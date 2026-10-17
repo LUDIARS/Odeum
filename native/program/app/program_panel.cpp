@@ -114,7 +114,20 @@ tela::Document program_panel_document(ProgramController& c, bool with_grip) {
         if (!c.notice().text.empty()) doc.text("notice", (c.notice().error ? "! " : "") + c.notice().text, text_box(2, 0.9f));
         inputs(doc, c);
         scenes(doc, c);
+        const auto recording = c.recording_status();
+        doc.text("recording", std::string("録画: ") + (recording.recording ? "録画中" : recording.error.empty() ? "停止中" : "保存失敗") +
+                 "   Project GLab: " + c.settings().project_id, text_box(1, 0.85f));
+        doc.panel("recording-row", [&] {
+            doc.button("project-paste", "プロジェクト ID", [&c] { c.paste_project(); }, button_box(150));
+            doc.button("record-start", "録画開始", [&c] { c.start_recording(); }, button_box(110));
+            doc.button("record-stop", "録画を保存", [&c] { c.stop_recording(); }, button_box(110));
+        }, row_box());
         youtube(doc, c);
+        doc.text("archive-selection", "アーカイブ: " + c.archive_label(), text_box(1, 0.85f));
+        doc.panel("archive-row", [&] {
+            doc.button("archive-next", "保存済み録画を選ぶ", [&c] { c.next_archive(); }, button_box(180));
+            doc.button("archive-play", "録画を YouTube 配信", [&c] { c.replay_archive(); }, button_box(210));
+        }, row_box());
         return_feed(doc, c);
         const auto engine = c.engine_stats();
         doc.text("engine", "合成 " + presenter::grouped(static_cast<std::int64_t>(engine.frames)) + " フレーム   遅れ " +

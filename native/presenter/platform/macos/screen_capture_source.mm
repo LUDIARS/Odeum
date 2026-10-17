@@ -109,6 +109,11 @@ void ScreenCaptureSource::start(const CaptureTarget& target, const StreamSetting
         }
         if (!filter) throw std::runtime_error("The chosen display or window is no longer available");
         SCStreamConfiguration* config = [[SCStreamConfiguration alloc] init];
+        if (target.region) {
+            if (target.kind != CaptureKind::display) throw std::invalid_argument("Region capture requires a display");
+            const auto rect = capture_pixels(*target.region, target.width, target.height);
+            config.sourceRect = CGRectMake(rect.x, rect.y, rect.width, rect.height);
+        }
         config.width = static_cast<size_t>(settings.width);
         config.height = static_cast<size_t>(settings.height);
         config.minimumFrameInterval = CMTimeMake(1, settings.fps);

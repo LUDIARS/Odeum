@@ -1,4 +1,14 @@
-# Spectator
+# Odeum
+
+Odeum provides network screen capture (`odeum-presenter`), relay (`odeum-relay`), and program
+composition (`odeum-program`). Custos remains a separate, unchanged product; its complete source
+copy is described in [CUSTOS-SOURCE.md](CUSTOS-SOURCE.md).
+
+See [capture and archives](spec/feature/capture-and-archives.md) for source selection and background
+recording/rebroadcast. The native live pipeline does not require HDMI or OBS. The older Spectator
+review application and historical OBS deployment files below are retained as separate components.
+
+## Spectator (legacy review application)
 
 ## リポジトリ境界
 
