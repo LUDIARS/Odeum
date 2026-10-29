@@ -40,7 +40,7 @@ struct HttpResponse {
 enum class HttpFailure { invalid_url, unreachable, timeout, too_large, protocol };
 struct HttpError {
     HttpFailure kind;
-    std::string message;  // "fetch failed" / "The operation was aborted due to timeout" / ...
+    const char* message;  // static text: "fetch failed" / "The operation was aborted due to timeout" / ...
 };
 using HttpResult = std::variant<HttpResponse, HttpError>;
 
@@ -62,6 +62,9 @@ public:
         std::size_t error_body_limit, Handlers handlers);
     virtual ~HttpStream() = default;
     virtual void cancel() = 0;
+    // Back-pressure: no further body reads until resume() (the consumer is behind).
+    virtual void pause() = 0;
+    virtual void resume() = 0;
     // The (non-200) response body read so far, up to the limit given to open().
     virtual const std::string& error_body() const = 0;
 };

@@ -264,6 +264,12 @@ public:
         if (end) end(HttpError{HttpFailure::unreachable, "cancelled"});
     }
     const std::string& error_body() const override { return error_body_; }
+    void pause() override { paused_ = true; }
+    void resume() override {
+        if (!paused_) return;
+        paused_ = false;
+        if (parked_ && !ended_) { parked_ = false; read(); }
+    }
 
 private:
     tcp::resolver resolver_;
@@ -278,7 +284,7 @@ private:
     http::response_parser<http::buffer_body> parser_;
     std::array<char, 65536> chunk_{};
     std::string error_body_;
-    bool ended_ = false, collect_error_ = false, timed_out_ = false;
+    bool ended_ = false, collect_error_ = false, timed_out_ = false, paused_ = false, parked_ = false;
 
     void arm(std::chrono::milliseconds after) {
         auto self = std::static_pointer_cast<PlainStream>(shared_from_this());
@@ -312,6 +318,7 @@ private:
             }
             if (error) return self->end(self->collect_error_ ? std::nullopt
                 : std::optional<HttpError>(HttpError{HttpFailure::unreachable, error == http::error::end_of_stream ? "end of stream" : network_message}));
+            if (self->paused_) { self->parked_ = true; return; }
             self->read();
         });
     }

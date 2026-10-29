@@ -3,11 +3,12 @@
 #   odeum_runner_core      pure rules (configuration, policies, wire shapes); no I/O, no environment
 #   odeum_runner_adapters  processes, HTTP client, files, OS input, logging
 #   odeum_runner_app       use cases, routes, WebSocket broker, HTTP server, embedded web UI
+#   odeum_runner_webrtc    WebRTC streaming (libdatachannel), with ODEUM_RUNNER_WEBRTC
 add_library(odeum_runner_core STATIC
   core/json.cpp core/text.cpp core/app_config.cpp core/registry.cpp core/app_view.cpp core/auth_policy.cpp
   core/control_lease.cpp core/client_message.cpp core/audience.cpp core/stream_prefs.cpp core/web_access.cpp
   core/bridge_contract.cpp core/keys.cpp core/ffmpeg_args.cpp core/playlog_row.cpp core/unityctl.cpp
-  core/farm.cpp core/farm_host_auth.cpp core/ice.cpp core/h264.cpp core/video_feedback_policy.cpp)
+  core/farm.cpp core/farm_host_auth.cpp core/ice.cpp core/h264.cpp core/video_feedback_policy.cpp core/rtcp.cpp)
 target_include_directories(odeum_runner_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(odeum_runner_core PUBLIC cxx_std_20)
 target_link_libraries(odeum_runner_core PUBLIC nlohmann_json::nlohmann_json Lorica::boundary OpenSSL::Crypto)
@@ -45,9 +46,22 @@ add_library(odeum_runner_app STATIC
 target_link_libraries(odeum_runner_app PUBLIC odeum_runner_adapters)
 
 set(ODEUM_RUNNER_TARGETS odeum_runner_core odeum_runner_adapters odeum_runner_app)
+if(ODEUM_RUNNER_WEBRTC)
+  add_library(odeum_runner_webrtc STATIC
+    webrtc/rtp_source_pool.cpp webrtc/video_pipeline.cpp webrtc/audio_pipeline.cpp webrtc/webrtc_broker.cpp)
+  target_link_libraries(odeum_runner_webrtc PUBLIC odeum_runner_app datachannel)
+  # libdatachannel's headers are third-party code: no warnings from them in our -Werror builds.
+  target_include_directories(odeum_runner_webrtc SYSTEM PRIVATE $<TARGET_PROPERTY:datachannel,INTERFACE_INCLUDE_DIRECTORIES>)
+  list(APPEND ODEUM_RUNNER_TARGETS odeum_runner_webrtc)
+endif()
 
 add_executable(odeum-runner app/main.cpp)
-target_link_libraries(odeum-runner PRIVATE odeum_runner_app)
+if(ODEUM_RUNNER_WEBRTC)
+  target_link_libraries(odeum-runner PRIVATE odeum_runner_webrtc)
+  target_compile_definitions(odeum-runner PRIVATE ODEUM_RUNNER_HAS_WEBRTC)
+else()
+  target_link_libraries(odeum-runner PRIVATE odeum_runner_app)
+endif()
 add_executable(odeum-unityctl unityctl/main.cpp)
 target_link_libraries(odeum-unityctl PRIVATE odeum_runner_adapters)
 foreach(exe odeum-runner odeum-unityctl)
