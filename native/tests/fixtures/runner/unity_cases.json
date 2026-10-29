@@ -1,0 +1,456 @@
+{
+  "args": [
+    {
+      "argv": [
+        "status"
+      ],
+      "ok": true,
+      "value": {
+        "command": "status",
+        "host": "127.0.0.1",
+        "port": null,
+        "token": "",
+        "json": false,
+        "wait": false,
+        "since": 0,
+        "level": "",
+        "limit": 200,
+        "depth": 2,
+        "root": "",
+        "caption": "",
+        "source": "gameview"
+      }
+    },
+    {
+      "argv": [
+        "compile",
+        "--wait",
+        "--json"
+      ],
+      "ok": true,
+      "value": {
+        "command": "compile",
+        "host": "127.0.0.1",
+        "port": null,
+        "token": "",
+        "json": true,
+        "wait": true,
+        "since": 0,
+        "level": "",
+        "limit": 200,
+        "depth": 2,
+        "root": "",
+        "caption": "",
+        "source": "gameview"
+      }
+    },
+    {
+      "argv": [
+        "log",
+        "--since",
+        "5",
+        "--level",
+        "error",
+        "--limit",
+        "50"
+      ],
+      "ok": true,
+      "value": {
+        "command": "log",
+        "host": "127.0.0.1",
+        "port": null,
+        "token": "",
+        "json": false,
+        "wait": false,
+        "since": 5,
+        "level": "error",
+        "limit": 50,
+        "depth": 2,
+        "root": "",
+        "caption": "",
+        "source": "gameview"
+      }
+    },
+    {
+      "argv": [
+        "hierarchy",
+        "--depth",
+        "3",
+        "--root",
+        "Main Camera"
+      ],
+      "ok": true,
+      "value": {
+        "command": "hierarchy",
+        "host": "127.0.0.1",
+        "port": null,
+        "token": "",
+        "json": false,
+        "wait": false,
+        "since": 0,
+        "level": "",
+        "limit": 200,
+        "depth": 3,
+        "root": "Main Camera",
+        "caption": "",
+        "source": "gameview"
+      }
+    },
+    {
+      "argv": [
+        "capture",
+        "--caption",
+        "ファー",
+        "--source",
+        "scene"
+      ],
+      "ok": true,
+      "value": {
+        "command": "capture",
+        "host": "127.0.0.1",
+        "port": null,
+        "token": "",
+        "json": false,
+        "wait": false,
+        "since": 0,
+        "level": "",
+        "limit": 200,
+        "depth": 2,
+        "root": "",
+        "caption": "ファー",
+        "source": "scene"
+      }
+    },
+    {
+      "argv": [
+        "status",
+        "--bridge",
+        "10.0.0.2:17779"
+      ],
+      "ok": true,
+      "value": {
+        "command": "status",
+        "host": "10.0.0.2",
+        "port": 17779,
+        "token": "",
+        "json": false,
+        "wait": false,
+        "since": 0,
+        "level": "",
+        "limit": 200,
+        "depth": 2,
+        "root": "",
+        "caption": "",
+        "source": "gameview"
+      }
+    },
+    {
+      "argv": [
+        "status",
+        "--bridge",
+        "17779"
+      ],
+      "ok": true,
+      "value": {
+        "command": "status",
+        "host": "127.0.0.1",
+        "port": 17779,
+        "token": "",
+        "json": false,
+        "wait": false,
+        "since": 0,
+        "level": "",
+        "limit": 200,
+        "depth": 2,
+        "root": "",
+        "caption": "",
+        "source": "gameview"
+      }
+    },
+    {
+      "argv": [
+        "status",
+        "--bridge",
+        "myhost"
+      ],
+      "ok": true,
+      "value": {
+        "command": "status",
+        "host": "myhost",
+        "port": null,
+        "token": "",
+        "json": false,
+        "wait": false,
+        "since": 0,
+        "level": "",
+        "limit": 200,
+        "depth": 2,
+        "root": "",
+        "caption": "",
+        "source": "gameview"
+      }
+    },
+    {
+      "argv": [
+        "status",
+        "--bridge",
+        "h:0"
+      ],
+      "ok": false,
+      "error": "invalid port in --bridge h:0"
+    },
+    {
+      "argv": [
+        "status",
+        "--token",
+        "t"
+      ],
+      "ok": true,
+      "value": {
+        "command": "status",
+        "host": "127.0.0.1",
+        "port": null,
+        "token": "t",
+        "json": false,
+        "wait": false,
+        "since": 0,
+        "level": "",
+        "limit": 200,
+        "depth": 2,
+        "root": "",
+        "caption": "",
+        "source": "gameview"
+      }
+    },
+    {
+      "argv": [],
+      "ok": false,
+      "error": "command is required"
+    },
+    {
+      "argv": [
+        "nope"
+      ],
+      "ok": false,
+      "error": "unknown command: nope"
+    },
+    {
+      "argv": [
+        "status",
+        "--bogus"
+      ],
+      "ok": false,
+      "error": "unknown option: --bogus"
+    },
+    {
+      "argv": [
+        "log",
+        "--since"
+      ],
+      "ok": false,
+      "error": "--since requires a value"
+    },
+    {
+      "argv": [
+        "log",
+        "--since",
+        "--json"
+      ],
+      "ok": false,
+      "error": "--since requires a value"
+    },
+    {
+      "argv": [
+        "log",
+        "--limit",
+        "0"
+      ],
+      "ok": false,
+      "error": "--limit requires an integer >= 1 (got 0)"
+    },
+    {
+      "argv": [
+        "log",
+        "--limit",
+        "1.5"
+      ],
+      "ok": false,
+      "error": "--limit requires an integer >= 1 (got 1.5)"
+    },
+    {
+      "argv": [
+        "log",
+        "--since",
+        "1e2"
+      ],
+      "ok": true,
+      "value": {
+        "command": "log",
+        "host": "127.0.0.1",
+        "port": null,
+        "token": "",
+        "json": false,
+        "wait": false,
+        "since": 100,
+        "level": "",
+        "limit": 200,
+        "depth": 2,
+        "root": "",
+        "caption": "",
+        "source": "gameview"
+      }
+    },
+    {
+      "argv": [
+        "hierarchy",
+        "--depth",
+        "-1"
+      ],
+      "ok": false,
+      "error": "--depth requires an integer >= 0 (got -1)"
+    },
+    {
+      "argv": [
+        "log",
+        "--limit",
+        " 7 "
+      ],
+      "ok": true,
+      "value": {
+        "command": "log",
+        "host": "127.0.0.1",
+        "port": null,
+        "token": "",
+        "json": false,
+        "wait": false,
+        "since": 0,
+        "level": "",
+        "limit": 7,
+        "depth": 2,
+        "root": "",
+        "caption": "",
+        "source": "gameview"
+      }
+    }
+  ],
+  "render": {
+    "status": "Unity     6000.0.1f1\nproject   /p\nmode      playing (paused) [compiling, reloading]\nscene     (none)\ndirty     A, B",
+    "statusEdit": "Unity     6000.0.1f1\nproject   /p\nmode      edit\nscene     Main",
+    "compile": "1 error(s), 1 warning(s)\n  ERROR Assets/A.cs:12:3 [Game.Editor] boom\n  WARN  (unknown location) w",
+    "compiling": "compiling...",
+    "clean": "no compile errors or warnings",
+    "exit": [
+      1,
+      0
+    ],
+    "log": "1 t [error] m\n2 u [log] n",
+    "emptyLog": "(no new entries; nextSeq=9)",
+    "json": "{\n  \"a\": [\n    1,\n    {\n      \"b\": \"c\"\n    }\n  ],\n  \"d\": {},\n  \"e\": [],\n  \"f\": \"日本\"\n}"
+  },
+  "phases": [
+    {
+      "ever": true,
+      "ms": 0,
+      "reachable": true,
+      "compiling": true,
+      "phase": "waiting"
+    },
+    {
+      "ever": true,
+      "ms": 0,
+      "reachable": true,
+      "compiling": false,
+      "phase": "done"
+    },
+    {
+      "ever": true,
+      "ms": 5000,
+      "reachable": false,
+      "compiling": false,
+      "phase": "waiting"
+    },
+    {
+      "ever": true,
+      "ms": 90000,
+      "reachable": false,
+      "compiling": false,
+      "phase": "unreachable"
+    },
+    {
+      "ever": false,
+      "ms": 0,
+      "reachable": false,
+      "compiling": false,
+      "phase": "unreachable"
+    },
+    {
+      "ever": false,
+      "ms": 0,
+      "reachable": true,
+      "compiling": false,
+      "phase": "done"
+    }
+  ],
+  "ports": [
+    {
+      "text": "17779\n",
+      "port": 17779
+    },
+    {
+      "text": "",
+      "port": null
+    },
+    {
+      "text": "abc",
+      "port": null
+    },
+    {
+      "text": "0",
+      "port": null
+    },
+    {
+      "text": "70000",
+      "port": null
+    },
+    {
+      "text": " 17780 ",
+      "port": 17780
+    },
+    {
+      "text": "65535",
+      "port": 65535
+    }
+  ],
+  "targets": [
+    {
+      "id": "u",
+      "target": {
+        "host": "127.0.0.1",
+        "port": 17778
+      }
+    },
+    {
+      "id": "e",
+      "target": null
+    },
+    {
+      "id": "plain",
+      "target": null
+    },
+    {
+      "id": "nope",
+      "target": null
+    },
+    {
+      "id": "",
+      "target": null
+    },
+    {
+      "id": "h",
+      "target": {
+        "host": "127.0.0.1",
+        "port": 9
+      }
+    }
+  ]
+}

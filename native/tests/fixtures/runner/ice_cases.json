@@ -1,0 +1,141 @@
+{
+  "stun": [
+    {
+      "value": null,
+      "output": [
+        {
+          "urls": [
+            "stun:stun.cloudflare.com:3478"
+          ]
+        }
+      ]
+    },
+    {
+      "value": "",
+      "output": []
+    },
+    {
+      "value": "stun:a:3478",
+      "output": [
+        {
+          "urls": [
+            "stun:a:3478"
+          ]
+        }
+      ]
+    },
+    {
+      "value": " stun:a , stun:b ,, ",
+      "output": [
+        {
+          "urls": [
+            "stun:a",
+            "stun:b"
+          ]
+        }
+      ]
+    }
+  ],
+  "turn": [
+    {
+      "body": {
+        "iceServers": [
+          {
+            "urls": [
+              "stun:x:3478",
+              "turn:x:3478?transport=udp",
+              "turn:x:53?transport=udp",
+              "turns:x:5349?transport=tcp",
+              "turn:x:53"
+            ],
+            "username": "u",
+            "credential": "c"
+          }
+        ]
+      },
+      "output": [
+        {
+          "urls": [
+            "turn:x:3478?transport=udp",
+            "turns:x:5349?transport=tcp"
+          ],
+          "username": "u",
+          "credential": "c"
+        }
+      ]
+    },
+    {
+      "body": {
+        "iceServers": {
+          "urls": "turn:y:3478",
+          "username": "u2",
+          "credential": "c2"
+        }
+      },
+      "output": [
+        {
+          "urls": [
+            "turn:y:3478"
+          ],
+          "username": "u2",
+          "credential": "c2"
+        }
+      ]
+    },
+    {
+      "body": {
+        "iceServers": [
+          {
+            "urls": [
+              "turn:z:3478"
+            ],
+            "username": 1,
+            "credential": "c"
+          }
+        ]
+      },
+      "output": []
+    },
+    {
+      "body": {
+        "iceServers": [
+          {
+            "urls": [],
+            "username": "u",
+            "credential": "c"
+          }
+        ]
+      },
+      "output": []
+    },
+    {
+      "body": {},
+      "output": []
+    },
+    {
+      "body": null,
+      "output": []
+    },
+    {
+      "body": {
+        "iceServers": "turn:x"
+      },
+      "output": []
+    }
+  ],
+  "flatten": [
+    {
+      "urls": "stun:a:1",
+      "username": "u",
+      "credential": "c"
+    },
+    {
+      "urls": "turn:b:2?transport=udp",
+      "username": "u",
+      "credential": "c"
+    },
+    {
+      "urls": "stun:e:1"
+    }
+  ]
+}

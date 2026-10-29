@@ -1,0 +1,62 @@
+[
+  {
+    "cmd": "adventurecube.exe",
+    "cwd": "/abs/build/Debug",
+    "runnerDir": "/runner",
+    "output": "/abs/build/Debug/adventurecube.exe"
+  },
+  {
+    "cmd": "./adventurecube.exe",
+    "cwd": "/x",
+    "runnerDir": "/runner",
+    "output": "./adventurecube.exe"
+  },
+  {
+    "cmd": "bin/adventurecube.exe",
+    "cwd": "/x",
+    "runnerDir": "/runner",
+    "output": "bin/adventurecube.exe"
+  },
+  {
+    "cmd": "/usr/bin/foo",
+    "cwd": "/w",
+    "runnerDir": "/runner",
+    "output": "/usr/bin/foo"
+  },
+  {
+    "cmd": "cmake",
+    "cwd": "/x",
+    "runnerDir": "/runner",
+    "output": "cmake"
+  },
+  {
+    "cmd": "run.bat",
+    "cwd": "/tmp/x",
+    "runnerDir": "/runner",
+    "output": "/tmp/x/run.bat"
+  },
+  {
+    "cmd": "Tool.EXE",
+    "cwd": "/t",
+    "runnerDir": "/runner",
+    "output": "/t/Tool.EXE"
+  },
+  {
+    "cmd": "x.com",
+    "cwd": "/c",
+    "runnerDir": "/runner",
+    "output": "/c/x.com"
+  },
+  {
+    "cmd": "noext",
+    "cwd": "/n",
+    "runnerDir": "/runner",
+    "output": "noext"
+  },
+  {
+    "cmd": "a.exe",
+    "cwd": "rel/dir",
+    "runnerDir": "/runner",
+    "output": "/runner/rel/dir/a.exe"
+  }
+]

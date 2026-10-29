@@ -1,0 +1,281 @@
+{
+  "inputs": [
+    {
+      "input": {
+        "device": "key",
+        "key": "W",
+        "down": true
+      },
+      "name": "key:W",
+      "fields": {
+        "input": "key:W",
+        "device": "key",
+        "key": "W",
+        "down": true
+      }
+    },
+    {
+      "input": {
+        "device": "key",
+        "key": "Space",
+        "down": false
+      },
+      "name": "key:Space:up",
+      "fields": {
+        "input": "key:Space:up",
+        "device": "key",
+        "key": "Space",
+        "down": false
+      }
+    },
+    {
+      "input": {
+        "device": "button",
+        "id": "jump"
+      },
+      "name": "button:jump",
+      "fields": {
+        "input": "button:jump",
+        "device": "button",
+        "button": "jump"
+      }
+    },
+    {
+      "input": {
+        "device": "pointer",
+        "x": 0.25,
+        "y": 0.5,
+        "button": "left",
+        "phase": "down"
+      },
+      "name": "pointer:left",
+      "fields": {
+        "input": "pointer:left",
+        "device": "pointer",
+        "x": 0.25,
+        "y": 0.5,
+        "button": "left",
+        "phase": "down",
+        "pos": [
+          0.25,
+          0.5,
+          0
+        ]
+      }
+    },
+    {
+      "input": {
+        "device": "pointer",
+        "x": 1,
+        "y": 0,
+        "button": "right",
+        "phase": "up"
+      },
+      "name": "pointer:right:up",
+      "fields": {
+        "input": "pointer:right:up",
+        "device": "pointer",
+        "x": 1,
+        "y": 0,
+        "button": "right",
+        "phase": "up",
+        "pos": [
+          1,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "input": {
+        "device": "pointer",
+        "x": 0.125,
+        "y": 0.75,
+        "button": "middle",
+        "phase": "move"
+      },
+      "name": "pointer:move",
+      "fields": {
+        "input": "pointer:move",
+        "device": "pointer",
+        "x": 0.125,
+        "y": 0.75,
+        "button": "middle",
+        "phase": "move",
+        "pos": [
+          0.125,
+          0.75,
+          0
+        ]
+      }
+    }
+  ],
+  "rows": [
+    {
+      "base": {
+        "run": "r",
+        "player": "p",
+        "app": "a",
+        "seq": 0,
+        "t_ms": 0,
+        "at": "2026-10-11T00:00:00.000Z"
+      },
+      "kind": "start",
+      "fields": {
+        "source": "ws"
+      },
+      "state": null,
+      "output": {
+        "run": "r",
+        "player": "p",
+        "app": "a",
+        "seq": 0,
+        "t_ms": 0,
+        "at": "2026-10-11T00:00:00.000Z",
+        "kind": "start",
+        "source": "ws"
+      }
+    },
+    {
+      "base": {
+        "run": "r",
+        "player": "p",
+        "app": "a",
+        "seq": 3,
+        "t_ms": 250,
+        "at": "2026-10-11T00:00:00.250Z"
+      },
+      "kind": "state",
+      "fields": {},
+      "state": {
+        "stage": "1-1",
+        "hp": 3,
+        "nested": {
+          "a": [
+            1,
+            2
+          ]
+        }
+      },
+      "output": {
+        "run": "r",
+        "player": "p",
+        "app": "a",
+        "seq": 3,
+        "t_ms": 250,
+        "at": "2026-10-11T00:00:00.250Z",
+        "kind": "state",
+        "state.stage": "1-1",
+        "state.hp": 3,
+        "state.nested": {
+          "a": [
+            1,
+            2
+          ]
+        }
+      }
+    }
+  ],
+  "runIds": [
+    {
+      "ms": 0,
+      "picks": [
+        7,
+        25,
+        19,
+        26,
+        29,
+        2
+      ],
+      "id": "19700101-000000-hzt03c",
+      "iso": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "ms": 1760140800123,
+      "picks": [
+        13,
+        30,
+        34,
+        19,
+        7,
+        24
+      ],
+      "id": "20251011-000000-n48thy",
+      "iso": "2025-10-11T00:00:00.123Z"
+    },
+    {
+      "ms": 1793314078909,
+      "picks": [
+        23,
+        10,
+        21,
+        3,
+        20,
+        5
+      ],
+      "id": "20261029-224758-xkvduf",
+      "iso": "2026-10-29T22:47:58.909Z"
+    },
+    {
+      "ms": 4102444799999,
+      "picks": [
+        12,
+        15,
+        28,
+        27,
+        9,
+        31
+      ],
+      "id": "20991231-235959-mp21j5",
+      "iso": "2099-12-31T23:59:59.999Z"
+    }
+  ],
+  "runIdPattern": [
+    {
+      "id": "20261011-000000-abcdef",
+      "ok": true
+    },
+    {
+      "id": "20261011-000000-ABCDEF",
+      "ok": false
+    },
+    {
+      "id": "2026101-000000-abcdef",
+      "ok": false
+    },
+    {
+      "id": "20261011-000000-abcde",
+      "ok": false
+    },
+    {
+      "id": "../.salt",
+      "ok": false
+    },
+    {
+      "id": "20261011_000000-abcdef",
+      "ok": false
+    }
+  ],
+  "hashes": [
+    {
+      "salt": "salt",
+      "user": "user-1",
+      "hash": "75e1c9e2ecfeb00c"
+    },
+    {
+      "salt": "",
+      "user": "anon",
+      "hash": "c660a99bc12db29f"
+    },
+    {
+      "salt": "日本語",
+      "user": "観戦者",
+      "hash": "f57dead73e1c35c2"
+    },
+    {
+      "salt": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "user": "dev-anon",
+      "hash": "e7fae7759a3ec5d2"
+    }
+  ]
+}
