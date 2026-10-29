@@ -16,6 +16,18 @@ option(ODEUM_BUILD_SENDER "Build and install the odeum_sender library" OFF)
 option(ODEUM_BUILD_PROGRAM "Build the odeum-program desktop app (Tela/Pictor required)" OFF)
 # odeum-program's OS-independent core (layout, mixer, FLV, RTMP, settings) and its tests.
 option(ODEUM_BUILD_PROGRAM_CORE "Build only the program core and its tests" OFF)
+# odeum-relay. Off builds the remaining targets without libdatachannel (e.g. the runner core).
+option(ODEUM_BUILD_RELAY "Build the odeum-relay live relay" ON)
+# odeum-runner / odeum-unityctl: the remote test runner ported from the imported Custos copy.
+# Lorica's hardening supports Windows and Linux only, so macOS leaves the runner off.
+if(APPLE)
+  set(ODEUM_RUNNER_DEFAULT OFF)
+else()
+  set(ODEUM_RUNNER_DEFAULT ON)
+endif()
+option(ODEUM_BUILD_RUNNER "Build the odeum-runner remote test runner and odeum-unityctl" ${ODEUM_RUNNER_DEFAULT})
+# The runner's WebRTC screen streaming (libdatachannel). Off keeps the rest of the runner.
+option(ODEUM_RUNNER_WEBRTC "Build odeum-runner with WebRTC screen streaming" ON)
 # Older dependency releases predate CMake 4's removal of pre-3.5 policy modes.
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 find_package(OpenSSL 3 REQUIRED)
@@ -42,7 +54,29 @@ FetchContent_Declare(datachannel GIT_REPOSITORY https://github.com/paullouisagen
 FetchContent_Declare(boost URL https://github.com/boostorg/boost/releases/download/boost-1.87.0/boost-1.87.0-b2-nodocs.zip
   URL_HASH SHA256=40efbb1f38b8cf186fd7bb12809f561ae1c233bae0f75146862e9bfce77d0d42
   SOURCE_SUBDIR odeum-header-only)
-FetchContent_MakeAvailable(json datachannel boost)
+set(ODEUM_NEEDS_DATACHANNEL OFF)
+if(ODEUM_BUILD_RELAY OR ODEUM_BUILD_PRESENTER OR ODEUM_BUILD_PRESENTER_CORE OR ODEUM_BUILD_SENDER
+    OR ODEUM_BUILD_PROGRAM OR ODEUM_BUILD_PROGRAM_CORE OR (ODEUM_BUILD_RUNNER AND ODEUM_RUNNER_WEBRTC))
+  set(ODEUM_NEEDS_DATACHANNEL ON)
+endif()
+if(ODEUM_NEEDS_DATACHANNEL)
+  FetchContent_MakeAvailable(json datachannel boost)
+else()
+  FetchContent_MakeAvailable(json boost)
+endif()
+if(ODEUM_BUILD_RUNNER)
+  # Lorica: input budgets and target hardening. Pass LORICA_SOURCE_DIR for a local checkout.
+  set(LORICA_SOURCE_DIR "" CACHE PATH "Local Lorica checkout (default: fetch the pinned commit)")
+  set(LORICA_BUILD_PROTECTION OFF CACHE BOOL "" FORCE)
+  set(LORICA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+  if(LORICA_SOURCE_DIR)
+    add_subdirectory(${LORICA_SOURCE_DIR} ${CMAKE_BINARY_DIR}/lorica EXCLUDE_FROM_ALL)
+  else()
+    FetchContent_Declare(lorica GIT_REPOSITORY https://github.com/LUDIARS/Lorica.git
+      GIT_TAG cab4f12086e30484f249d1b4aa479bf7cdec13a9)
+    FetchContent_MakeAvailable(lorica)
+  endif()
+endif()
 add_library(odeum_boost INTERFACE)
 target_include_directories(odeum_boost SYSTEM INTERFACE ${boost_SOURCE_DIR})
 target_compile_definitions(odeum_boost INTERFACE BOOST_ERROR_CODE_HEADER_ONLY)
@@ -56,7 +90,12 @@ else()
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 add_subdirectory(protocol)
-add_subdirectory(relay)
+if(ODEUM_BUILD_RELAY)
+  add_subdirectory(relay)
+endif()
+if(ODEUM_BUILD_RUNNER)
+  add_subdirectory(runner)
+endif()
 if(ODEUM_BUILD_PRESENTER OR ODEUM_BUILD_PRESENTER_CORE OR ODEUM_BUILD_SENDER OR ODEUM_BUILD_PROGRAM OR ODEUM_BUILD_PROGRAM_CORE)
   add_subdirectory(presenter)
 endif()

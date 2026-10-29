@@ -1,0 +1,113 @@
+[
+  {
+    "patch": {
+      "intervalSec": 2
+    },
+    "ok": true,
+    "state": {
+      "intervalSec": 2
+    },
+    "changed": true
+  },
+  {
+    "patch": {
+      "maxWidth": 640
+    },
+    "ok": true,
+    "state": {
+      "intervalSec": 2,
+      "maxWidth": 640
+    },
+    "changed": true
+  },
+  {
+    "patch": {
+      "intervalSec": null
+    },
+    "ok": true,
+    "state": {
+      "maxWidth": 640
+    },
+    "changed": true
+  },
+  {
+    "patch": {
+      "intervalSec": 0.25,
+      "maxWidth": 0
+    },
+    "ok": true,
+    "state": {
+      "maxWidth": 0,
+      "intervalSec": 0.25
+    },
+    "changed": true
+  },
+  {
+    "patch": {
+      "maxWidth": null
+    },
+    "ok": true,
+    "state": {
+      "intervalSec": 0.25
+    },
+    "changed": true
+  },
+  {
+    "patch": {},
+    "ok": true,
+    "state": {
+      "intervalSec": 0.25
+    },
+    "changed": false
+  },
+  {
+    "patch": {
+      "intervalSec": 61
+    },
+    "ok": false,
+    "state": null,
+    "changed": false
+  },
+  {
+    "patch": {
+      "intervalSec": -1
+    },
+    "ok": false,
+    "state": null,
+    "changed": false
+  },
+  {
+    "patch": {
+      "maxWidth": 7681
+    },
+    "ok": false,
+    "state": null,
+    "changed": false
+  },
+  {
+    "patch": {
+      "maxWidth": 1.5
+    },
+    "ok": false,
+    "state": null,
+    "changed": false
+  },
+  {
+    "patch": {
+      "intervalSec": "2"
+    },
+    "ok": false,
+    "state": null,
+    "changed": false
+  },
+  {
+    "patch": {
+      "other": 1
+    },
+    "ok": true,
+    "state": {
+      "intervalSec": 0.25
+    },
+    "changed": false
+  }
+]

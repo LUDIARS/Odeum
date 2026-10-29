@@ -1,0 +1,456 @@
+{
+  "comments": [
+    {
+      "text": "hi",
+      "output": "hi"
+    },
+    {
+      "text": "  hi  ",
+      "output": "hi"
+    },
+    {
+      "text": "a\r\nb",
+      "output": "a b"
+    },
+    {
+      "text": "a\t\t\tb",
+      "output": "a b"
+    },
+    {
+      "text": "a\u0001b",
+      "output": "ab"
+    },
+    {
+      "text": "a    b",
+      "output": "a b"
+    },
+    {
+      "text": "",
+      "output": null
+    },
+    {
+      "text": "   ",
+      "output": null
+    },
+    {
+      "text": "\n\n",
+      "output": null
+    },
+    {
+      "text": "ああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああ",
+      "output": "ああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああ"
+    },
+    {
+      "text": "あああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああ",
+      "output": null
+    },
+    {
+      "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "output": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+    },
+    {
+      "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "output": null
+    },
+    {
+      "text": " x\u0000 ",
+      "output": "x"
+    },
+    {
+      "text": "ab",
+      "output": "ab"
+    },
+    {
+      "text": "　x　",
+      "output": "x"
+    },
+    {
+      "text": "a \n b",
+      "output": "a b"
+    }
+  ],
+  "canPost": [
+    {
+      "last": null,
+      "now": 0,
+      "output": true
+    },
+    {
+      "last": 0,
+      "now": 999,
+      "output": false
+    },
+    {
+      "last": 0,
+      "now": 1000,
+      "output": true
+    },
+    {
+      "last": 5,
+      "now": 2000,
+      "output": true
+    }
+  ],
+  "commentMessages": [
+    {
+      "input": {
+        "type": "comment",
+        "appId": "a",
+        "text": "x"
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "type": "comment",
+        "appId": "",
+        "text": "x"
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "type": "comment",
+        "appId": "a"
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "type": "comment",
+        "appId": "a",
+        "text": 1
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "type": "comment",
+        "appId": "a",
+        "text": "x",
+        "extra": true
+      },
+      "output": true
+    }
+  ],
+  "labels": [
+    {
+      "label": "Jump",
+      "output": "jump"
+    },
+    {
+      "label": "Big Jump",
+      "output": "big-jump"
+    },
+    {
+      "label": "  Lead  ",
+      "output": "-lead-"
+    },
+    {
+      "label": "A/B",
+      "output": "ab"
+    },
+    {
+      "label": "Ünïcode Name",
+      "output": "ncode-name"
+    },
+    {
+      "label": "Tab\tName",
+      "output": "tab-name"
+    },
+    {
+      "label": "full　width",
+      "output": "full-width"
+    },
+    {
+      "label": "x--y",
+      "output": "x--y"
+    },
+    {
+      "label": "MiXeD 123",
+      "output": "mixed-123"
+    },
+    {
+      "label": "",
+      "output": ""
+    }
+  ],
+  "pointers": [
+    {
+      "input": {
+        "type": "pointer",
+        "appId": "a",
+        "x": 0,
+        "y": 1,
+        "button": "left",
+        "phase": "down"
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "type": "pointer",
+        "appId": "a",
+        "x": 0.5,
+        "y": 0.25,
+        "button": "middle",
+        "phase": "move",
+        "extra": 1
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "type": "pointer",
+        "appId": "a",
+        "x": 1.01,
+        "y": 0,
+        "button": "left",
+        "phase": "down"
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "type": "pointer",
+        "appId": "a",
+        "x": -0.1,
+        "y": 0,
+        "button": "left",
+        "phase": "down"
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "type": "pointer",
+        "appId": "",
+        "x": 0,
+        "y": 0,
+        "button": "left",
+        "phase": "down"
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "type": "pointer",
+        "appId": "a",
+        "x": "0",
+        "y": 0,
+        "button": "left",
+        "phase": "down"
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "type": "pointer",
+        "appId": "a",
+        "x": 0,
+        "y": 0,
+        "button": "back",
+        "phase": "down"
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "type": "pointer",
+        "appId": "a",
+        "x": 0,
+        "y": 0,
+        "button": "left",
+        "phase": "hold"
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "type": "click",
+        "appId": "a",
+        "x": 0,
+        "y": 0,
+        "button": "left",
+        "phase": "down"
+      },
+      "output": false
+    }
+  ],
+  "audience": [
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "message",
+        "text": "hello"
+      },
+      "ok": true,
+      "output": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "message",
+        "text": "hello"
+      }
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "message",
+        "text": "  padded  "
+      },
+      "ok": true,
+      "output": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "message",
+        "text": "padded"
+      }
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "message",
+        "text": "   "
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "message",
+        "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      "ok": true,
+      "output": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "message",
+        "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "message",
+        "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "message",
+        "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+      },
+      "ok": true,
+      "output": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "message",
+        "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+      }
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "message",
+        "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "stamp",
+        "stamp": "clap"
+      },
+      "ok": true,
+      "output": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "stamp",
+        "stamp": "clap"
+      }
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "stamp",
+        "stamp": "boo"
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "stamp",
+        "stamp": "clap",
+        "text": "extra"
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "message",
+        "text": "x",
+        "extra": 1
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "",
+        "kind": "stamp",
+        "stamp": "good"
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "kind": "stamp",
+        "stamp": "good"
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a",
+        "kind": "poll"
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "type": "audience-send",
+        "appId": "a"
+      },
+      "ok": false,
+      "output": null
+    }
+  ]
+}

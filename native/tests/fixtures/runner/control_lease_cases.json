@@ -1,0 +1,158 @@
+[
+  {
+    "op": "acquire",
+    "args": [
+      "a",
+      "c1"
+    ],
+    "result": true,
+    "events": [
+      {
+        "appId": "a",
+        "holder": "c1"
+      }
+    ]
+  },
+  {
+    "op": "acquire",
+    "args": [
+      "a",
+      "c2"
+    ],
+    "result": false,
+    "events": []
+  },
+  {
+    "op": "acquire",
+    "args": [
+      "a",
+      "c1"
+    ],
+    "result": true,
+    "events": []
+  },
+  {
+    "op": "roleOf",
+    "args": [
+      "a",
+      "c1"
+    ],
+    "result": "player",
+    "events": []
+  },
+  {
+    "op": "roleOf",
+    "args": [
+      "a",
+      "c2"
+    ],
+    "result": "spectator",
+    "events": []
+  },
+  {
+    "op": "mayOperate",
+    "args": [
+      "a",
+      "c2"
+    ],
+    "result": false,
+    "events": []
+  },
+  {
+    "op": "mayOperateNone",
+    "args": [
+      "a"
+    ],
+    "result": false,
+    "events": []
+  },
+  {
+    "op": "release",
+    "args": [
+      "a",
+      "c2"
+    ],
+    "result": null,
+    "events": []
+  },
+  {
+    "op": "roleOf",
+    "args": [
+      "a",
+      "c3"
+    ],
+    "result": "spectator",
+    "events": []
+  },
+  {
+    "op": "acquire",
+    "args": [
+      "b",
+      "c1"
+    ],
+    "result": true,
+    "events": [
+      {
+        "appId": "b",
+        "holder": "c1"
+      }
+    ]
+  },
+  {
+    "op": "releaseAll",
+    "args": [
+      "c1"
+    ],
+    "result": null,
+    "events": [
+      {
+        "appId": "a",
+        "holder": null
+      },
+      {
+        "appId": "b",
+        "holder": null
+      }
+    ]
+  },
+  {
+    "op": "roleOf",
+    "args": [
+      "a",
+      "c1"
+    ],
+    "result": "free",
+    "events": []
+  },
+  {
+    "op": "mayOperateNone",
+    "args": [
+      "a"
+    ],
+    "result": true,
+    "events": []
+  },
+  {
+    "op": "acquire",
+    "args": [
+      "a",
+      "c2"
+    ],
+    "result": true,
+    "events": [
+      {
+        "appId": "a",
+        "holder": "c2"
+      }
+    ]
+  },
+  {
+    "op": "mayOperate",
+    "args": [
+      "a",
+      "c2"
+    ],
+    "result": true,
+    "events": []
+  }
+]
