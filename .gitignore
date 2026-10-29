@@ -7,7 +7,8 @@ artifacts/
 TestResults/
 
 # Anatomia のローカル状態 (ドメイン定義の正本は spec/domains/)
-.anatomia/
+.anatomia/*
+!.anatomia/layers.json
 native/build*/
 .vestigium-logs/
 .concordia-commit.json

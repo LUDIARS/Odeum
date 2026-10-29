@@ -15,7 +15,7 @@ const RETRY_MAX_MS = 30_000;
 /** 受信統計 (実効 kbps / fps / 損失 / RTT) を状態表示に出す間隔。 */
 const STATS_INTERVAL_MS = 2_000;
 
-export function createStreamView({ elements, apiFetch, log }) {
+export function createStreamView({ elements, apiFetch, log, onLiveChange = () => {} }) {
     const { video, image, placeholder, placeholderTitle, placeholderHint, status, audioToggle } = elements;
     let app = null;
     let sessionId = null;
@@ -24,6 +24,7 @@ export function createStreamView({ elements, apiFetch, log }) {
     let retryTimer = null;
     let retryDelay = RETRY_BASE_MS;
     let live = false;
+    let transportConnected = false;
     let statsTimer = null;
     let lastStats = null;
 
@@ -93,6 +94,8 @@ export function createStreamView({ elements, apiFetch, log }) {
     function onState(gen, state) {
         if (gen !== generation) return;
         if (state === "connected") {
+            transportConnected = true;
+            if (video.readyState >= 2) showVideo();
             retryDelay = RETRY_BASE_MS;
             setStatus("live", "video: live");
             startStats();
@@ -144,7 +147,9 @@ export function createStreamView({ elements, apiFetch, log }) {
 
     function dropSession() {
         stopStats();
+        transportConnected = false;
         live = false;
+        onLiveChange(false);
         video.classList.remove("active");
         if (sessionId) {
             closeWebRTC({ apiFetch, sessionId }).catch(() => { /* 既に切れている。後始末なので best-effort */ });
@@ -178,7 +183,9 @@ export function createStreamView({ elements, apiFetch, log }) {
     }
 
     function showVideo() {
+        if (!transportConnected || video.readyState < 2) return;
         live = true;
+        onLiveChange(true);
         video.classList.add("active");
         image.classList.remove("active");
         placeholder.style.display = "none";

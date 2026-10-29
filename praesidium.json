@@ -1,0 +1,3393 @@
+{
+    "version":  1,
+    "native":  [
+                   {
+                       "file":  "custos/native/custos-h264/src/annexb.cpp",
+                       "standard":  "c++17",
+                       "includes":  [
+                                        "custos/native/custos-h264/include",
+                                        "custos/native/custos-h264/src"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+
+                                    ]
+                   },
+                   {
+                       "file":  "custos/native/custos-h264/src/custos_h264.cpp",
+                       "standard":  "c++17",
+                       "includes":  [
+                                        "custos/native/custos-h264/include",
+                                        "custos/native/custos-h264/src"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+
+                                    ]
+                   },
+                   {
+                       "file":  "custos/native/custos-h264/src/d3d_nv12_uploader.cpp",
+                       "standard":  "c++17",
+                       "includes":  [
+                                        "custos/native/custos-h264/include",
+                                        "custos/native/custos-h264/src"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+
+                                    ]
+                   },
+                   {
+                       "file":  "custos/native/custos-h264/src/mf_h264_encoder.cpp",
+                       "standard":  "c++17",
+                       "includes":  [
+                                        "custos/native/custos-h264/include",
+                                        "custos/native/custos-h264/src"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+
+                                    ]
+                   },
+                   {
+                       "file":  "custos/native/custos-h264/tests/encode_test.cpp",
+                       "standard":  "c++17",
+                       "includes":  [
+                                        "custos/native/custos-h264/include",
+                                        "custos/native/custos-h264/src"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/app/good_fountain.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/app/inbox_view.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/app/labels.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/app/overlay_view.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/app/panel_view.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/app/placement_mapping.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/app/presenter_app.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/app/presenter_controller.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/app/settings_file.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/base64url.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/connection_monitor.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/event_queue.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/h264_bitstream.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/keyframe_request.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/launch_url.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/nv12_scaler.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/overlay_state.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/pcm_framer.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/poll_draft.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/presenter_options.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/presenter_settings.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/reconnect_backoff.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/stream_settings.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/core/video_pipeline.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/platform/windows/graphics_capture_source.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/platform/windows/media_foundation_encoder.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/platform/windows/single_instance.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/platform/windows/url_scheme_registration.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/platform/windows/wasapi_loopback_source.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/platform/windows/windows_main.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/platform/windows/windows_platform.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/platform/windows/windows_shell.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/platform/windows/windows_text.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/transport/ice_servers.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/transport/media_sender.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/transport/opus_audio_encoder.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/presenter/transport/relay_link.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/app/input_pipeline.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/app/program_app.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/app/program_controller.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/app/program_engine.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/app/program_labels.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/app/program_panel.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/app/program_settings_file.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/amf0.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/archive_reader.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/archive_recorder.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/audio_mixer.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/flv.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/flv_feed.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/layout.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/producer_routing.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/program_settings.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/program_state.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/publish_supervisor.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/rtmp_chunk.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/rtmp_handshake.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/core/rtmp_publisher.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/platform/windows/dpapi_secret_store.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/platform/windows/media_foundation_aac_encoder.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/platform/windows/media_foundation_decoder.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/platform/windows/windows_main.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/platform/windows/windows_program_platform.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/render/layer_renderer.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/render/nv12_canvas.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/render/pictor_offscreen_renderer.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/render/program_renderer.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/transport/input_receiver.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/transport/opus_audio_decoder.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/transport/tls_connection.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/program/transport/youtube_publisher.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/protocol/message.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/protocol/slot.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/protocol/ticket.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/admission.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/authentication.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/config.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/connection.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/http_query.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/hub.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/invitations.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/main.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/media.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/media_sdp.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/poll.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/reactions.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/server.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/slots.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/web_access.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/guest_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/hub_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/media_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/overlay_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/presenter_backoff_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/presenter_keyframe_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/presenter_media_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/presenter_overlay_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/presenter_poll_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/presenter_url_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/producer_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/program_archive_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/program_flv_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/program_layout_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/program_rtmp_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/program_settings_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/protocol_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/slot_media_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/slot_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/state_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/ticket_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   }
+               ],
+    "web":  [
+
+            ]
+}

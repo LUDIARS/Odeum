@@ -1,0 +1,8 @@
+{
+  "layers": [
+    { "glob": "custos/public/js/**", "layer": "presentation" },
+    { "glob": "custos/scripts/setup-gaze.mjs", "layer": "infrastructure" },
+    { "glob": "custos/tests/**", "layer": "test" }
+  ],
+  "mergeCouplingThreshold": 1
+}

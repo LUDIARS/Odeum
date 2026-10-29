@@ -22,6 +22,7 @@ import { createWsClient } from "/js/ws-client.js";
 import { createStatusMenu } from "/js/status-menu.js";
 import { installTouchGuard } from "/js/touch-guard.js";
 import { createAudiencePanel } from "/js/audience-panel.js";
+import { createPlayEyeTracking } from "/js/play-eye-tracking.js";
 
 const $ = (id) => document.getElementById(id);
 const appSelect = $("appSelect");
@@ -37,6 +38,8 @@ const state = {
     config: null,
     lifecycle: null,
     unityPlaying: null,   // Unity ブリッジの app で Play 中か (null = まだ分からない)
+    connected: false,
+    live: false,
     boot: { pending: false, appId: null },   // BOOT (build → run) チェイン状態
 };
 
@@ -57,6 +60,7 @@ const statusMenu = createStatusMenu({
 });
 
 let windowManager = null;
+let eyeTracking = null;
 const layoutMode = createLayoutMode({
     onChange: (mobile) => {
         statusMenu.setMobile(mobile);
@@ -74,11 +78,17 @@ windowManager = createWindowManager({
 const ws = createWsClient({
     statusEl: $("wsStatus"),
     onOpen: () => {
+        state.connected = true;
         audiencePanel.setConnected(true);
         if (state.appId) ws.send({ type: "subscribe", appId: state.appId });
+        updateEyeTracking();
     },
     onMessage: handleServerMessage,
-    onClose: () => audiencePanel.setConnected(false),
+    onClose: () => {
+        state.connected = false;
+        audiencePanel.setConnected(false);
+        updateEyeTracking();
+    },
 });
 
 const stream = createStreamView({
@@ -93,6 +103,7 @@ const stream = createStreamView({
     },
     apiFetch,
     log,
+    onLiveChange: (live) => { state.live = live; updateEyeTracking(); },
 });
 
 const audiencePanel = createAudiencePanel({
@@ -109,6 +120,7 @@ const control = createControlState({
         if (!operable) pad.releaseAll();
         playInput.onRoleChanged();
         unityPanel.setOperable(operable);
+        updateEyeTracking();
     },
 });
 
@@ -125,7 +137,7 @@ const pad = createVirtualPad({
             stream.snapshot().catch((err) => log(`[snapshot] error: ${err.message ?? err}`, true));
         }
     },
-    canOperate: () => control.canOperate(),
+    canOperate: () => control.canOperate() && !eyeTracking?.isCalibrating(),
 });
 
 const playInput = createPlayInput({
@@ -134,7 +146,7 @@ const playInput = createPlayInput({
     getMedia: () => stream.getMedia(),
     getAppId: () => state.appId,
     getConfig: () => state.config,
-    canOperate: () => control.canOperate(),
+    canOperate: () => control.canOperate() && !eyeTracking?.isCalibrating(),
     isGameStopped: () => isGameStopped(),
     send: (msg) => ws.send(msg),
 });
@@ -148,6 +160,17 @@ const unityPanel = createUnityPanel({
     },
 });
 const settingsPanel = createSettingsPanel({ apiFetch });
+eyeTracking = createPlayEyeTracking({
+    frame: $("streamFrame"), getMedia: () => stream.getMedia(),
+    status: $("gazeStatus"), retry: $("gazeRetry"), calibrate: $("gazeCalibrate"), cancel: $("gazeCancel"),
+    onCalibrationStart: () => { pad.releaseAll(); playInput.onAppChanged(); },
+});
+
+function updateEyeTracking() {
+    eyeTracking?.update({ appId: state.appId, role: control.role(),
+        running: state.config?.hasUnityBridge ? state.unityPlaying === true : state.lifecycle === "running",
+        live: state.live, connected: state.connected });
+}
 
 // ─── 起動 ───────────────────────────────────────
 async function boot() {
@@ -223,6 +246,8 @@ async function onAppChange() {
 
 function applyStatus(status) {
     if (!status) {
+        state.lifecycle = null;
+        updateEyeTracking();
         statusPill.dataset.state = "idle";
         statusPill.textContent = "idle";
         return;
@@ -244,6 +269,7 @@ function updateGameRunning() {
     const running = state.config?.hasUnityBridge ? state.unityPlaying === true : state.lifecycle === "running";
     statusMenu.setGameRunning(running);
     playInput.onGameStateChanged();
+    updateEyeTracking();
 }
 
 /**

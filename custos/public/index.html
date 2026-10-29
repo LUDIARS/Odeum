@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/css/windows.css">
   <link rel="stylesheet" href="/css/pad.css">
   <link rel="stylesheet" href="/css/audience.css">
+  <link rel="stylesheet" href="/css/gaze.css">
 </head>
 <body data-role="free">
   <header class="app-header">
@@ -90,6 +91,13 @@
           </section>
 
           <section class="stream-area" aria-label="アプリ画面">
+            <div class="gaze-controls" aria-label="視線追跡">
+              <span id="gazeStatus" role="status">プレイ中だけ視線を追跡します</span>
+              <button id="gazeCalibrate" type="button" disabled>視線の位置を合わせる</button>
+              <button id="gazeRetry" type="button" hidden>カメラを再試行</button>
+              <button id="gazeCancel" type="button" hidden>位置合わせを中止</button>
+              <small>内側のカメラを端末内の目・顔の追跡だけに使います。映像は表示・保存・送信しません。</small>
+            </div>
             <div class="stream-frame" id="streamFrame">
               <video id="streamVideo" autoplay playsinline muted></video>
               <img   id="streamImage" alt="latest frame" />
