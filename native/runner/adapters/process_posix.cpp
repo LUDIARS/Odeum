@@ -3,6 +3,7 @@
 #include <boost/asio/post.hpp>
 #include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/asio/write.hpp>
 #include <array>
 #include <cerrno>
@@ -65,16 +66,33 @@ class ChildWatcher : public asio::execution_context::service {
 public:
     static inline asio::execution_context::id id;
     explicit ChildWatcher(asio::execution_context& context)
-        : service(context), io_(static_cast<asio::io_context&>(context)), signals_(io_, SIGCHLD) { arm(); }
+        : service(context), io_(static_cast<asio::io_context&>(context)), signals_(io_, SIGCHLD), poll_(io_) { arm(); }
     void watch(pid_t pid, std::function<void(int)> on_exit) {
         children_[pid] = std::move(on_exit);
         asio::post(io_, [this] { reap(); });  // the child may already have exited
+        if (children_.size() == 1) poll();
     }
 private:
     asio::io_context& io_;
     asio::signal_set signals_;
+    asio::steady_timer poll_;
     std::map<pid_t, std::function<void(int)>> children_;
-    void shutdown() override { boost::system::error_code ignored; signals_.cancel(ignored); children_.clear(); }
+    void shutdown() override {
+        boost::system::error_code ignored;
+        signals_.cancel(ignored);
+        poll_.cancel();
+        children_.clear();
+    }
+    // SIGCHLD is the normal path. A slow poll while children run covers a lost or coalesced signal
+    // (seen with sanitizer runtimes intercepting posix_spawn), so an exit is never missed.
+    void poll() {
+        poll_.expires_after(std::chrono::milliseconds(500));
+        poll_.async_wait([this](const boost::system::error_code& error) {
+            if (error) return;
+            reap();
+            if (!children_.empty()) poll();
+        });
+    }
     void arm() {
         signals_.async_wait([this](const boost::system::error_code& error, int) {
             if (error) return;

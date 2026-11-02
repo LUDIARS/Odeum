@@ -299,6 +299,7 @@ private:
 
     void read() {
         if (parser_.is_done()) return end(std::nullopt);
+        if (paused_) { parked_ = true; return; }  // the consumer is not ready (e.g. ffmpeg not started yet)
         auto self = std::static_pointer_cast<PlainStream>(shared_from_this());
         parser_.get().body().data = chunk_.data();
         parser_.get().body().size = chunk_.size();

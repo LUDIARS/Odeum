@@ -110,15 +110,36 @@ std::string AppsRunner::start(const AppConfig& app, RunnerKind kind, const CmdCo
     active->op_id = op_id;
     const auto app_id = app.id;
     std::weak_ptr<Active> weak = active;
+    // Output and exit arrive in any order (SIGCHLD may beat the last pipe read). The exit is reported
+    // once both pipes reached EOF, or 2 s after the exit if a descendant keeps a pipe open, so the
+    // last lines are delivered before "exit" and never dropped.
+    struct Pending {
+        LineSplitter out, err;
+        bool out_done = false, err_done = false, reported = false;
+        std::optional<ExitStatus> exit;
+        std::unique_ptr<boost::asio::steady_timer> drain;
+    };
+    auto pending = std::make_shared<Pending>();
+    auto report = [this, app_id, weak, pending] {
+        if (pending->reported || !pending->exit) return;
+        pending->reported = true;
+        if (pending->drain) pending->drain->cancel();
+        if (auto a = weak.lock()) exited(app_id, a, *pending->exit);
+    };
     ChildProcess::Handlers handlers;
-    handlers.on_stdout = [this, app_id, kind, weak](std::string_view chunk) {
-        if (auto a = weak.lock()) for (const auto& line : a->out.push(chunk)) emit_log(app_id, kind, "stdout", line);
+    handlers.on_stdout = [this, app_id, kind, pending](std::string_view chunk) {
+        for (const auto& line : pending->out.push(chunk)) emit_log(app_id, kind, "stdout", line);
     };
-    handlers.on_stderr = [this, app_id, kind, weak](std::string_view chunk) {
-        if (auto a = weak.lock()) for (const auto& line : a->err.push(chunk)) emit_log(app_id, kind, "stderr", line);
+    handlers.on_stderr = [this, app_id, kind, pending](std::string_view chunk) {
+        for (const auto& line : pending->err.push(chunk)) emit_log(app_id, kind, "stderr", line);
     };
-    handlers.on_exit = [this, app_id, weak](const ExitStatus& status) {
-        if (auto a = weak.lock()) exited(app_id, a, status);
+    handlers.on_stdout_end = [pending, report] { pending->out_done = true; if (pending->err_done) report(); };
+    handlers.on_stderr_end = [pending, report] { pending->err_done = true; if (pending->out_done) report(); };
+    handlers.on_exit = [this, pending, report](const ExitStatus& status) {
+        pending->exit = status;
+        if (pending->out_done && pending->err_done) return report();
+        pending->drain = std::make_unique<boost::asio::steady_timer>(io_, std::chrono::seconds(2));
+        pending->drain->async_wait([report](const boost::system::error_code& error) { if (!error) report(); });
     };
     try {
         active->process = launcher_(spec, std::move(handlers));

@@ -106,8 +106,9 @@ public:
                 try {
                     process_ = ChildProcess::spawn(io_, spec, std::move(h));
                 } catch (const SpawnError& error) {
+                    settle(StartError{spawn_message("video", error.what())});  // before cancel(): its end notice must not win
                     if (stream_) stream_->cancel();
-                    return settle(StartError{spawn_message("video", error.what())});
+                    return;
                 }
                 running_ = true;
                 settle(std::nullopt);

@@ -52,7 +52,6 @@ private:
         std::shared_ptr<ChildProcess> process;
         std::unique_ptr<boost::asio::steady_timer> timer;
         bool killed = false;
-        LineSplitter out, err;
     };
     boost::asio::io_context& io_;
     AppsRegistry& registry_;
