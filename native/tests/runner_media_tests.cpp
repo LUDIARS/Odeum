@@ -2,6 +2,7 @@
 // scale.test.ts, screenshot-stream.test.ts + golden (h264, ffmpeg, ice, keys, frame headers, bridge state).
 #include "runner_check.hpp"
 #include "runner_fake_http.hpp"
+#include <adapters/ice_provider.hpp>
 #include <app/screenshot_streamer.hpp>
 #include <core/bridge_contract.hpp>
 #include <core/ffmpeg_args.hpp>
@@ -102,7 +103,7 @@ int main(int argc, char** argv) {
         }},
         {"video-feedback-policy > golden bitrate and key frame decisions", [] {
             VideoFeedbackPolicy policy({3'000'000, 300'000, 6'000'000});
-            for (const auto& step : fixture("h264_cases.json")["policy"]) {
+            for (const auto& step : Json(fixture("h264_cases.json")["policy"])) {
                 const auto op = step["op"].get<std::string>();
                 Json result;
                 if (op == "estimate") { auto r = policy.update_estimate(step["id"], step["bps"].get<double>(), step["now"]); result = r ? Json(*r) : Json(nullptr); }
@@ -187,6 +188,53 @@ int main(int argc, char** argv) {
             }
             check_json(flat, g["flatten"], "flatten");
             check(encode_uri_component("a b/é") == "a%20b%2F%C3%A9", "encodeURIComponent");
+        }},
+        {"ice-servers > TURN credentials are issued once, reused until an hour before expiry, STUN only on failure", [] {
+            boost::asio::io_context io;
+            int status = 200;
+            FakeHttpServer cloudflare(io, [&](const FakeHttpServer::Request&) {
+                return FakeResponse{static_cast<unsigned>(status), R"({"iceServers":[{"urls":["turn:t:3478?transport=udp","turn:t:53"],"username":"u","credential":"c"}]})", {}, {}};
+            });
+            long long now = 0;
+            IceServerProvider provider(io, std::nullopt, "key", "token", [&] { return now; }, "http://127.0.0.1:" + std::to_string(cloudflare.port()) + "/v1/turn/keys");
+            auto get = [&] {
+                std::optional<std::vector<IceServer>> servers;
+                provider.get([&](std::vector<IceServer> s) { servers = std::move(s); });
+                run_until(io, [&] { return servers.has_value(); });
+                return to_json(*servers);
+            };
+            const auto first = get();
+            check(first.size() == 2 && first[0]["urls"][0] == "stun:stun.cloudflare.com:3478" && first[1]["urls"].size() == 1 && first[1]["username"] == "u", "STUN + TURN without port 53");
+            check(cloudflare.seen.size() == 1 && cloudflare.seen[0] == "POST /v1/turn/keys/key/credentials/generate-ice-servers", "issue request");
+            check(cloudflare.bodies[0] == R"({"ttl":86400})", "ttl");
+            get();
+            check(cloudflare.seen.size() == 1, "reused");
+            now = static_cast<long long>(23.5 * 60 * 60 * 1000);
+            get();
+            check(cloudflare.seen.size() == 2, "re-issued near expiry");
+            IceServerProvider failing(io, std::nullopt, "key", "token", [] { return 0LL; }, "http://127.0.0.1:" + std::to_string(cloudflare.port()) + "/v1/turn/keys");
+            status = 403;
+            std::optional<std::vector<IceServer>> fallback;
+            failing.get([&](std::vector<IceServer> s) { fallback = std::move(s); });
+            run_until(io, [&] { return fallback.has_value(); });
+            check(fallback && fallback->size() == 1 && fallback->at(0).urls[0] == "stun:stun.cloudflare.com:3478", "STUN only after a failed issue");
+        }},
+        {"scale > passthrough when maxWidth is unset, 0 or not smaller than the image (no ffmpeg run)", [] {
+            boost::asio::io_context io;
+            MediaTools media(io, "ffmpeg-must-not-run", CaptureHost{Platform::linux_os, "", ""}, "x264");
+            std::string png("\x89PNG\r\n\x1a\n", 8);
+            png.resize(24, '\0');
+            png[18] = 0x02;  // width 512
+            std::vector<PngResult> results;
+            for (std::optional<long long> width : {std::optional<long long>(), std::optional<long long>(0LL), std::optional<long long>(512LL), std::optional<long long>(4096LL)}) {
+                media.scale_png(png, width, [&](PngResult r) { results.push_back(std::move(r)); });
+            }
+            run_until(io, [&] { return results.size() == 4; });
+            for (const auto& r : results) check(png_ok(r) && std::get<0>(r) == png, "unchanged");
+            std::optional<PngResult> scaled;
+            media.scale_png(png, 256LL, [&](PngResult r) { scaled = std::move(r); });
+            run_until(io, [&] { return scaled.has_value(); });
+            check(!png_ok(*scaled) && std::get<1>(*scaled).rfind("ffmpeg scale spawn failed: spawn ffmpeg-must-not-run ENOENT", 0) == 0, "a wider image goes to ffmpeg");
         }},
         {"ScreenshotStreamer > refcount, interval, failures, env override and prefs", [] {
             boost::asio::io_context io;

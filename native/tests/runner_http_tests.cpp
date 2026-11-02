@@ -155,17 +155,24 @@ struct WsClient {
         beast::get_lowest_layer(ws).expires_never();
     }
     void send(const std::string& text) { ws.text(true); ws.write(boost::asio::buffer(text)); }
-    // Next message, or the close code as {"closed": code}.
-    Json next(std::chrono::milliseconds timeout = std::chrono::milliseconds(3000)) {
-        beast::get_lowest_layer(ws).expires_after(timeout);
+    // Next message, the close code as {"closed": code}, or {"timeout": true} (sync reads cannot time out).
+    Json next(std::chrono::milliseconds timeout = std::chrono::milliseconds(5000)) {
         beast::flat_buffer buffer;
-        beast::error_code error;
-        ws.read(buffer, error);
-        if (error) return Json{{"closed", ws.reason().code}};
+        std::optional<beast::error_code> result;
+        ws.async_read(buffer, [&](beast::error_code e, std::size_t) { result = e; });
+        io.restart();
+        io.run_for(timeout);
+        if (!result) {
+            beast::get_lowest_layer(ws).cancel();
+            io.restart();
+            io.run_for(std::chrono::milliseconds(500));
+            return Json{{"timeout", true}};
+        }
+        if (*result) return Json{{"closed", ws.reason().code}};
         return Json::parse(beast::buffers_to_string(buffer.data()));
     }
     Json until(const std::string& type) {
-        for (int i = 0; i < 50; ++i) { auto m = next(); if (m.contains("closed") || m["type"] == type) return m; }
+        for (int i = 0; i < 50; ++i) { auto m = next(); if (m.contains("closed") || m.contains("timeout") || m["type"] == type) return m; }
         return Json{{"missing", type}};
     }
 };
@@ -283,7 +290,8 @@ int main(int argc, char** argv) {
             spectator.send(R"({"type":"control","appId":"demo","want":true})");
             check(spectator.until("control")["role"] == "spectator", "lease is not stolen");
             request(r.port, "POST", "/api/apps/demo/run", "", {});
-            check(player.until("log")["text"] == "hi", "log line");
+            const auto log_line = player.until("log");
+            check(log_line.value("text", "") == "hi", "log line: " + log_line.dump());
             check(player.until("exit")["exitCode"] == 0, "exit");
             player.send("not json");
             check(player.until("error")["message"] == "invalid JSON", "invalid JSON");
@@ -300,6 +308,33 @@ int main(int argc, char** argv) {
             check(comment["text"] == "nice run", "comment normalised and fanned out");
             spectator.send(R"({"type":"comment","appId":"demo","text":"   "})");
             check(spectator.until("error")["message"] == "comment must be 1-200 characters", "empty comment");
+        }},
+        {"audience-broker > fans out to player, spectator and log window, isolates apps, rejects bursts", [] {
+            Runner r({});
+            WsClient player(r.port), spectator(r.port), log_window(r.port);
+            for (auto* c : {&player, &spectator, &log_window}) c->next();
+            player.send(R"({"type":"subscribe","appId":"demo"})");
+            player.until("control");
+            spectator.send(R"({"type":"subscribe","appId":"demo"})");
+            spectator.until("control");
+            log_window.send(R"({"type":"audience-subscribe","appId":"demo"})");
+            check(log_window.until("audience-history")["events"].empty(), "empty history");
+            spectator.send(R"({"type":"audience-send","appId":"demo","kind":"stamp","stamp":"heart"})");
+            const auto a = player.until("audience-event"), b = spectator.until("audience-event"), c = log_window.until("audience-event");
+            check(a["event"]["stamp"] == "heart" && a == b && b == c, "same event to all three");
+            check(a["event"]["sender"].get<std::string>().rfind("観戦者 ", 0) == 0, "anonymous sender name");
+            spectator.send(R"({"type":"audience-send","appId":"demo","kind":"message","text":"burst"})");
+            check(spectator.until("error")["message"] == "少し待ってから送信してください。", "750 ms burst limit");
+            spectator.send(R"({"type":"audience-send","appId":"other","kind":"message","text":"x"})");
+            check(spectator.until("error")["message"] == "invalid audience message or subscription", "not joined");
+            spectator.send(R"({"type":"audience-send","appId":"demo","kind":"stamp","stamp":"forged"})");
+            check(spectator.until("error")["message"] == "invalid audience message or subscription", "forged stamp");
+            log_window.send(R"({"type":"audience-subscribe","appId":"nope"})");
+            check(log_window.until("error")["message"] == "unknown audience app", "unknown app");
+            WsClient replay(r.port);
+            replay.next();
+            replay.send(R"({"type":"audience-subscribe","appId":"demo"})");
+            check(replay.until("audience-history")["events"].size() == 1, "history replayed");
         }},
         {"boundary > WebSocket message size and rate limits close the connection", [] {
             Runner r({});

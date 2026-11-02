@@ -5,8 +5,9 @@
 
 namespace odeum::runner {
 IceServerProvider::IceServerProvider(boost::asio::io_context& io, const std::optional<std::string>& stun_env, std::string turn_key_id,
-    std::string turn_token, std::function<long long()> now_ms)
-    : io_(io), stun_(stun_servers_from_env(stun_env)), turn_key_id_(std::move(turn_key_id)), turn_token_(std::move(turn_token)), now_(std::move(now_ms)) {
+    std::string turn_token, std::function<long long()> now_ms, std::string turn_api)
+    : io_(io), stun_(stun_servers_from_env(stun_env)), turn_key_id_(std::move(turn_key_id)), turn_token_(std::move(turn_token)), turn_api_(std::move(turn_api)),
+      now_(std::move(now_ms)) {
     Json urls = Json::array();
     for (const auto& s : stun_) for (const auto& u : s.urls) urls.push_back(u);
     log::info("ice-servers", "ICE servers configured", {{"stun", urls}, {"turn", has_turn()}});
@@ -24,7 +25,7 @@ void IceServerProvider::get(std::function<void(std::vector<IceServer>)> done) {
     if (pending_.size() > 1) return;  // one issue request at a time
     HttpRequest request;
     request.method = "POST";
-    request.url = "https://rtc.live.cloudflare.com/v1/turn/keys/" + encode_uri_component(turn_key_id_) + "/credentials/generate-ice-servers";
+    request.url = turn_api_ + "/" + encode_uri_component(turn_key_id_) + "/credentials/generate-ice-servers";
     request.headers = {{"authorization", "Bearer " + turn_token_}, {"content-type", "application/json"}};
     request.body = dump(Json{{"ttl", turn_ttl_sec}});
     request.timeout = std::chrono::milliseconds(10'000);

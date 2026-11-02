@@ -7,7 +7,9 @@
 #include <adapters/process.hpp>
 #include <core/rtcp.hpp>
 #include <rtc/rtc.hpp>
+#include <webrtc/audio_pipeline.hpp>
 #include <webrtc/rtp_source_pool.hpp>
+#include <webrtc/video_pipeline.hpp>
 #include <webrtc/webrtc_broker.hpp>
 #include <atomic>
 #include <future>
@@ -249,6 +251,62 @@ int main(int argc, char** argv) {
             run_until(io, [&] { return results.size() == 3; });
             shared->events.exit();
             check(ended == 1 && pool.subscribers("u") == 0, "source exit ends the sessions");
+        }},
+        {"video-pipeline > bridge H.264 first; 415 falls back to raw + ffmpeg (auto) but not for codec h264; ergo goes straight to raw", [] {
+            asio::io_context io;
+            FakeHttpServer bridge(io, [](const FakeHttpServer::Request& r) {
+                if (std::string(r.target()).find("codec=h264") != std::string::npos) return FakeResponse{415, "no encoder", {}, {}};
+                return FakeResponse{200, std::string(64 * 48 * 4, '\0'), {{"x-frame-width", "64"}, {"x-frame-height", "48"}, {"x-frame-pixfmt", "bgra"}, {"x-frame-fps", "10"}}, {}};
+            });
+            MediaTools media(io, "ffmpeg-missing", CaptureHost{Platform::linux_os, "", ""}, "x264");
+            auto start = [&](const std::string& kind, const std::string& codec) {
+                auto app = parse_apps_config(Json::parse(R"({"apps":[{"id":"a","name":"A","run":{"cwd":".","cmd":"x"},"inAppBridge":{"kind":")" + kind +
+                    R"(","port":)" + std::to_string(bridge.port()) + R"(,"video":{"codec":")" + codec + R"("}}}]})")).apps.at(0);
+                auto pipeline = make_video_pipeline(io, media, VideoSettings{});
+                std::optional<std::optional<StartError>> result;
+                pipeline->start(app, 5004, RtpPipeline::Events{}, [&](std::optional<StartError> e) { result = std::move(e); });
+                run_until(io, [&] { return result.has_value(); });
+                pipeline->stop();
+                return result->value_or(StartError{"(started)"}).message;
+            };
+            const auto seen_before = bridge.seen.size();
+            const auto fallback = start("unity", "auto");
+            check(fallback.rfind("video のパイプラインを起動できません (spawn ffmpeg-missing ENOENT)", 0) == 0, "auto fell back to raw + ffmpeg: " + fallback);
+            check(bridge.seen.size() == seen_before + 2 && bridge.seen[seen_before].find("codec=h264") != std::string::npos && bridge.seen[seen_before + 1] == "GET /stream?fps=24", "asked for h264 then raw");
+            const auto strict = start("unity", "h264");
+            check(strict == "bridge cannot stream h264 (HTTP 415): no encoder", "h264 only: no fallback: " + strict);
+            const auto before_ergo = bridge.seen.size();
+            start("ergo", "auto");
+            check(bridge.seen.size() == before_ergo + 1 && bridge.seen.back() == "GET /stream?fps=24", "ergo bridges go straight to raw");
+        }},
+        {"audio-source > target pid from the bridge /health or the run process; reasons when unavailable", [] {
+            asio::io_context io;
+            FakeHttpServer with_pid(io, [](const FakeHttpServer::Request&) { return FakeResponse{200, R"({"status":"ok","isPlaying":false,"pid":4242})", {}, {}}; });
+            FakeHttpServer without_pid(io, [](const FakeHttpServer::Request&) { return FakeResponse{200, R"({"status":"ok","isPlaying":false})", {}, {}}; });
+            MediaTools media(io, "ffmpeg-missing", CaptureHost{Platform::linux_os, "", ""}, "x264");
+            std::optional<long long> run_pid;
+            AudioPipelineFactory factory(io, media, AudioSettings{"/nonexistent/ProcessLoopback.cs", "", "/tmp"}, [&](const std::string&) { return run_pid; });
+            auto start = [&](const std::string& json) {
+                auto app = parse_apps_config(Json::parse(json)).apps.at(0);
+                auto pipeline = factory.make();
+                std::optional<std::optional<StartError>> result;
+                pipeline->start(app, 5006, RtpPipeline::Events{}, [&](std::optional<StartError> e) { result = std::move(e); });
+                run_until(io, [&] { return result.has_value(); });
+                return result->value_or(StartError{"(started)"}).message;
+            };
+            const std::string plain = R"({"apps":[{"id":"p","name":"P","run":{"cwd":".","cmd":"x"},"capture":{"type":"window"},"audio":{"source":"process-loopback"}}]})";
+            check(start(R"({"apps":[{"id":"p","name":"P","run":{"cwd":".","cmd":"x"},"capture":{"type":"window"}}]})") == "app p has no audio config", "no audio config");
+            check(start(plain) == "app p: 音声を取る対象のプロセスが動いていません (Run してから接続してください)", "no run process");
+            run_pid = 77;
+#ifdef _WIN32
+            check(start(plain).find("ProcessLoopback.cs") != std::string::npos, "helper source missing");
+#else
+            check(start(plain) == "音声 (process-loopback) は Windows でだけ使えます", "Windows only");
+#endif
+            const auto bridge_json = [](unsigned short port) { return R"({"apps":[{"id":"b","name":"B","run":{"cwd":".","cmd":"x"},"inAppBridge":{"kind":"unity","port":)" + std::to_string(port) + R"(},"audio":{"source":"process-loopback"}}]})"; };
+            check(start(bridge_json(without_pid.port())) == "app b: ブリッジの /health が pid を返しません (ブリッジが古い可能性があります)", "bridge without pid");
+            check(start(bridge_json(with_pid.port())).find("pid") == std::string::npos, "bridge pid accepted (then the platform / helper decides)");
+            check(with_pid.seen.at(0) == "GET /health", "pid read from /health");
         }},
         {"webrtc-broker > end to end: browser offer, answer, H.264 from the bridge reaches the browser, PLI reaches the bridge", [] {
             asio::io_context io;

@@ -11,13 +11,13 @@ namespace odeum::runner {
 class IceServerProvider {
 public:
     IceServerProvider(boost::asio::io_context& io, const std::optional<std::string>& stun_env, std::string turn_key_id, std::string turn_token,
-        std::function<long long()> now_ms);
+        std::function<long long()> now_ms, std::string turn_api = "https://rtc.live.cloudflare.com/v1/turn/keys");
     bool has_turn() const { return !turn_key_id_.empty(); }
     void get(std::function<void(std::vector<IceServer>)> done);
 private:
     boost::asio::io_context& io_;
     std::vector<IceServer> stun_;
-    std::string turn_key_id_, turn_token_;
+    std::string turn_key_id_, turn_token_, turn_api_;
     std::function<long long()> now_;
     std::optional<std::pair<std::vector<IceServer>, long long>> turn_;  // servers, expires_at
     std::vector<std::function<void(std::vector<IceServer>)>> pending_;

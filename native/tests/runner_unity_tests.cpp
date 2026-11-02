@@ -23,7 +23,7 @@ Json args_json(const UnityctlArgs& a) {
 int main(int argc, char** argv) {
     return run_all(argc, argv, "runner.unity", {
         {"parseUnityctlArgs > golden argument parsing and errors", [] {
-            for (const auto& c : fixture("unity_cases.json")["args"]) {
+            for (const auto& c : Json(fixture("unity_cases.json")["args"])) {
                 std::vector<std::string> argv;
                 for (const auto& a : c["argv"]) argv.push_back(a);
                 if (c["ok"].get<bool>()) check_json(args_json(parse_unityctl_args(argv)), c["value"], "args " + c["argv"].dump());

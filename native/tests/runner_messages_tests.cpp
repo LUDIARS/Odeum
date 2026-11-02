@@ -26,13 +26,13 @@ int main(int argc, char** argv) {
             for (const auto& c : g["commentMessages"]) check(parse_comment_message(c["input"]).has_value() == c["output"].get<bool>(), "comment message " + c.dump());
         }},
         {"handler > golden labelToId", [] {
-            for (const auto& c : fixture("message_cases.json")["labels"]) check(label_to_id(c["label"].get<std::string>()) == c["output"].get<std::string>(), "label " + c.dump());
+            for (const auto& c : Json(fixture("message_cases.json")["labels"])) check(label_to_id(c["label"].get<std::string>()) == c["output"].get<std::string>(), "label " + c.dump());
         }},
         {"pointer-message > golden isPointerMessage", [] {
-            for (const auto& c : fixture("message_cases.json")["pointers"]) check(parse_pointer_message(c["input"]).has_value() == c["output"].get<bool>(), "pointer " + c.dump());
+            for (const auto& c : Json(fixture("message_cases.json")["pointers"])) check(parse_pointer_message(c["input"]).has_value() == c["output"].get<bool>(), "pointer " + c.dump());
         }},
         {"audience-room > golden AudienceSubmission", [] {
-            for (const auto& c : fixture("message_cases.json")["audience"]) {
+            for (const auto& c : Json(fixture("message_cases.json")["audience"])) {
                 auto parsed = parse_audience_submission(c["input"]);
                 check(parsed.has_value() == c["ok"].get<bool>(), "audience acceptance " + c["input"].dump());
                 if (!parsed) continue;
