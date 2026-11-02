@@ -89,3 +89,79 @@ Windows の `csc.exe` (ProcessLoopback.cs のビルド)。移行前と同じ。
 移植で追加する防御 (弱める方向の変更はしない): 全入力経路の Lorica 予算 (本文・JSON の要素数と深さ・子プロセス出力・ファイル)、
 HTTP ヘッダ 16KiB / 本文 256KiB / WS メッセージ 64KiB の上限、接続数・WS 送信キューの上限、同一オリジン以外からの
 状態変更リクエストと WS 接続の拒否 (CSRF / CSWSH)、loopback 待ち受け時の Host 検査 (DNS rebinding)。
+
+## 4. 移行結果
+
+### C++ の依存 (odeum-runner / odeum-unityctl)
+
+| 依存 | 版 | 取得 | 推移的依存 | 備考 |
+|---|---|---|---|---|
+| C++20 標準ライブラリ・OS API | — | — | — | POSIX (posix_spawn, pipe2, waitpid) / Win32 (CreateProcessW, Job Object, SendInput) |
+| Boost Asio / Beast (ヘッダのみ) | 1.87.0 | `boost-1.87.0-b2-nodocs.zip` SHA256 40efbb1f… | 0 | 既存 native と同じ |
+| nlohmann_json | 3.11.3 | `json.tar.xz` SHA256 d6c65aca… | 0 | 既存 native と同じ |
+| OpenSSL 3 | システム | `find_package(OpenSSL 3)` | 0 | TLS (Cernere / TURN)・HMAC・SHA-256・乱数 |
+| Lorica | cab4f120 | FetchContent / `LORICA_SOURCE_DIR` | 0 | 必須。予算 (`input_budget`/`checked_*`) と `lorica_harden_target` |
+| libdatachannel | d9391849 | 既存の FetchContent | libjuice v1.6.2・libsrtp ee1a77c・usrsctp fec583d・plog 94899e0 | 既存 relay と同じ。`ODEUM_RUNNER_WEBRTC=OFF` で外せる |
+
+新しく増えた第三者ライブラリはない (Lorica は依頼で必須)。外部コマンドは ffmpeg / adb / csc.exe (移行前と同じ)。
+
+### 意図した挙動の違い
+
+- 状態を変えるリクエスト (POST / PUT …) と WebSocket 接続は、Origin が付いていて同一オリジンでも
+  `CUSTOS_ALLOWED_ORIGINS` でもなければ 403 (CSRF / CSWSH)。loopback 待ち受けでは Host を
+  localhost / 127.0.0.1 / [::1] / `LUDIARS_ALLOWED_HOSTS` に限る (DNS rebinding)。
+- 全応答に `X-Content-Type-Options: nosniff`。設定 PUT の不正値のエラー文は zod の JSON ではなく短い文。
+- 起動できないコマンドは 409 `{ok:false,error:"spawn <cmd> ENOENT"}` (Node 版は 200 を返して running のまま残った)。
+  Windows の `.bat` / `.cmd` 直接起動は Node 20 以降と同じく拒否 (EINVAL)。
+- kill とタイムアウトは POSIX でもプロセスグループごと (Windows は従来どおり木ごと、Job Object)。
+- 出力の最後の行は exit 通知より前に必ず届く (exit は両パイプの EOF まで、最大 2 秒待つ)。
+- 上限: HTTP ヘッダ 16KiB (431)・本文 256KiB (413)・WS 1 メッセージ 64KiB・毎秒 240 メッセージ・
+  接続 512・WS セッション 128・WebRTC セッション 32・Cernere 同時検証 32 / キャッシュ 2048 件・
+  ブリッジ入力キュー 256 / app・adb 同時 8・スクリーンショット 32MiB・行動ログ読み出し 64MiB。
+- 操作画面はビルド時に埋め込み (`custos/public` をそのまま)。視線推定の資材 (`gaze-assets`) だけは
+  固定名 9 ファイルの許可リストで `ODEUM_RUNNER_GAZE_ASSETS_DIR` (既定 `custos/public/gaze-assets`) から読む。
+- Linux のデスクトップ入力注入は無し (ログのみ)。移行前も nut-js 不在時は同じ。macOS はビルド対象外 (Lorica)。
+
+### テスト対応表 (custos/tests → ctest)
+
+| TS テスト | C++ (ctest 名 > ケース) |
+|---|---|
+| config.test.ts (21) | odeum.runner.config > appsRootSchema / inAppBridge 系 + golden `config_cases.json` |
+| apps-redact.test.ts (5) | odeum.runner.config > apps-redact (golden `redact_cases.json`) |
+| registry.test.ts (3) | odeum.runner.config > AppsRegistry |
+| comment-message.test.ts (7), control-lease.test.ts (8), audience-room.test.ts (3), stream-prefs.test.ts (6) | odeum.runner.messages (golden) |
+| auth.test.ts (4) | odeum.runner.auth > CernereAuth (+ 偽 Cernere でのキャッシュ・失敗) |
+| runner-resolve.test.ts (5) | odeum.runner.process > resolveBareExe (golden) + AppsRunner |
+| playlog-row.test.ts (8), playlog-recorder.test.ts (9) | odeum.runner.playlog |
+| unity-bridge.test.ts (21) | odeum.runner.unity (golden `unity_cases.json` + 偽ブリッジでのプロキシ) |
+| farm-pool (10) / farm-store (4) / farm-host-auth (2) | odeum.runner.farm (golden `farm_cases.json`) |
+| farm-routes.test.ts (5) | odeum.runner.http > farm-routes |
+| audience-broker.test.ts (2) | odeum.runner.http > audience-broker |
+| bridge-h264 (9), bridge-stream (29), ice-servers (9), scale (5), screenshot-stream (8) | odeum.runner.media (golden h264 / ffmpeg / ice / keys / frame headers) |
+| shared-rtp-source (8), video-pipeline (6), audio-source (6) | odeum.runner.webrtc (+ loopback の WebRTC 2 本: ブリッジ H.264 / BGRA→ffmpeg) |
+| h264.test.ts (4) | 移さない (`H264NalParser` は本番コードから参照なし) |
+| play-eye-tracking / play-input-logic / rtc-stats-logic / unity-panel-logic / virtual-pad-logic / window-layout-logic | 移さない (ブラウザ側 JS。vitest のまま) |
+
+追加: odeum.runner.boundary (ファイル・ブリッジ応答・ストリームのエラー本文・ファームの件数上限)。
+
+### 本社での実行手順
+
+```sh
+# 1. ビルド (Windows は MSVC、Linux は GCC。どちらも警告ゼロ確認のため WERROR を付ける)
+cmake -S native -B native/build -DCMAKE_BUILD_TYPE=Release -DODEUM_RUNNER_WERROR=ON
+cmake --build native/build --config Release
+ctest --test-dir native/build -C Release --output-on-failure      # 期待: 全件 Passed
+
+# 2. golden の作り直し (Node 側の記録。差分が出なければ移植と Node 版が一致)
+cd custos && npm ci --ignore-scripts && npx tsx ../native/runner/tests/golden/generate.mts && cd ..
+git diff --exit-code native/tests/fixtures/runner                   # 期待: 差分なし
+
+# 3. HTTP / WebSocket の互換性 (合成 apps.json、外部サービスなし)
+node native/runner/tests/compat/http_compat.mjs record node.json -- npx --prefix custos tsx custos/src/main.ts
+node native/runner/tests/compat/http_compat.mjs record cpp.json -- native/build/bin/odeum-runner
+node native/runner/tests/compat/http_compat.mjs compare node.json cpp.json   # 期待: "compatible (only expected differences)"
+```
+
+実機確認 (本社のみ): Windows でアプリの build / run / kill (子孫ごと終了)、仮想キー (SendInput)、
+gdigrab キャプチャの WebRTC 表示、Unity ブリッジ (H.264 / BGRA / `/pointer` / `/state` / `unityctl compile --wait`)、
+プロセス音声 (ProcessLoopback.exe の csc ビルド)、Android (adb)、Cernere 認証と TURN、ファームのホスト報告。
