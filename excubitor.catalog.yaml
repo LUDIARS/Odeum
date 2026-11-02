@@ -71,3 +71,25 @@ services:
     health:
       type: process
       interval_sec: 30
+  # Remote test runner (the imported Custos, ported to C++: native/runner). Resident server with
+  # an HTTP health probe; the same UI / API is also served on 4649 (CUSTOS_FRONTEND_PORT, 0 = off).
+  # Loopback only unless CERNERE_URL is set. CUSTOS_APPS_FILE (the site's apps.json) is set per
+  # site, not here; without it the runner starts with no apps. Not started automatically.
+  - code: odeum-runner
+    name: Odeum remote test runner
+    tier: personal
+    project_code: Od
+    component: runner
+    port: 7676
+    repo: LUDIARS/Odeum
+    runtime: node
+    cwd: ${ARS_ROOT}/Odeum
+    command: native/build/bin/odeum-runner
+    autostart: false
+    allow_hot_reload: false
+    env:
+      CUSTOS_PORT: "7676"
+    health:
+      type: http
+      url: http://localhost:7676/api/health
+      interval_sec: 30
