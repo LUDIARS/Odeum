@@ -1,4 +1,5 @@
 #include "server.hpp"
+#include "turn_refresher.hpp"
 #include <boost/asio/signal_set.hpp>
 #include <csignal>
 #include <iostream>
@@ -12,6 +13,12 @@ int main() {
         odeum::relay::Server server(io, config);
         boost::asio::signal_set signals(io, SIGINT, SIGTERM);
         signals.async_wait([&io](const boost::system::error_code&, int) { io.stop(); });
+        // Short-lived Cloudflare TURN credentials: welcomes and peer connections pick up each refresh.
+        std::shared_ptr<odeum::relay::TurnRefresher> turn;
+        if (config.cloudflare) {
+            turn = std::make_shared<odeum::relay::TurnRefresher>(io, *config.cloudflare, config.ice);
+            turn->start();
+        }
         server.start(); io.run(); return 0;
     } catch (const std::exception&) {
         // Deliberately do not print external exception text, which can contain credentials.
