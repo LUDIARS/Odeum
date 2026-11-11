@@ -16,11 +16,13 @@
 | a5a7514 | 不具合修正 | `odeum.overlay` の SIGSEGV (libdatachannel のワーカーと OpenSSL の atexit の競合) |
 | 3f579e4 | sanitizer と fuzz | `ODEUM_SANITIZE`、`ODEUM_FUZZ`、fuzz 入口 10 本と seed の回帰、Clang 18 の回避、runner のログ初期化の競合 |
 | d7d47fa | 文書 | `.anatomia/layers.json` に native/ の層 (要確認) |
-| (このコミット) | 文書 | この文書と plan の 5 章 |
+| a44d382 | 文書 | この文書と plan の 5 章 |
+| 7e3338f | merge | origin/main `bb2775e` (Cloudflare TURN) を merge。衝突 3 か所を手で合わせた |
+| (このコミット) | 入力の上限 | Cloudflare TURN の応答に JSON の予算と件数の上限、境界テスト、fuzz 入口 cloudflare_turn |
 
 ## (a) 確かめたこと (このコンテナ、GCC 13.3 / Clang 18.1.3)
 
-- GCC Release (`native/build`): configure・build 成功、ctest 46/46 通過 (relay 10、protocol.limits と relay.limits、
+- GCC Release (`native/build`): configure・build 成功、ctest 46/46 通過 (merge 後は 48/48: odeum.turn と odeum.fuzz.cloudflare_turn を含む) (relay 10、protocol.limits と relay.limits、
   presenter 7、program 6、runner 11、fuzz の seed 回帰 10)。
 - ASan + UBSan (`-DODEUM_SANITIZE=address,undefined`、GCC RelWithDebInfo `-g1`): ctest 46/46 通過、sanitizer の報告なし。
 - TSan (`-DODEUM_SANITIZE=thread`、GCC): ctest 46/46 通過。`tests/tsan.supp` で libdatachannel 内部の
@@ -32,10 +34,15 @@
 - `verify_binary.py`: odeum-relay / odeum-runner / odeum-unityctl とも PIE / NX stack / full RELRO。
 - `odeum.overlay`: 修正前 Release で 40 回中 22 回 SIGSEGV、修正後 60 回中 0 回 (ASan のビルドで 30 回中 0 回)。
 
+- main の Cloudflare TURN (merge 後): 新しいターゲットとテスト (`odeum.turn`) も Lorica の網羅確認を通る。
+  応答 (HTTP 64KiB は既存) の JSON に {64KiB, 値 2048, 深さ 6} と 16 件 × 16 URL の上限を入れ、境界テストを
+  `odeum.relay.limits` に足した。秘密値 (TURN の資格情報、API token) はエラー文・ログに出ない (テストで確認)。
+
 ## (b) 確かめていないこと
 
 - Windows (MSVC) と macOS の configure / build。presenter / sender / program のアプリ部分 (`settings_file.cpp`、
   `program_settings_file.cpp`、`input_receiver.cpp` の変更を含む) は Linux ではコンパイルされない。
+- Cloudflare への実際の HTTPS 取得 (ネットワークと本物の token が要る)。
 - MSVC での EXTENDED (19.44 以上が要る) と `lorica_deprecate_unsafe_apis` (入れていない)。
 
 ## (c) 途中のこと

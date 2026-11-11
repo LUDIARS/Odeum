@@ -88,6 +88,7 @@ sanitizer のビルド設定と fuzz の入口は repo 全体で未整備 (runne
 | relay HTTP クエリ | relay/http_query.cpp | 16 件 |
 | relay 公開鍵ファイル / ICE の env JSON | relay/config.cpp | 1MiB、値 16384、深さ 16 |
 | RTCP の PLI/FIR 判定 | protocol/rtcp.cpp (relay と presenter で共有) | 65535 バイト |
+| relay: Cloudflare TURN の応答 (main の bb2775e) | relay/cloudflare_turn.cpp | HTTP 64KiB (既存)、JSON 値 2048・深さ 6、16 件 × 16 URL |
 | relay の RTP 転送 | relay/media.cpp | 65535 バイト超は捨てる |
 | presenter 起動 URL | presenter/core/launch_url.cpp | 8192 文字 (既存)、クエリ 16 件 |
 | presenter ticket_expiry | presenter/core/launch_url.cpp | 8192 文字、値 256・深さ 4 |
@@ -100,7 +101,7 @@ sanitizer のビルド設定と fuzz の入口は repo 全体で未整備 (runne
 ### 5.3 sanitizer と fuzz
 
 - `ODEUM_SANITIZE` (`address,undefined` / `thread`): 依存を含む全ターゲットに付く。
-- `ODEUM_FUZZ` (既定 OFF、Clang のみ): `native/fuzz/` の 10 入口を libFuzzer でビルド。
+- `ODEUM_FUZZ` (既定 OFF、Clang のみ): `native/fuzz/` の 11 入口 (merge 後に cloudflare_turn を追加)を libFuzzer でビルド。
   seed を 1 回ずつ流す `odeum.fuzz.*` は GCC のビルドでも ctest に入る。
 - TSan は `native/tests/tsan.supp` を使う (libdatachannel 内部の callback の競合だけ)。Clang の UBSan では libjuice に
   `-fno-sanitize=function` (同梱の picohash が関数ポインタの型を合わせずに呼ぶため)。
