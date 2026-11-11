@@ -47,6 +47,11 @@ int main() { return run([] {
     check(half.duration == 45 * 60'000 && half.cues.size() >= timeline.cues.size() - checks, "Scaled to the requested length");
     for (const auto& cue : half.cues) check(cue.at <= half.duration, "Scaled cues stay inside");
 
+    // A plot built in code whose sections carry no minutes is rejected rather than divided by zero.
+    auto timeless = plot;
+    for (auto& section : timeless.sections) section.minutes = 0;
+    rejects([&] { build_timeline(timeless, *model); }, "invalid_plot");
+
     TimelinePlayer player(timeline);
     check(player.state() == TimelinePlayer::State::idle && player.due(1000).empty(), "Idle player emits nothing");
     rejects([&] { player.pause(0); }, "invalid_state");

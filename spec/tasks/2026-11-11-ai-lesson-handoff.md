@@ -118,6 +118,11 @@ NO_PROXY=127.0.0.1,localhost node native/lesson/tools/e2e.cjs /tmp   # Playwrigh
    スマホ実機での生徒ページ。トークンファイルの権限は Windows ではフォルダの ACL 頼み。
 7. **リポの決まり事の残り。** `augur.contracts.json` / `contracts/` への契約の追加、`.augur/tests.jsonl` へのテスト登録、
    `praesidium.json` の更新はしていない。Revisor の登録テスト・local PR も未実施。
+   → 追記: `praesidium.json` (授業の 42 単位)、`.anatomia/layers.json` (`native/` 全体のプログラム層)、
+   `.augur/tests.jsonl` (`odeum.lesson.*` 16 本と既定ビルドの中継テスト) は対応した
+   (`spec/feature/native-review.md` の SPEC-ODEUM-NATIVE-REVIEW-LESSON / -TESTS)。契約は足していない:
+   既存の C++ 契約 27 件が `augur contracts lint` で全て `runtime-include` 所見 (C++ 用の runtime header ではなく
+   `@ludiars/log-weaver` を指している) になっており、同じ形で増やしても確かめられる契約にならないため。
 8. **細かい改善。** 仮モデルの語りは要点 1 行だけで持ち時間が余る / 課題の確認 (`assignment.status`) は人数を出すだけ。
 
 ## 既知の問題

@@ -14,3 +14,7 @@ native/build*/
 .concordia-commit.json
 .relay-status.json
 .relay-pr.json
+
+# Tool output written into the checkout (Anatomia's logs/anatomia, the root vitest cache)
+logs/
+/node_modules/
