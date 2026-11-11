@@ -32,7 +32,7 @@ const TEXT = 'ヒットストップで一瞬止める、ノックバックで押
 async function attend(report) {
   const answered = new Set();
   let view = await seat('observe');
-  let asked = false, spoke = false, voted = false, helped = false, lastTick = 0;
+  let asked = false, spoke = false, voted = false, helped = false, linked = false, remarked = false, lastTick = 0;
   while (view.lesson_state !== 'ended' && view.lesson_state !== 'closed') {
     for (const message of view.private_new ?? []) report.private.push(message);
     const activity = view.activity;
@@ -46,6 +46,26 @@ async function attend(report) {
       continue;
     }
     if (activity?.id && activity.personal_feedback) report.feedback[activity.id] = activity.personal_feedback;
+    if (activity?.id && activity.results?.explanation) report.explanations[activity.id] = activity.results.explanation;
+    if (view.assignment) report.last_assignment = view.assignment;
+    // Said to the teacher after answering a text question: must not replace the answer.
+    if (!remarked && activity?.state === 'open' && activity.id === 'hitstop-design' && answered.has(activity.id)) {
+      remarked = true;
+      const result = await seat('say', '--text', 'デモが文字だけだと分かりにくかったです');
+      report.remark = { ok: result.ok, taken_as_answer: result.taken_as_answer ?? false, page_message: result.page_message ?? null,
+        answer_on_page: result.observe.activity?.answer_on_page ?? null };
+      say('remark', JSON.stringify(report.remark));
+      view = result.observe;
+      continue;
+    }
+    if (!linked && view.tool) {
+      linked = true;
+      const result = await seat('tool-link');
+      report.tool_link = { ok: result.ok, shape_ok: /\/v1\/tool#[0-9A-Z]{10}$/.test(result.link ?? ''), error: result.error ?? null };
+      say('tool-link', JSON.stringify(report.tool_link));
+      view = result.observe;
+      continue;
+    }
     if (view.assignment?.active && Date.now() - lastTick > 12000) {
       const next = view.assignment.steps.find((step) => !step.done);
       if (next) {
@@ -112,7 +132,7 @@ async function main() {
     await sleep(300);
   }
   say('session ready');
-  const report = { answers: {}, feedback: {}, ticks: [], private: [], help: null, question: null, say: null, vote: null, status: null };
+  const report = { answers: {}, feedback: {}, explanations: {}, ticks: [], private: [], help: null, question: null, say: null, vote: null, remark: null, tool_link: null, last_assignment: null, status: null };
   try { await attend(report); } catch (error) { report.error = error.message; }
   say('lesson over; stopping');
   await seat('stop').catch(() => {});
@@ -123,7 +143,11 @@ async function main() {
   report.checks = {
     every_activity_answered_and_acked: activities.length > 0 && activities.every((id) => report.answers[id].ok && report.answers[id].acked),
     personal_feedback_for_every_activity: activities.length > 0 && activities.every((id) => report.feedback[id]),
-    assignment_all_ticked: Boolean(finalView?.assignment?.steps.every((step) => step.done)),
+    assignment_all_ticked: Boolean(report.last_assignment?.steps.every((step) => step.done)),
+    automatic_steps_say_what_they_watch: Boolean(report.last_assignment?.steps.filter((step) => step.auto).every((step) => step.watches?.includes('feel.'))),
+    choice_explanations_shown: Boolean(report.explanations['weapon-power'] && report.explanations['enemy-placement']),
+    remark_kept_answer: Boolean(report.remark?.ok && !report.remark.taken_as_answer && report.remark.answer_on_page === TEXT),
+    tool_link_returned: Boolean(report.tool_link?.ok && report.tool_link.shape_ok),
     hint_received: Boolean(report.help?.private?.some((message) => message.kind === 'ヒント')),
     question_answered: Boolean(report.question?.private?.some((message) => message.kind === '質問の答え')),
     lesson_ended: finalView?.lesson_state === 'ended',

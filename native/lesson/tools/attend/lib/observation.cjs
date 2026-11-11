@@ -24,6 +24,8 @@ function createObservation(activities) {
       shared_questions: raw.shared,
       conduct: raw.conduct,
       toast: raw.toast || null,
+      private_notice: raw.private_notice,
+      tool: raw.tool,
     };
     if (raw.entry_status) out.entry_status = raw.entry_status;
     if (raw.activity) {

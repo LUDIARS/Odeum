@@ -135,20 +135,43 @@ async function say(page, { text }) {
     { id: 'private' }, { id: 'conduct' }], REACT_MS);
   if (!hits.length) return fail('no_response', '送りましたが、画面に反応が出ませんでした。');
   if (hits.includes('private')) await focus(page, '#private');
-  return outcome(page, hits, (message) => message === '聞こえました');
+  const state = (await page.textContent('#activity-state')).trim();
+  const result = await outcome(page, hits, (message) => SAY_OK.some((ok) => message.startsWith(ok)));
+  // Said while a text question was open and before answering: the page now shows it as the answer.
+  if (result.ok && hits.includes('activity-state') && state.includes('回答として受け取りました')) result.taken_as_answer = true;
+  return result;
 }
+const SAY_OK = ['聞こえました', '話した言葉を回答として受け取りました', '先生に伝えました'];
 
 async function vote(page, { n }) {
   const seat = await view(page);
   const item = seat.shared.find((question) => question.n === n);
   if (!item) return fail('bad_question', `共有された質問の番号 (n) は ${seat.shared.map((question) => question.n).join(', ') || 'まだありません'} です。`);
+  if (item.mine) return fail('own_question', 'あなたの質問です。自分の質問には「私も知りたい」を押せません (ボタンが出ていません)。');
   if (!item.can_vote) return fail('already_voted', '「私も知りたい」はもう押してあります。');
   const button = page.locator(`#shared li[data-attend-shared="${n}"] button`);
   await button.scrollIntoViewIfNeeded();
   const before = await counters(page);
   await button.click();
-  const hits = await reaction(page, before, [{ id: 'feedback', nonEmpty: true }], QUIET_MS);
+  // The count changes only when the server confirms the vote.
+  const hits = await reaction(page, before, [{ id: 'shared' }, { id: 'feedback', nonEmpty: true }], REACT_MS);
+  if (!hits.length) return fail('no_response', '「私も知りたい」を押しましたが、画面に反応が出ませんでした。');
   return outcome(page, hits, () => false);
 }
 
-module.exports = { view, focus, answer, tick, help, ask, say, vote };
+// 「接続文字列を出す」: returns the string a tool (Ergo Studio's 「授業」 tab or POST /lesson/api/connect) takes.
+async function toolLink(page) {
+  const seat = await view(page);
+  if (!seat.tool) return fail('no_tool', 'この授業には道具をつなぐ欄がありません。');
+  await focus(page, '#tool');
+  const before = await counters(page);
+  await page.click('#tool-link');
+  const hits = await reaction(page, before, [{ id: 'tool-state', includes: '秒' }, { id: 'feedback', nonEmpty: true }], REACT_MS);
+  if (!hits.length) return fail('no_response', '接続文字列を求めましたが、画面に出ませんでした。');
+  if (!hits.includes('tool-state')) return outcome(page, hits, () => false);
+  const link = await page.inputValue('#tool-string');
+  if (!/\/v1\/tool#[0-9A-Z]{10}$/.test(link)) return fail('bad_link', '画面の接続文字列の形が想定と違います。');
+  return { ok: true, link, note: (await page.textContent('#tool-state')).trim() };
+}
+
+module.exports = { view, focus, answer, tick, help, ask, say, vote, toolLink };

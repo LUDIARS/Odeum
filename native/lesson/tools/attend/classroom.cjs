@@ -155,7 +155,9 @@ async function main() {
       const before = await actions.view(attendee.page);
       const plan = before.activity ? observation.activityId(before.activity.prompt) : null;
       const result = await fn(input, plan);
-      log.write('action', { seat: 'attendee', action: name, input, ok: result.ok, result });
+      // A link code is a credential: it goes back to the attendee but is not written to the log.
+      const logged = result.link ? { ...result, link: '(not logged)' } : result;
+      log.write('action', { seat: 'attendee', action: name, input, ok: result.ok, result: logged });
       if (name === 'answer' && plan) {
         observation.recordAnswer(plan.id, input.text ?? input.choices);
         if (result.acked) observation.recordAck(plan.id);
@@ -180,6 +182,7 @@ async function main() {
     ask: act('ask', (input) => actions.ask(attendee.page, input)),
     say: act('say', (input) => actions.say(attendee.page, input)),
     vote: act('vote', (input) => actions.vote(attendee.page, input)),
+    'tool-link': act('tool-link', () => actions.toolLink(attendee.page)),
     status: {
       run: async () => ({
         ok: true, schedule: runner.status(), estimate_seconds: Math.round(estimate), video_seconds: log.seconds(),

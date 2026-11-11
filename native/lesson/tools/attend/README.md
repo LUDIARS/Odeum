@@ -43,6 +43,7 @@ node native/lesson/tools/attend/seat.cjs help                      # 「ヒン�
 node native/lesson/tools/attend/seat.cjs ask --text "..." [--show-name]
 node native/lesson/tools/attend/seat.cjs say --text "..."          # 「先生に話す」の文字入力
 node native/lesson/tools/attend/seat.cjs vote --n 1                # 共有された質問に「私も知りたい」 (n は observe の shared_questions[].n)
+node native/lesson/tools/attend/seat.cjs tool-link                 # 「接続文字列を出す」を押し、道具に渡す接続文字列を返す ("link")
 node native/lesson/tools/attend/seat.cjs status                    # 台本の位置 (次に先生が何をするか、あと何秒か)
 node native/lesson/tools/attend/seat.cjs stop
 ```
@@ -58,11 +59,11 @@ node native/lesson/tools/attend/seat.cjs stop
   "section": { "index": 4, "total": 9, "title": "ヒットストップをどう設計するか" },
   "slide": { "title": "ヒットストップをどう設計するか", "points": ["ヒットストップだけを戻します。…", "…"] },
   "narration": "ヒットストップだけを戻します。違いを見てください。当たった瞬間に、ほんの少し止まります。",
-  "demo": "画面で実演: ヒットストップだけ ON にして当てる (ON)",
+  "demo": "先生の画面 (配信・教室のスクリーン) で実演中: Ergo のサンプルでヒットストップだけ ON にする (ON)。 見るところ: 2 秒ごとのログで world= の進みが約 1.7 秒に縮む (当たるたびに 0.08 秒止まる)",
   "activity": {
     "id": "hitstop-design", "kind": "text", "prompt": "ヒットストップをどう設計しますか。…", "code": null,
     "input": "text", "choices": null, "state": "open", "state_note": "受け取りました。締め切りまで変更できます。",
-    "results": null, "personal_feedback": null, "my_answer": "…", "my_answer_acked": true
+    "answer_on_page": "…", "results": null, "personal_feedback": null, "my_answer": "…", "my_answer_acked": true
   },
   "assignment": null,
   "private_new": [{ "seq": 1, "kind": "質問の答え", "text": "決まった正解はありません。…" }],
@@ -70,15 +71,26 @@ node native/lesson/tools/attend/seat.cjs stop
   "shared_questions": [],
   "conduct": { "standing": "good", "text": null },
   "toast": null,
+  "private_notice": "先生からあなたへ 新着 1 件: …",
+  "tool": { "state": "", "link": null },
   "video_seconds": 212.4
 }
 ```
 
 - `lesson_state`: `waiting` (開始前) / `running` / `ended` (授業の終わり) / `closed` (授業が閉じられた) / `not_joined`。
 - `activity.state`: `open` (受付中) / `closed` (締め切り) / `revealed` (結果表示中)。`results` は棒 (`label`・`count`・`correct`)、模範解答、
-  代表的な回答。`personal_feedback` は自分への一言。`choices[].selected` はいま画面で選ばれているもの。
-- `assignment.steps[]`: `n` (1 始まり)・`label`・`done`・`auto` (道具の自動確認付き)。`active` は「ヒントがほしい」が押せるか。
-- `private_new`: 「先生からあなたへ」に届いた分のうち、まだ返していないもの (ヒント・質問の答え・先生から)。`observe --all` で `private_all` に全部。
+  解説 (`explanation`、選択式など作者が書いた問いだけ)、代表的な回答。`personal_feedback` は自分への一言 (「あなたの回答「…」について: …」)。
+  `choices[].selected` はいま画面で選ばれているもの。
+- `activity.answer_on_page`: ページが「いまのあなたの回答」として出している文 (サーバが持っている回答)。`my_answer` はハーネスが
+  `answer` で送ったもの。`say` が回答として受け取られた (まだ答えていなかった) ときは前者だけが変わる。答えた後の `say` は回答を
+  置き換えない (ページは「置き換えていません」と出す)。
+- `assignment.steps[]`: `n` (1 始まり)・`label`・`done`・`auto` (道具の自動確認付き)・`watches` (自動の手順が見る変数と条件の文、
+  例 `自動: 道具が feel.hit_stop_last_seconds > 0 を見たらチェック`)。`active` は「ヒントがほしい」が押せるか。課題が終わると
+  チェック欄は押せず、次のセクションに入ると課題の欄は消える。
+- `private_new`: 「先生からあなたへ」に届いた分のうち、まだ返していないもの (ヒント・質問の答え・先生の答え・先生から)。`observe --all` で `private_all` に全部。
+  `private_notice` は一覧が画面に見えていないときに画面下に出る新着の知らせ (見えていれば `null`)。
+- `shared_questions[]`: `mine` (自分の質問。「私も知りたい」は出ない)、`can_vote`、`votes` (サーバが送った数)。
+- `tool`: 道具をつなぐ欄 (道具と連携する授業だけ)。`link` は出ている接続文字列。
 - `wait --for change`: 前回の observe 以降に画面 (セクション・語り・スライド・実演・問いの状態・課題・個別メッセージ・共有質問・素行) が
   変わったらすぐ、変わらなければ `--timeout` 秒で返る。`changed` が付く。自分の入力中の文字は変化に数えない。
 - 操作は返事に `ok` と、ページが出した文 (`page_message`) とエラー (`error.source` が `page` ならページの表示そのもの、例:
@@ -137,13 +149,20 @@ NO_PROXY=127.0.0.1,localhost node native/lesson/tools/attend/smoke.cjs --work $W
 ```
 
 `classroom.cjs` を起動し、`seat.cjs` だけで全部の問いに答え、課題を全部チェックし、ヒントを求め、質問し、話し、投票して、
-終わったら止める。`$W/smoke-report.json` に確認結果 (`checks`) を書く。
+接続文字列を出し、記述の問いに答えた後に話しても回答が置き換わらないことを確かめ、終わったら止める。`$W/smoke-report.json` に
+確認結果 (`checks`) を書く。
 
 ## 限界
 
 - 出席者の席の動画は 1 席だけ。級友の席は録らない。音声は無い (読み上げは使わない)。
 - 縮めた台本では、2 行目以降の語りと、課題中の定期確認 (60 秒ごと) や「止まっている」自動ヒント (150 秒) の多くが出る前に次へ進む。
-- 課題の「自動」手順も手でチェックする (Ergo Studio をつながない)。道具の接続、マイク、声の登録は扱わない。
-- `tick` はページが確かめの表示を出さないため、1.5 秒以内にエラー表示が出なければ成功とみなす。
+- 課題の「自動」手順も、道具をつながなければ手でチェックする。ハーネスは接続文字列を出すところまでで、Ergo Studio やサンプルは
+  動かさない。マイクと声の登録は扱わない。
+- `tick` はページが確かめの表示を出さないため、1.5 秒以内にエラー表示が出なければ成功とみなす。サーバが断ったときはページが
+  チェックを元に戻し、その文 (例「いまは課題が出ていません。」) がエラーとして返る。
+- `say` の返事の `taken_as_answer: true` は、話した言葉が開いている問いへの回答として受け取られたこと。
+- `tool-link` の接続文字列は 120 秒・1 回だけ有効。返事には入るが `attendee.jsonl` には書かない (画面には出るので動画には映る)。
+  道具 (Ergo Studio の「授業」タブ、窓の無い Studio なら `POST /lesson/api/connect` に `{"link": "…"}`) に渡すのは出席者の役目で、
+  ハーネスは Ergo を起動しない。
 - 共有された質問には id が画面に出ないので、`vote` は observe の番号 `n` で指す。
 - 講師は仮のルール (`provisional-rules`) なので、採点と答えはキーワード一致による。

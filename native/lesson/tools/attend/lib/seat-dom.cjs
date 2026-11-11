@@ -5,7 +5,7 @@
 // report the outcome of an action (toast, answer state, private feed, ...), so an action can wait
 // for "the page reacted" even when the new text equals the old one. Purely observational.
 function installHooks() {
-  const watched = ['feedback', 'activity-state', 'private', 'shared', 'conduct', 'enroll-code', 'assignment-status'];
+  const watched = ['feedback', 'activity-state', 'activity-mine', 'private', 'private-notice', 'shared', 'conduct', 'enroll-code', 'assignment-status', 'tool-state', 'tool-string'];
   window.__attend = { mutations: Object.fromEntries(watched.map((id) => [id, 0])), seq: {} };
   const attach = () => {
     for (const id of watched) {
@@ -23,8 +23,9 @@ function installHooks() {
 function readSeat() {
   const required = ['entry', 'stage', 'lesson-title', 'section-title', 'status', 'conduct', 'narration', 'demo', 'slide', 'slide-title',
     'slide-points', 'activity', 'activity-prompt', 'activity-code', 'activity-choices', 'activity-text', 'activity-send', 'activity-state',
-    'activity-results', 'activity-bars', 'activity-answer', 'activity-highlights', 'activity-personal', 'assignment', 'assignment-title',
-    'assignment-brief', 'assignment-steps', 'help', 'assignment-status', 'private', 'say', 'question', 'show-name', 'shared', 'feedback'];
+    'activity-results', 'activity-bars', 'activity-answer', 'activity-explanation', 'activity-highlights', 'activity-personal', 'activity-mine', 'assignment', 'assignment-title',
+    'assignment-brief', 'assignment-steps', 'help', 'assignment-status', 'private', 'private-notice', 'say', 'question', 'show-name', 'shared', 'feedback',
+    'tool', 'tool-link', 'tool-string', 'tool-state'];
   const missing = required.filter((id) => !document.getElementById(id));
   if (missing.length) return { missing };
   const $ = (id) => document.getElementById(id);
@@ -69,9 +70,12 @@ function readSeat() {
       text_value: choices.length ? null : $('activity-text').value,
       state: revealed ? 'revealed' : open ? 'open' : 'closed',
       state_note: text($('activity-state')),
+      // What the page shows as this student's current answer (the server's copy), e.g. after speech was taken as the answer.
+      answer_on_page: shown($('activity-mine')) ? text($('activity-mine')).replace(/^いまのあなたの回答: /, '') : null,
       results: revealed ? {
         bars: [...$('activity-bars').children].map((row) => ({ label: text(row.querySelector('.ls-bar-label')), count: Number(text(row.querySelector('.ls-bar-count'))), correct: row.dataset.correct === 'true' })),
         model_answer: shown($('activity-answer')) ? text($('activity-answer')) : null,
+        explanation: shown($('activity-explanation')) ? text($('activity-explanation')).replace(/^解説: /, '') : null,
         highlights: [...$('activity-highlights').children].map(text),
       } : null,
       personal_feedback: shown($('activity-personal')) ? text($('activity-personal')) : null,
@@ -85,8 +89,11 @@ function readSeat() {
       steps: [...$('assignment-steps').children].map((item, index) => {
         const label = item.querySelector('label');
         const auto = Boolean(label?.querySelector('.ls-auto'));
-        const words = [...(label?.childNodes ?? [])].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent).join('').trim();
-        return { n: index + 1, label: words, done: Boolean(item.querySelector('input')?.checked), auto };
+        const labelText = [...(label?.childNodes ?? [])].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent).join('').trim();
+        const watches = text(label?.querySelector('.ls-check'));
+        const own = label?.querySelector(':scope > span:not(.ls-auto)');
+        const words = (own ? [...own.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent).join('').trim() : '') || labelText;
+        return { n: index + 1, label: words, done: Boolean(item.querySelector('input')?.checked), auto, watches: watches || null };
       }),
       active: !$('help').disabled,
       status: text($('assignment-status')),
@@ -99,16 +106,20 @@ function readSeat() {
   }));
   view.shared = number($('shared'), 'attendShared').map((item) => {
     const button = item.querySelector('button');
-    const meta = [...item.querySelectorAll('.ls-meta span')].map(text);
+    const name = item.querySelector('.ls-meta span:not(.ls-votes):not(.ls-mine-tag)');
     return {
       n: Number(item.dataset.attendShared), question: text(item.querySelector('.ls-q')), answer: text(item.querySelector('.ls-a')),
-      name: meta.length > 1 ? meta[0] : null, votes: text([...item.querySelectorAll('.ls-meta span')].find((span) => span.textContent.startsWith('知りたい'))),
-      can_vote: Boolean(button) && !button.disabled,
+      name: name ? text(name) : null, votes: text(item.querySelector('.ls-votes')),
+      mine: shown(item.querySelector('.ls-mine-tag')),
+      can_vote: shown(button) && !button.disabled,
     };
   });
   const conduct = $('conduct');
   view.conduct = { standing: conduct.dataset.standing || 'good', text: shown(conduct) ? text(conduct) : null };
   view.toast = text($('feedback'));
+  // The note at the bottom of the screen that announces new private messages (null when not shown).
+  view.private_notice = shown($('private-notice')) ? text($('private-notice')) : null;
+  view.tool = shown($('tool')) ? { state: text($('tool-state')), link: shown($('tool-string')) ? $('tool-string').value : null } : null;
   view.mutations = { ...window.__attend.mutations };
   return view;
 }

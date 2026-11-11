@@ -11,6 +11,7 @@
 //   ATTEND_WORK=<dir> node seat.cjs ask --text "..." [--show-name]
 //   ATTEND_WORK=<dir> node seat.cjs say --text "..."
 //   ATTEND_WORK=<dir> node seat.cjs vote --n 1
+//   ATTEND_WORK=<dir> node seat.cjs tool-link
 //   ATTEND_WORK=<dir> node seat.cjs status
 //   ATTEND_WORK=<dir> node seat.cjs stop
 const http = require('http');
@@ -36,6 +37,7 @@ const COMMANDS = {
   ask: { allow: ['text'], flags: ['show-name'], body: (o) => { if (!o.text) throw new Error('ask needs --text'); return { text: o.text, showName: Boolean(o['show-name']) }; } },
   say: { allow: ['text'], body: (o) => { if (!o.text) throw new Error('say needs --text'); return { text: o.text }; } },
   vote: { allow: ['n', 'id'], body: (o) => { const n = Number(o.n ?? o.id); if (!Number.isInteger(n)) throw new Error('vote needs --n N (the shared question\'s n from observe)'); return { n }; } },
+  'tool-link': { body: () => ({}) },
   status: { body: () => ({}) },
   stop: { body: () => ({}) },
 };
