@@ -61,6 +61,9 @@ async function attend(report) {
     if (activity?.id && activity.personal_feedback) report.feedback[activity.id] = activity.personal_feedback;
     if (activity?.id && activity.results?.explanation) report.explanations[activity.id] = activity.results.explanation;
     if (view.assignment) report.last_assignment = view.assignment;
+    // The commands under a step, as observe returned them (the attendee copies them from here).
+    const how = view.assignment?.steps.find((step) => step.how)?.how;
+    if (how && !report.observed_how) { report.observed_how = how; say('observe how', JSON.stringify(how.slice(0, 80))); }
     // Said to the teacher after answering a text question: must not replace the answer.
     if (!remarked && activity?.state === 'open' && activity.id === 'hitstop-design' && answered.has(activity.id)) {
       remarked = true;
@@ -189,7 +192,7 @@ async function main() {
   }
   say('session ready');
   const report = { answers: {}, feedback: {}, explanations: {}, ticks: [], private: [], demos: {}, mine: [], help: null, question: null, say: null, vote: null,
-    reports: [], remark: null, trouble: null, unresolved: null, tool_link: null, last_assignment: null, status: null };
+    reports: [], remark: null, trouble: null, unresolved: null, tool_link: null, last_assignment: null, observed_how: null, status: null };
   try { await attend(report); } catch (error) { report.error = error.message; }
   say('lesson over; stopping');
   await seat('stop').catch(() => {});
@@ -207,6 +210,7 @@ async function main() {
     every_activity_answered_and_acked: activities.length > 0 && activities.every((id) => report.answers[id].ok && report.answers[id].acked),
     personal_feedback_for_every_activity: activities.length > 0 && activities.every((id) => report.feedback[id]),
     assignment_all_ticked: Boolean(report.last_assignment?.steps.every((step) => step.done)),
+    observe_returns_step_commands: Boolean(report.observed_how?.includes('ergo_studio --headless') && report.observed_how.includes('\n')),
     automatic_steps_say_what_they_watch: Boolean(report.last_assignment?.steps.filter((step) => step.auto).every((step) => step.watches?.includes('feel.'))),
     choice_explanations_shown: Boolean(report.explanations['weapon-power'] && report.explanations['enemy-placement']),
     remark_kept_answer: Boolean(report.remark?.ok && !report.remark.taken_as_answer && report.remark.answer_on_page === TEXT),

@@ -73,7 +73,9 @@ node native/lesson/tools/attend/seat.cjs stop
     "input": "text", "choices": null, "state": "open", "state_note": "受け取りました。締め切りまで変更できます。",
     "answer_on_page": "…", "results": null, "personal_feedback": null, "my_answer": "…", "my_answer_acked": true
   },
-  "assignment": null,
+  "assignment": { "title": "抜けた手触りを Ergo のサンプルで戻す", "brief": "…", "active": true, "status": "",
+    "steps": [{ "n": 1, "label": "サンプルを --plain (演出なし) で動かし、…", "done": false, "auto": false, "watches": null,
+                "how": "cd <ビルドフォルダ>\n./studio/ergo_studio --headless                       # 端末 1。…\n…" }, "…"] },
   "private_new": [{ "seq": 1, "kind": "質問の答え", "text": "決まった正解はありません。…" }],
   "private_count": 1,
   "shared_questions": [],
@@ -96,7 +98,8 @@ node native/lesson/tools/attend/seat.cjs stop
   `answer` で送ったもの。`say` が回答として受け取られた (まだ答えていなかった) ときは前者だけが変わる。答えた後の `say` は回答を
   置き換えない (ページは「置き換えていません」と出す)。
 - `assignment.steps[]`: `n` (1 始まり)・`label`・`done`・`auto` (道具の自動確認付き)・`watches` (自動の手順が見る変数と条件の文、
-  例 `自動: 道具が feel.hit_stop_last_seconds > 0 を見たらチェック`)。`active` は「ヒントがほしい」が押せるか。課題が終わると
+  例 `自動: 道具が feel.hit_stop_last_seconds > 0 を見たらチェック`)・`how` (手順の下に等幅で出ているコマンドや読むファイルの場所。
+  画面のとおり改行を残した文字列、無い手順は `null`)。`active` は「ヒントがほしい」が押せるか。課題が終わると
   チェック欄は押せず、次のセクションに入ると課題の欄は消える。
 - `private_new`: 「先生からあなたへ」に届いた分のうち、まだ `observe` / `wait` が返していないもの (ヒント・質問の答え・先生の答え・
   先生から・答えられなかった質問)。既読にするのは `observe` と `wait` だけで、操作の返事の `observe` にも同じものが出るが既読にはしない。

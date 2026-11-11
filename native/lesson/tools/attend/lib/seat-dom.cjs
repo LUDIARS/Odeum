@@ -102,7 +102,10 @@ function readSeat() {
         const watches = text(label?.querySelector('.ls-check'));
         const own = label?.querySelector(':scope > span:not(.ls-auto)');
         const words = (own ? [...own.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent).join('').trim() : '') || labelText;
-        return { n: index + 1, label: words, done: Boolean(item.querySelector('input')?.checked), auto, watches: watches || null };
+        // The commands shown under the step, exactly as on the page (line breaks kept, so they can be copied).
+        const how = item.querySelector(':scope > pre.ls-how');
+        return { n: index + 1, label: words, done: Boolean(item.querySelector('input')?.checked), auto, watches: watches || null,
+          how: how ? how.textContent : null };
       }),
       active: !$('help').disabled,
       status: text($('assignment-status')),
