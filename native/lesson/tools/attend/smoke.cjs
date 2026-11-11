@@ -105,7 +105,8 @@ async function attend(report) {
         continue;
       }
     }
-    if (!unresolvedAsked && view.section?.index >= 3) {
+    // Asked after knockback-effects is revealed: its prepared answer (damage vs power) gives that question away until then.
+    if (!unresolvedAsked && view.section?.index >= 6) {
       unresolvedAsked = true;
       const result = await seat('ask', '--text', UNRESOLVED_QUESTION);
       say('ask (prepared answer)', result.ok ? 'ok' : JSON.stringify(result.error));
@@ -122,7 +123,8 @@ async function attend(report) {
       view = await seat('observe');
       continue;
     }
-    if (!asked && view.section?.index >= 4) {
+    // After hitstop-design is revealed, so the prepared answer on hit stop length may be given.
+    if (!asked && view.section?.index >= 5) {
       asked = true;
       const result = await seat('ask', '--text', QUESTION);
       report.question = { ok: result.ok, private: result.observe.private_new, error: result.error ?? null };

@@ -1,5 +1,5 @@
 {
-  "about": "Answers a scripted human teacher gives in the sample course (classroom.cjs --teacher-answers). Only statements true of the course material, or plainly generic ones.",
+  "about": "Answers a scripted human teacher gives in the sample course (classroom.cjs --teacher-answers). Only statements true of the course material, or plainly generic ones. after: the in-class question an answer would give away; it is used only once that question has been revealed.",
   "answers": [
     {
       "id": "world-step",
@@ -9,18 +9,21 @@
     },
     {
       "id": "knockback-combo",
+      "after": "knockback-effects",
       "all": ["ノックバック"],
       "any": ["届か", "コンボ", "連続", "追撃", "次の攻撃"],
       "answer": "作品ごとに違いますが、よく見かけるのは、連続攻撃の途中の当たりでは押す距離を小さくし、最後の一撃だけ大きく押す作りや、押す距離そのものを短くする作りです。どれが合うかは攻撃の届く距離との兼ね合いなので、自分の作品で試して決めてください。授業のサンプルにはこの仕組みはありません。"
     },
     {
       "id": "input-during-stop",
+      "after": "hitstop-design",
       "all": ["ヒットストップ"],
       "any": ["入力", "ボタン", "押した"],
       "answer": "よく見かけるのは、止まっている間に押されたボタンを覚えておき、止まり終わってから処理する作りです (押したのに無視された、と感じさせないため)。授業のサンプルには入力が無いので、これは自分の作品で確かめることになります。"
     },
     {
       "id": "damage-power",
+      "after": "knockback-effects",
       "all": ["威力", "ダメージ"],
       "answer": "ActionGameSample では、ダメージが体力を減らす量、威力がノックバックの強さとヒットストップの長さ (威力 ÷ 24 秒) を決めます。だから、同じ回数で倒せる武器どうしでも、威力を変えるだけで一撃の重さの感じが変わります。強さ (倒すまでの回数) と手触り (一撃の重さ) を別々に調整できることが、分けておく理由です。"
     }

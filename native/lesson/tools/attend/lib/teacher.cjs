@@ -2,8 +2,10 @@
 // (先生の回答待ち on the console) with answers written beforehand by the course author, through the
 // console's own answer field and 答える button, so the operator-answer path is on the video.
 //
-// File: {"answers": [{"id": "...", "all": ["word", ...], "any": ["word", ...], "answer": "..."}]}
+// File: {"answers": [{"id": "...", "all": ["word", ...], "any": ["word", ...], "after": "activity id", "answer": "..."}]}
 //   all: every word must appear in the question; any (optional): at least one must. Matching ignores case.
+//   after (optional): the entry would give away that in-class question, so it is used only once the
+//   schedule has shown that question's results; until then the question is held (left waiting, not dropped).
 //   The first matching entry is used. A question nothing matches is left waiting (as a busy teacher would).
 //   A question that waits again after an answer (the student pressed まだ分からない) gets the next
 //   matching entry not used for it yet, or is left waiting.
@@ -21,20 +23,26 @@ function loadAnswers(file) {
     if (!Array.isArray(entry.all) || entry.all.length === 0 || !entry.all.every((word) => typeof word === 'string' && word)) throw new Error(`${where}: all must list words`);
     if (entry.any !== undefined && (!Array.isArray(entry.any) || !entry.any.every((word) => typeof word === 'string' && word))) throw new Error(`${where}: any must list words`);
     if (typeof entry.answer !== 'string' || !entry.answer.trim() || [...entry.answer].length > 400) throw new Error(`${where}: answer must be 1-400 characters`);
-    return { id: entry.id, all: entry.all.map((word) => word.toLowerCase()), any: (entry.any ?? []).map((word) => word.toLowerCase()), answer: entry.answer.trim() };
+    if (entry.after !== undefined && (typeof entry.after !== 'string' || !entry.after)) throw new Error(`${where}: after must be an activity id`);
+    return { id: entry.id, all: entry.all.map((word) => word.toLowerCase()), any: (entry.any ?? []).map((word) => word.toLowerCase()),
+      after: entry.after ?? null, answer: entry.answer.trim() };
   });
 }
 
-function match(answers, question, used = []) {
+// The first usable entry for the question, or {held} when the first matching one waits for an activity's results.
+function match(answers, question, used = [], revealed = new Set()) {
   const text = question.toLowerCase();
-  return answers.find((entry) => !used.includes(entry.id) && entry.all.every((word) => text.includes(word))
-    && (entry.any.length === 0 || entry.any.some((word) => text.includes(word)))) ?? null;
+  const entry = answers.find((candidate) => !used.includes(candidate.id) && candidate.all.every((word) => text.includes(word))
+    && (candidate.any.length === 0 || candidate.any.some((word) => text.includes(word)))) ?? null;
+  if (entry?.after && !revealed.has(entry.after)) return { entry: null, held: entry };
+  return { entry, held: null };
 }
 
-function createTeacher({ page, answers, delaySeconds, log, onError }) {
+function createTeacher({ page, answers, delaySeconds, revealed = () => new Set(), log, onError }) {
   const seen = new Map();    // question id -> when it was first seen waiting
   const left = new Set();    // waiting with nothing (more) to say: logged once
   const used = new Map();    // question id -> entry ids already given
+  const holding = new Set(); // question id -> held for an entry's `after`: logged once
   let timer = null;
   let stopped = false;
 
@@ -66,7 +74,13 @@ function createTeacher({ page, answers, delaySeconds, log, onError }) {
         for (const question of now) {
           if (left.has(question.id)) continue;
           if (!seen.has(question.id)) seen.set(question.id, Date.now());
-          const entry = match(answers, question.text, used.get(question.id) ?? []);
+          const { entry, held } = match(answers, question.text, used.get(question.id) ?? [], revealed());
+          if (held) {
+            if (!holding.has(question.id)) { holding.add(question.id); log.write('operator', { event: 'teacher.held', question_id: question.id, entry: held.id, after: held.after }); }
+            seen.set(question.id, Date.now());   // the delay counts from when the entry may be used
+            continue;
+          }
+          holding.delete(question.id);
           if (!entry) { left.add(question.id); log.write('operator', { event: 'teacher.no_answer', question_id: question.id, again: used.has(question.id) }); continue; }
           if (Date.now() - seen.get(question.id) < delaySeconds * 1000) continue;
           await answerOne(question, entry);

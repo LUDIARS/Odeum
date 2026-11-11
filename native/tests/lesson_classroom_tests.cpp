@@ -77,6 +77,9 @@ int main() { return run([] {
     rejects([&] { room.say(riku, {{"type", "answer"}, {"activity_id", "missing-feel"}, {"text", "遅刻"}}); }, "activity_closed");
 
     // Questions: private answer for the asker, shared with the class on request, anonymously.
+    // (The prepared answer on hit stop length waits until hitstop-design has been revealed.)
+    room.console({{"type", "activity.open"}, {"id", "hitstop-design"}});
+    room.console({{"type", "activity.reveal"}});
     out = room.say(aoi, {{"type", "question"}, {"text", "ヒットストップは何秒にするのがいいですか？なぜですか"}, {"show_name", false}});
     check(find_type(out, "reply", aoi) && find_type(out, "reply", aoi)->body.at("about") == "question" && !find_type(out, "question.shared"), "Asker is answered privately first");
     out = room.say(haruto, {{"type", "utterance"}, {"text", "ヒットストップは何秒にするのが良いですか？なぜ？"}});

@@ -168,7 +168,7 @@ Plot parse_plot(const Json& document) {
     }
     for (const auto& item : list(document, "faq", max_list, "plot")) {
         object(item, "plot.faq");
-        Faq faq{strings(item, "keywords", max_list, 60, "plot.faq"), text(item, "answer", 1000, "plot.faq")};
+        Faq faq{strings(item, "keywords", max_list, 60, "plot.faq"), text(item, "answer", 1000, "plot.faq"), text(item, "after", 64, "plot.faq", false)};
         if (faq.keywords.empty()) invalid("plot.faq.keywords");
         plot.faq.push_back(std::move(faq));
     }
@@ -211,6 +211,7 @@ Plot parse_plot(const Json& document) {
         plot.sections.push_back(std::move(section));
     }
     if (plot.sections.empty()) invalid("plot.sections");
+    for (const auto& faq : plot.faq) if (!faq.after.empty() && !activity_ids.contains(faq.after)) invalid("plot.faq.after");
     return plot;
 }
 std::string_view activity_kind_name(ActivityKind kind) { return kind_names.at(static_cast<std::size_t>(kind)); }

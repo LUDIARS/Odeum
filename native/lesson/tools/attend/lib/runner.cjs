@@ -8,6 +8,7 @@ function createRunner({ page, schedule, log, seat }) {
   let state = 'pending';   // pending -> running -> done | failed | stopped
   let failure = null;
   let wake = null;
+  const revealed = new Set();   // activities whose results this schedule has shown
 
   const sleep = (ms) => new Promise((resolve) => { const timer = setTimeout(resolve, ms); wake = () => { clearTimeout(timer); resolve(); }; });
   const describe = (step) => ({ kind: step.kind, op: step.op, label: step.label, section: step.section, seconds: step.seconds ?? null });
@@ -48,6 +49,7 @@ function createRunner({ page, schedule, log, seat }) {
           throw new Error(`step "${step.label}" is too late: the lesson is at ${now.position}s, the window was to end by ${Math.round(step.deadline_ms / 1000)}s`);
       }
       const result = await perform(page, step);
+      if (step.op === 'activity.reveal') revealed.add(step.id);
       log.write('operator', { event: step.op, label: step.label, section: step.section, id: step.id ?? null, console: result });
     }
     if (state === 'running') { state = 'done'; log.write('operator', { event: 'schedule.done' }); }
@@ -59,6 +61,7 @@ function createRunner({ page, schedule, log, seat }) {
     },
     stop() { if (state === 'running' || state === 'pending') state = 'stopped'; wake?.(); },
     state: () => state,
+    revealed: () => revealed,
     status() {
       const out = { state, failure: failure?.message ?? null };
       if (index < 0 || index >= schedule.steps.length) return { ...out, limits: schedule.limits, upcoming: index < 0 ? schedule.steps.slice(0, 5).map(describe) : [] };

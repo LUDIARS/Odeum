@@ -112,11 +112,22 @@ public:
         review.score = share_base + (mentions_any(folded, depth_words) ? share_bonus_depth : 0) + (topical ? share_bonus_topic : 0)
             + (length >= 12 && length <= 120 ? share_bonus_length : 0) - (length < 6 ? 30 : 0);
         review.score = std::clamp(review.score, 0, 100);
-        std::size_t best = faq_min_hits - 1;
+        // An entry that would give away a question the class has not seen answered yet (`after`) is not
+        // given. When it is the best match, the question waits for the human teacher instead of getting
+        // a weaker, less relevant answer.
+        std::size_t best = faq_min_hits - 1, best_held = 0;
         if (context.plot) for (const auto& faq : context.plot->faq) {
             const auto hits = static_cast<std::size_t>(std::count_if(faq.keywords.begin(), faq.keywords.end(),
                 [&](const std::string& keyword) { return mentions(folded, keyword); }));
-            if (hits > best) { best = hits; review.answer = faq.answer; }
+            const bool held = !faq.after.empty() && !(context.revealed && context.revealed->contains(faq.after));
+            if (held) best_held = std::max(best_held, hits);
+            else if (hits > best) { best = hits; review.answer = faq.answer; }
+        }
+        if (best_held > best) {
+            review.needs_teacher = true;
+            review.answer = "この質問への用意した答えは、このあとの授業の問いの答えに触れるため、いまは出せません。人間の先生に回しました。"
+                            "先生から直接答えが届くことがあり、届いたらここに出ます。";
+            return review;
         }
         if (review.answer.empty()) {
             review.needs_teacher = true;

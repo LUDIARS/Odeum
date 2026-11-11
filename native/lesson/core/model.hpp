@@ -1,6 +1,7 @@
 #pragma once
 #include "plot.hpp"
 #include <memory>
+#include <set>
 
 namespace odeum::lesson {
 // What the lecturer model decides. The real model is delivered later; until then
@@ -31,6 +32,8 @@ struct Context {
     const Section* section = nullptr;  // null before the lesson starts
     bool text_activity_open = false;
     bool assignment_active = false;
+    // Activities whose results have been shown to the class (FAQ entries with `after` wait for these).
+    const std::set<std::string>* revealed = nullptr;
 };
 class LessonModel {
 public:

@@ -37,6 +37,8 @@ int main() { return run([] {
     const auto aoi = room.join("あおい"), haruto = room.join("はると"), riku = room.join("りく");
     room.console({{"type", "lesson.start"}});
     room.classroom.tick(room.now);
+    // Prepared answers on damage and power, and on hit stop length, wait for these activities (lesson_faq_tests).
+    for (const auto* id : {"hitstop-design", "knockback-effects"}) { room.console({{"type", "activity.open"}, {"id", id}}); room.console({{"type", "activity.reveal"}}); }
 
     // A question with a prepared answer: 答えあり, with the answer.
     auto out = room.say(aoi, {{"type", "question"}, {"text", "ダメージと威力を分けておくと、具体的にどんなときに便利なんですか？"}});

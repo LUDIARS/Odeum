@@ -58,6 +58,7 @@ private:
     const Section* section_ = nullptr;
     Json slide_, narration_;                       // last shown, replayed to late joiners
     std::optional<Activity> activity_;
+    std::set<std::string> revealed_;               // activities whose results the class has seen
     std::optional<AssignmentBoard> assignment_;
     bool assignment_active_ = false;
     std::map<std::string, bool> demo_states_;      // what the demos have switched so far

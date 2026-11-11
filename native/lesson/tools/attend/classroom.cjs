@@ -91,6 +91,8 @@ async function main() {
   const sectionIdOf = (title) => sectionsOf(timeline).find((section) => section.title === title)?.id ?? null;
   const estimate = estimateSeconds(schedule);
   const answers = opt.teacherAnswers ? loadAnswers(opt.teacherAnswers) : null;
+  for (const entry of answers ?? []) if (entry.after && ![...activities.values()].some((plan) => plan.id === entry.after))
+    throw new Error(`--teacher-answers: entry "${entry.id}" waits for "${entry.after}", which the course does not have`);
 
   const log = createEventLog(path.join(opt.work, 'attendee.jsonl'));
   const videoDir = path.join(opt.work, 'video');
@@ -153,7 +155,7 @@ async function main() {
   watcher = createWatcher({ page: attendee.page, observation, log, onError: fatal });
   watcher.start();
   runner = createRunner({ page: operator.page, schedule, log, seat: () => watcher.latest() });
-  if (answers) teacher = createTeacher({ page: operator.page, answers, delaySeconds: opt.teacherDelay, log, onError: fatal });
+  if (answers) teacher = createTeacher({ page: operator.page, answers, delaySeconds: opt.teacherDelay, revealed: () => runner.revealed(), log, onError: fatal });
 
   // ---- control API ----
   let attendeeArrived = null;

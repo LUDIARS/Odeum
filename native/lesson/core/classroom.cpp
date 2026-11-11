@@ -47,7 +47,7 @@ Classroom::Classroom(Plot plot, std::shared_ptr<const LessonModel> model, TokenS
       player_(build_timeline(plot_, *model_)), questions_(*model_) {}
 
 Context Classroom::context() const {
-    return {&plot_, section_, activity_ && activity_->state() == Activity::State::open && activity_->takes_text(), assignment_active_};
+    return {&plot_, section_, activity_ && activity_->state() == Activity::State::open && activity_->takes_text(), assignment_active_, &revealed_};
 }
 Classroom::Student& Classroom::student(const std::string& id) {
     const auto found = students_.find(id);

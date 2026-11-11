@@ -42,7 +42,9 @@ struct AssignmentPlan {
 // note: what the presenter does; watch: what the students should look for while it is shown.
 struct DemoPlan { std::string feature, note, watch; bool enabled = true; std::size_t after = 0; };
 struct PrepQuestion { std::string question, hint; };
-struct Faq { std::vector<std::string> keywords; std::string answer; };
+// after: the id of an in-class activity this answer would give away. Until that activity's results
+// have been shown the entry is not used (the question goes to the human teacher instead).
+struct Faq { std::vector<std::string> keywords; std::string answer, after; };
 struct Term { std::string term, meaning; };
 struct Section {
     std::string id, title;

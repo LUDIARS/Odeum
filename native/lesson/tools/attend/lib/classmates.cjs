@@ -14,7 +14,8 @@ const CANNED = [
     'knockback-effects': '相手との距離が離れて、連続で当てにくくなる',
     'enemy-placement': [1],
     'camera-open': 'プレイヤーの後ろからなめらかに追従する。揺れは控えめにして酔わないようにする',
-    question: { section: 'knockback', text: 'ノックバックの向きはどうやって決めればいいですか？' },
+    // Asked once the knockback question has been revealed: before that, its prepared answer is held back.
+    question: { section: 'enemies', text: 'ノックバックの向きはどうやって決めればいいですか？' },
   },
   {
     'missing-feel': '音とエフェクト。あとダメージの数字',

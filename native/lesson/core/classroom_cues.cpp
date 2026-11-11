@@ -32,6 +32,7 @@ void Classroom::reveal_activity(Outbox& out) {
     if (!activity_ || activity_->state() == Activity::State::revealed) return;
     close_activity(out);
     activity_->reveal();
+    revealed_.insert(activity_->plan().id);
     dirty_ = true;
     out.push_back(to_all({{"type", "activity.reveal"}, {"results", activity_->results()}}));
     // Everyone sees the class result; each student also gets a word about their own answer.

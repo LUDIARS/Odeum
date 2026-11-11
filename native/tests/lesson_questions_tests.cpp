@@ -6,7 +6,10 @@ using namespace odeum::lesson;
 int main() { return run([] {
     const auto plot = sample_plot();
     const auto model = make_provisional_model();
-    const Context context{&plot, find_section(plot, "hitstop"), false, false};
+    // Late enough in the lesson that every prepared answer may be given (FAQ `after` is tested in lesson_faq_tests).
+    std::set<std::string> revealed;
+    for (const auto& section : plot.sections) if (section.activity) revealed.insert(section.activity->id);
+    const Context context{&plot, find_section(plot, "hitstop"), false, false, &revealed};
     QuestionBoard board(*model);
 
     // A deep, on-topic question the plot can answer.
@@ -87,15 +90,15 @@ int main() { return run([] {
     check(combo.needs_teacher, "A question the course cannot answer goes to the teacher instead of a loosely matching answer");
 
     // "I am stuck" reads as a call for help only while an assignment runs.
-    const Context working{&plot, find_section(plot, "assignment"), false, true}, talking{&plot, find_section(plot, "assignment"), false, false};
+    const Context working{&plot, find_section(plot, "assignment"), false, true, &revealed}, talking{&plot, find_section(plot, "assignment"), false, false, &revealed};
     check(model->read("手順3で進みません。hit_stop を呼んでも world= が変わらないのはなぜですか？", working).intent == Intent::help, "Stuck report during the assignment");
     check(model->read("手順3で進みません。hit_stop を呼んでも world= が変わらないのはなぜですか？", talking).intent == Intent::question, "The same words outside it stay a question");
     check(model->read("ノックバックの向きはどうして後ろなんですか", working).intent == Intent::question, "A plain question during the assignment stays a question");
 
     // At most two per share round.
     QuestionBoard many(*model);
-    many.submit("a", "a", false, "ノックバックの向きはなぜ相手の後ろ向きなのですか", {&plot, find_section(plot, "knockback"), false, false}, 0);
+    many.submit("a", "a", false, "ノックバックの向きはなぜ相手の後ろ向きなのですか", {&plot, find_section(plot, "knockback"), false, false, &revealed}, 0);
     many.submit("b", "b", false, "ヒットストップで全体を止めるのと二人だけ止めるのはどう違いますか、理由も知りたいです", context, 0);
-    many.submit("c", "c", false, "カメラの揺れで酔う場合はどうすればいいですか、なぜ酔うのですか", {&plot, find_section(plot, "camera"), false, false}, 0);
+    many.submit("c", "c", false, "カメラの揺れで酔う場合はどうすればいいですか、なぜ酔うのですか", {&plot, find_section(plot, "camera"), false, false, &revealed}, 0);
     check(many.share_best().size() == QuestionBoard::max_per_share && many.share_best().size() == 1, "Two per round, the rest next time");
 }); }
