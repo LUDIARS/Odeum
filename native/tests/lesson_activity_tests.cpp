@@ -89,6 +89,7 @@ int main() { return run([] {
     const auto grade = [&](const char* id, const char* text) { return model->grade(*find_activity(plot, id), text).matched; };
     const auto has = [](const std::vector<std::string>& ids, const char* id) { return std::find(ids.begin(), ids.end(), id) != ids.end(); };
     check(has(grade("camera-open", "前を広めに映す"), "view") && has(grade("camera-open", "画面外の攻撃が見えないと理不尽"), "view"), "映す範囲: 広めに / 見えない");
+    check(has(grade("camera-open", "画面の外が映らないと困る"), "view"), "映す範囲: 映らない");
     check(has(grade("camera-open", "プレイヤーを少し遅れて追いかけるカメラ"), "follow") && has(grade("camera-open", "揺らしすぎると酔うので弱くできるように"), "comfort"), "追い方, 酔いにくさ");
     check(has(grade("camera-open", "ｶﾒﾗは自分で回せるといい"), "control"), "Halfwidth katakana and 回せる");
     check(has(grade("missing-feel", "当たっても止まらないし、敵が飛ばない"), "hit_stop") && has(grade("missing-feel", "当たっても止まらないし、敵が飛ばない"), "knockback"), "止まらない / 飛ばない");

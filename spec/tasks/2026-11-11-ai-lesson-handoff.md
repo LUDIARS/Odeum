@@ -32,7 +32,10 @@ Odeum をベースに AI 授業を作る。講師モデルは後で届くので�
 - ブランチ `claude/charming-goldberg-p51pyj` (LUDIARS/Odeum)。GitHub PR #5 (open、未レビュー、未マージ)。
 - 変更は Odeum だけ。同じ名前のブランチが指定されていた他の 9 リポ (Officina / Curare / Ingenium / Discutere / Manus /
   Tirocinium / Revisor / Lorica / AIFormat) は無変更。
-- 上の 1〜6 は一通り実装済みで、授業側の単体テスト 11 本が通る。ブラウザでの通し確認も済み (下の「再現手順」)。
+- 上の 1〜6 は一通り実装済みで、授業側の単体テスト 12 本が通る。ブラウザでの通し確認も済み (下の「再現手順」)。
+- AI の生徒を実際に出席させて見つけた欠陥 (発話が提出済みの回答を置き換える、仮モデルが守れない約束・根拠の無い講評、
+  キーワードの取りこぼし、選択問題の解説が無い、模範解答と採点観点の食い違い、課題が実在しない手順を前提にしていた、
+  生徒ページの表示の食い違い) を直した。振る舞いは仕様 (`spec/feature/ai-lesson.md`) に反映済み。
 - 確認したのは Linux / GCC 13 だけ。
 
 ## 構成 (読む順)
@@ -67,7 +70,7 @@ Odeum をベースに AI 授業を作る。講師モデルは後で届くので�
 export LC_ALL=C.UTF-8        # 無いと Boost の zip 展開が configure で失敗する
 cmake -S native -B native/build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build native/build
-ctest --test-dir native/build -R lesson --output-on-failure      # 11 本
+ctest --test-dir native/build -R lesson --output-on-failure      # 12 本
 
 native/build/bin/odeum-lesson courses
 native/build/bin/odeum-lesson timeline action-game
@@ -96,8 +99,11 @@ NO_PROXY=127.0.0.1,localhost node native/lesson/tools/e2e.cjs /tmp   # Playwrigh
    (生徒の入力とシステム指示の分離、出力の検証、回数・時間の上限、個人データを外へ送らない) を受入条件にする。
 2. **Ergo Studio 連携の残り。** 授業側の経路 (`/v1/tool/*`、`native/lesson/tool_desk.*` / `server_tools.cpp`) と
    Ergo Studio の「授業」プラグイン (Ergo `tools/studio/plugins/lesson/`、ブランチ `claude/ai-lesson-odeum-j57vy6`) は実装済み。
-   残りは (a) Windows で両者をつないだ確認、(b) `feel.*` の変数を公開する Ergo 版サンプルゲーム (ActionGameSample の移植) の作成、
-   (c) サンプル教材の Ergo Studio 手順の実機確認。
+   `feel.*` を公開するヘッドレスのサンプル `examples/lesson_action_feel` は Ergo 側にできた (同ブランチ、LUDIARS/Ergo#95、未マージ)。
+   サンプル教材の準備・課題・ヒントはこのサンプルでできることだけに書き直した (遊ぶ手順は無い。演出は Studio の `/variable/ws` に
+   `set` を送って ON に戻し、ログの数値で確かめる)。残りは (a) Windows で両者をつないだ確認、(b) 遊べる Ergo 版アクションゲーム
+   (ActionGameSample の移植) の作成と、それに合わせた教材の手順の書き直し、(c) Studio に変数を切り替える画面ができたら、
+   課題の手順から WebSocket の `set` を外す、(d) 書き直した課題を人が実際に Ergo で通す確認 (この作業では Ergo を動かしていない)。
 3. **映像の統合。** 生徒ページに relay の視聴を埋め込むか、GLab の視聴ページに授業の操作を載せるかを決める。
    いまは別ページ。ゲスト参加 (参加コード) は relay では映像を受けられない。
 4. **本人確認。** いまは参加コード + 表示名。GLab / Cernere のチケットで入るようにすれば退出が人に結び付く。
@@ -106,14 +112,14 @@ NO_PROXY=127.0.0.1,localhost node native/lesson/tools/e2e.cjs /tmp   # Playwrigh
    スマホ実機での生徒ページ。トークンファイルの権限は Windows ではフォルダの ACL 頼み。
 7. **リポの決まり事の残り。** `augur.contracts.json` / `contracts/` への契約の追加、`.augur/tests.jsonl` へのテスト登録、
    `praesidium.json` の更新はしていない。Revisor の登録テスト・local PR も未実施。
-8. **細かい改善。** 質問者本人に「私も知りたい」ボタンが出る / 仮モデルの語りは要点 1 行だけで持ち時間が余る /
-   課題の確認 (`assignment.status`) は人数を出すだけ。
+8. **細かい改善。** 仮モデルの語りは要点 1 行だけで持ち時間が余る / 課題の確認 (`assignment.status`) は人数を出すだけ。
 
 ## 既知の問題
 
 - 既存テスト `odeum.overlay` が不安定 (今回の変更を外しても 30 回中 25 回 SEGFAULT)。プロセス終了時に libdatachannel の
   スレッドが OpenSSL を触っている。今回は直していない。`ctest -E overlay` なら全て通る。
-- 仮モデルのキーワード判定は粗い (例: 「全部止める」だけで「何を止めるか」に触れた扱いになる)。モデル差し替えで解消する前提。
+- 仮モデルのキーワード判定は粗い (例: 「全部止める」だけで「何を止めるか」に触れた扱いになる)。送り仮名の揺れと半角カナは
+  吸収するようにしたが、言い換え (「敵がフレームに入らない」など) は語を足さない限り当たらない。モデル差し替えで解消する前提。
 
 ## 守ること
 
