@@ -14,7 +14,7 @@ public:
     void configure(const StreamSettings&, Sink s) override { ++configured; sink = std::move(s); }
     void encode(const VideoFrame& frame, bool force) override {
         forced.push_back(force);
-        sink({{std::byte{0}, std::byte{0}, std::byte{0}, std::byte{1}, static_cast<std::byte>(force ? 0x65 : 0x41)}, frame.timestamp_us, force});
+        sink({{std::byte{0}, std::byte{0}, std::byte{0}, std::byte{1}, static_cast<std::byte>(force ? 0x65 : 0x41)}, frame.timestamp_us, frame.timestamp_us, force});
     }
     void stop() override { ++stopped; }
 };
