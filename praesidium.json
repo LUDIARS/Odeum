@@ -2727,6 +2727,96 @@
                                     ]
                    },
                    {
+                       "file":  "native/relay/cloudflare_turn.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/ice_directory.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/relay/turn_refresher.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
                        "file":  "native/relay/web_access.cpp",
                        "standard":  "c++20",
                        "includes":  [
@@ -3268,6 +3358,36 @@
                    },
                    {
                        "file":  "native/tests/slot_media_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/presenter",
+                                        "native/program"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_STATIC",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_ENABLE_MEDIA=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-opus-1-5-2",
+                                        "odeum-openssl-3",
+                                        "tela",
+                                        "odeum-pictor"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/turn_tests.cpp",
                        "standard":  "c++20",
                        "includes":  [
                                         "native/protocol/include",

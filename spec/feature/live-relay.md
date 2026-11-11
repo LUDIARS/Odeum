@@ -111,6 +111,9 @@ NAT では同一 UDP port の転送が必要。TURN/srflx candidate は変更し
 | ODEUM_RELAY_UDP_PORT_RANGE | 1024-65535、begin-end |
 | ODEUM_RELAY_PUBLIC_IP | 任意、IP literal |
 | ODEUM_RELAY_ICE_SERVERS | []、WebRTC形式 `{urls,username?,credential?}` の配列 |
+| ODEUM_RELAY_CLOUDFLARE_TURN_KEY_ID | 任意。Cloudflare Realtime TURN の key id (英数字・`-_.`、128 文字まで)。API token と両方指定か両方未指定 |
+| ODEUM_RELAY_CLOUDFLARE_TURN_API_TOKEN | 任意。上の key の API token。Ex Vault から注入し、ログ・エラー文に出さない |
+| ODEUM_RELAY_CLOUDFLARE_TURN_TTL | 86400 (秒)、600–172800。key id と token が無い指定は起動失敗 |
 | ODEUM_RELAY_MAX_VIEWERS | 300、1–10000 |
 | ODEUM_RELAY_MAX_SESSIONS | 32、1–1024 |
 | ODEUM_RELAY_MAX_INPUTS | 4、1–8。room あたりの入力スロット数 |
@@ -124,6 +127,14 @@ loopback Host は常に許可。Origin のない native/Bearer 通信は許可�
 relay 自身が配信するページとゲスト/overlay の受け口だけは、Origin が `http(s)://<許可済み Host>` の same-origin を許可する。
 GLab の公開 Origin を `ODEUM_RELAY_ALLOWED_ORIGINS` に設定する。公開URLの推測や公開設定変更は行わない。
 公開 TLS は外部 proxy、サービス自体は HTTP。UDP は HTTP tunnel を経由しない。
+
+### Cloudflare TURN の短期資格
+
+key id と token があると、relay は起動時に `POST https://rtc.live.cloudflare.com/v1/turn/keys/<key id>/credentials/generate-ice-servers` (`Authorization: Bearer <token>`、本文 `{"ttl":<TTL>}`) で ICE server を取得し、TTL の半分で取り直す。
+失敗は 5 秒から倍々で最大 300 秒間隔で再試行する。TLS はシステムのルート証明書 (Windows は ROOT ストア) で検証し、SNI とホスト名を確認する。
+取得した一覧から port 53 の URL を除き (ブラウザが拒否するため)、TURN 資格の無い応答は採らない。
+welcome の `ice_servers` は `ODEUM_RELAY_ICE_SERVERS` の後ろに最新の取得結果を足したもの。relay 自身の PeerConnection も接続を作るたびに同じ一覧を使う (libjuice のため TURN は UDP のみ有効)。
+取り直し後に作る接続から新しい資格を使い、確立済みの接続はそのまま。取得前に入った接続は固定一覧だけを受ける。ログは「取得した / 失敗した」の 1 行だけで、token・資格・応答本文は出さない。
 
 ## 導入と検証
 

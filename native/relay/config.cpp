@@ -12,6 +12,12 @@ std::string env(const char* name, const char* fallback = "") {
     if (auto value = std::getenv(name)) { if (!*value) throw std::runtime_error(std::string(name) + " cannot be empty"); return value; }
     return fallback;
 }
+// Unset is nullptr; set-but-empty is rejected like every other relay variable.
+const char* optional_env(const char* name) {
+    auto value = std::getenv(name);
+    if (value && !*value) throw std::runtime_error(std::string(name) + " cannot be empty");
+    return value;
+}
 std::size_t integer(std::string_view value, std::size_t maximum) {
     std::size_t n = 0; auto [end, error] = std::from_chars(value.data(), value.data() + value.size(), n);
     if (error != std::errc{} || end != value.data() + value.size() || n == 0 || n > maximum) throw std::runtime_error("Invalid numeric configuration");
@@ -36,23 +42,9 @@ Config load_config() {
     if (c.rtc.portRangeBegin > c.rtc.portRangeEnd) throw std::runtime_error("Invalid UDP port range");
     c.public_ip = env("ODEUM_RELAY_PUBLIC_IP");
     if (!c.public_ip.empty()) boost::asio::ip::make_address(c.public_ip);
-    c.ice_servers = parse_json_within(env("ODEUM_RELAY_ICE_SERVERS", "[]"), config_limits);
-    if (!c.ice_servers.is_array() || c.ice_servers.size() > 16) throw std::runtime_error("ICE servers must be an array of at most 16 entries");
-    for (const auto& server : c.ice_servers) {
-        if (!server.is_object() || !server.contains("urls")) throw std::runtime_error("Invalid ICE server");
-        auto urls = server.at("urls"); if (urls.is_string()) urls = Json::array({urls});
-        if (!urls.is_array() || urls.empty() || urls.size() > 16) throw std::runtime_error("Invalid ICE URLs");
-        for (const auto& url : urls) {
-            auto text = url.get<std::string>();
-            if (!(text.starts_with("stun:") || text.starts_with("turn:") || text.starts_with("turns:"))) throw std::runtime_error("Invalid ICE scheme");
-            rtc::IceServer ice(text);
-            if (ice.type == rtc::IceServer::Type::Turn) {
-                ice.username = server.at("username").get<std::string>(); ice.password = server.at("credential").get<std::string>();
-                if (ice.username.empty() || ice.password.empty()) throw std::runtime_error("TURN credentials required");
-            }
-            c.rtc.iceServers.push_back(std::move(ice));
-        }
-    }
+    c.ice->set_static(parse_ice_servers(parse_json_within(env("ODEUM_RELAY_ICE_SERVERS", "[]"), config_limits)));
+    c.cloudflare = cloudflare_turn_from(optional_env("ODEUM_RELAY_CLOUDFLARE_TURN_KEY_ID"),
+        optional_env("ODEUM_RELAY_CLOUDFLARE_TURN_API_TOKEN"), optional_env("ODEUM_RELAY_CLOUDFLARE_TURN_TTL"));
     c.rtc.disableAutoNegotiation = true;
     return c;
 }

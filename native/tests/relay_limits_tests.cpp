@@ -45,7 +45,7 @@ int main() { return run([] {
 
     std::ofstream(keys, std::ios::binary | std::ios::trunc) << R"({"k":"pem"})";
     ::setenv("ODEUM_RELAY_ICE_SERVERS", R"([{"urls":["stun:stun.example:3478"]}])", 1);
-    check(load_config().rtc.iceServers.size() == 1, "ICE servers from the environment");
+    check(load_config().ice->welcome().size() == 1, "ICE servers from the environment");
     ::setenv("ODEUM_RELAY_ICE_SERVERS", (std::string(16, '[') + std::string(16, ']')).c_str(), 1);
     check(fails([] { load_config(); }), "ICE JSON within the depth limit but not servers");
     ::setenv("ODEUM_RELAY_ICE_SERVERS", (std::string(17, '[') + std::string(17, ']')).c_str(), 1);

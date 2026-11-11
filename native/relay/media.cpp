@@ -21,7 +21,8 @@ void retire(const std::shared_ptr<rtc::Track>& track) {
 MediaRoom::MediaRoom(boost::asio::io_context& io, const Config& config) : io_(io), config_(config) {}
 MediaRoom::~MediaRoom() { for (auto& [id, peer] : peers_) { close_link(peer.up.pc); close_link(peer.down.pc); } }
 MediaRoom::Link MediaRoom::link(std::uint64_t id) {
-    Link result{std::make_shared<rtc::PeerConnection>(config_.rtc)};
+    // ICE servers as of now: refreshed TURN credentials apply to connections created afterwards.
+    Link result{config_.ice->open_peer(config_.rtc)};
     auto weak = weak_from_this();
     result.pc->onLocalDescription([weak, id](rtc::Description description) {
         if (auto self = weak.lock()) boost::asio::post(self->io_, [weak, id, description = std::move(description)] {

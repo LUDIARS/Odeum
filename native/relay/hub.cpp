@@ -54,7 +54,7 @@ void Hub::join(std::uint64_t id, const Ticket& ticket, Send send, std::function<
         }
     }
     Json welcome = {{"type", "welcome"}, {"sid", ticket.sid}, {"role", role_name(ticket.role)},
-        {"self", {{"sub", ticket.sub}, {"name", ticket.name}}}, {"ice_servers", media ? config_.ice_servers : Json::array()}};
+        {"self", {{"sub", ticket.sub}, {"name", ticket.name}}}, {"ice_servers", media ? config_.ice->welcome() : Json::array()}};
     if (!slot.empty()) welcome["slot"] = slot;
     send(welcome);
     if (auto poll = room.poll.current()) send(*poll);
