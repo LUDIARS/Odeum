@@ -1,0 +1,1 @@
+[{"urls":["stun:stun.example:3478"]},{"urls":"turn:t.example","username":"u","credential":"c"}]

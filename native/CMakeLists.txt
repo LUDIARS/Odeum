@@ -5,6 +5,36 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 include(FetchContent)
 include(CTest)
+# Sanitizer builds for ctest: ODEUM_SANITIZE=address,undefined or thread (GCC or Clang). The flags
+# are added before any dependency is configured, so libdatachannel and its threads are
+# instrumented too (TSan needs every thread's accesses). Undefined behaviour stops the test.
+set(ODEUM_SANITIZE "" CACHE STRING "Sanitizers for every native target: empty, address, undefined, address,undefined or thread")
+# libFuzzer entries (fuzz/): Clang only, off by default. Every target is then compiled with
+# fuzzer coverage and ASan + UBSan; the GCC build only replays the seeds (odeum.fuzz.*).
+option(ODEUM_FUZZ "Build the libFuzzer entries in fuzz/ (Clang only)" OFF)
+if(ODEUM_FUZZ)
+  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    message(FATAL_ERROR "ODEUM_FUZZ needs Clang (libFuzzer) for C and C++")
+  endif()
+  if(ODEUM_SANITIZE AND NOT ODEUM_SANITIZE MATCHES "address")
+    message(FATAL_ERROR "ODEUM_FUZZ runs with AddressSanitizer; ODEUM_SANITIZE=${ODEUM_SANITIZE} does not fit")
+  endif()
+  if(NOT ODEUM_SANITIZE)
+    set(ODEUM_SANITIZE address,undefined)
+  endif()
+  add_compile_options(-fsanitize=fuzzer-no-link)
+endif()
+if(ODEUM_SANITIZE)
+  if(MSVC)
+    message(FATAL_ERROR "ODEUM_SANITIZE is for GCC and Clang builds")
+  endif()
+  if(NOT ODEUM_SANITIZE MATCHES "^(address|undefined|address,undefined|undefined,address|thread)$")
+    message(FATAL_ERROR "ODEUM_SANITIZE must be address, undefined, address,undefined or thread, not ${ODEUM_SANITIZE}")
+  endif()
+  add_compile_options(-fsanitize=${ODEUM_SANITIZE} -fno-omit-frame-pointer -fno-sanitize-recover=all)
+  add_link_options(-fsanitize=${ODEUM_SANITIZE})
+  message(STATUS "Odeum: sanitizers ${ODEUM_SANITIZE} on every target")
+endif()
 # The presenter needs Tela and Pictor; leaving it off keeps the relay build and its review as is.
 option(ODEUM_BUILD_PRESENTER "Build the odeum-presenter desktop app (Tela/Pictor required)" OFF)
 # The presenter's OS-independent core and its tests, without Tela, Pictor or any OS media API.
@@ -81,6 +111,14 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/OdeumLorica.cmake)
 # so they get Lorica's baseline hardening too (their sources and CMake files are not changed).
 if(ODEUM_NEEDS_DATACHANNEL)
   odeum_harden_third_party(datachannel datachannel-static juice juice-static srtp2 usrsctp)
+  # Clang's UBSan includes -fsanitize=function, which stops at libjuice's bundled picohash (it calls
+  # its SHA-1 update through a pointer of another function type). That is third-party C code we do
+  # not change; only this one check is turned off, only for libjuice, only in Clang UBSan builds.
+  if(ODEUM_SANITIZE MATCHES "undefined" AND CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    foreach(target juice juice-static)
+      target_compile_options(${target} PRIVATE -fno-sanitize=function)
+    endforeach()
+  endif()
 endif()
 add_library(odeum_boost INTERFACE)
 target_include_directories(odeum_boost SYSTEM INTERFACE ${boost_SOURCE_DIR})
@@ -110,5 +148,7 @@ endif()
 if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()
+# Fuzz entries: seed replays under ctest (BUILD_TESTING) and, with ODEUM_FUZZ, libFuzzer builds.
+add_subdirectory(fuzz)
 # Every compiled target in Odeum's own directories must have gone through odeum_harden.
 odeum_lorica_require_coverage()

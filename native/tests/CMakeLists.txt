@@ -38,3 +38,8 @@ if(TARGET odeum_program_core)
     add_test(NAME odeum.program.${name} COMMAND odeum_program_${name}_tests)
   endforeach()
 endif()
+# TSan: suppress only the third-party races listed (with their reason) in tsan.supp.
+if(ODEUM_SANITIZE STREQUAL "thread")
+  get_property(odeum_tests DIRECTORY PROPERTY TESTS)
+  set_tests_properties(${odeum_tests} PROPERTIES ENVIRONMENT "TSAN_OPTIONS=suppressions=${CMAKE_CURRENT_SOURCE_DIR}/tsan.supp")
+endif()

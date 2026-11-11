@@ -1,0 +1,8 @@
+# ThreadSanitizer suppressions for ODEUM_SANITIZE=thread (set by tests/CMakeLists.txt and
+# fuzz/CMakeLists.txt). Only races inside libdatachannel's own callback holder are listed: its
+# synchronized_stored_callback is reset and called from the library's worker (Track::close ->
+# Channel::resetCallbacks / triggerClosed under a shared lock) while the owner's thread destroys
+# or resets the same Track. Odeum cannot change that code (third party, not modified here);
+# see the job report for the reproduction. Races in Odeum's own frames are not suppressed.
+race:rtc::synchronized_stored_callback
+race:rtc::synchronized_callback

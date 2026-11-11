@@ -449,9 +449,12 @@ Json sdp_summary(const std::string& sdp) {
 
 std::unique_ptr<RtcService> make_webrtc_broker(asio::io_context& io, IceServerProvider& ice, MediaTools& media, const RunnerSettings& settings,
     std::function<std::optional<long long>(const std::string&)> run_pid) {
+    return std::make_unique<Broker>(io, ice, media, settings, std::move(run_pid));
+}
+
+void init_webrtc_logging() {
     // libdatachannel diagnostics stay off: SDP and candidates must not reach the logs.
     rtc::InitLogger(rtc::LogLevel::None);
-    return std::make_unique<Broker>(io, ice, media, settings, std::move(run_pid));
 }
 
 bool finish_webrtc(std::chrono::milliseconds timeout) {

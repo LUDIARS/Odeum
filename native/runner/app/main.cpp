@@ -62,6 +62,9 @@ log::Level level_of(const std::string& name) {
 }
 
 int serve() {
+#ifdef ODEUM_RUNNER_HAS_WEBRTC
+    init_webrtc_logging();
+#endif
     try {
         const auto env = process_environment();
         std::error_code error;

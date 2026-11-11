@@ -108,14 +108,16 @@ function(odeum_harden_third_party)
 endfunction()
 
 # Odeum's own directories: every added subdirectory under the project source tree, excluding
-# the build tree (FetchContent sources live in <build>/_deps) and external checkouts.
+# build trees, FetchContent sources (*/_deps/*) and external checkouts.
 function(_odeum_lorica_collect directory out)
   get_property(targets DIRECTORY ${directory} PROPERTY BUILDSYSTEM_TARGETS)
   get_property(children DIRECTORY ${directory} PROPERTY SUBDIRECTORIES)
   foreach(child IN LISTS children)
     cmake_path(IS_PREFIX PROJECT_SOURCE_DIR "${child}" NORMALIZE own)
     cmake_path(IS_PREFIX CMAKE_BINARY_DIR "${child}" NORMALIZE generated)
-    if(own AND NOT generated)
+    # FetchContent sources (<build>/_deps, or a FETCHCONTENT_SOURCE_DIR_* inside the tree) are not ours.
+    string(FIND "${child}" "/_deps/" fetched)
+    if(own AND NOT generated AND fetched EQUAL -1)
       _odeum_lorica_collect(${child} nested)
       list(APPEND targets ${nested})
     endif()

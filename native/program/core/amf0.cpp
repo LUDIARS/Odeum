@@ -90,7 +90,16 @@ const Amf0Value* Amf0Value::find(std::string_view key) const {
     return nullptr;
 }
 
-bool Amf0Value::operator==(const Amf0Value&) const = default;
+// Spelled out instead of "= default": Clang 18 crashes instantiating the defaulted comparison of
+// this recursive type (Amf0Value holds a vector of Amf0Property, which holds an Amf0Value).
+bool Amf0Value::operator==(const Amf0Value& other) const {
+    if (type != other.type || number != other.number || boolean != other.boolean || string != other.string ||
+        properties.size() != other.properties.size()) return false;
+    for (std::size_t i = 0; i < properties.size(); ++i) {
+        if (properties[i].key != other.properties[i].key || !(properties[i].value == other.properties[i].value)) return false;
+    }
+    return true;
+}
 
 void amf0_encode(std::vector<std::byte>& out, const Amf0Value& value) {
     switch (value.type) {

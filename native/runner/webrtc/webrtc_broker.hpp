@@ -14,6 +14,10 @@
 namespace odeum::runner {
 std::unique_ptr<RtcService> make_webrtc_broker(boost::asio::io_context& io, IceServerProvider& ice, MediaTools& media, const RunnerSettings& settings,
     std::function<std::optional<long long>(const std::string&)> run_pid);
+// Turns libdatachannel's diagnostics off (SDP and candidates must not reach the logs). Call once
+// at startup, before any peer connection exists: changing the level later races with the
+// library's workers reading it.
+void init_webrtc_logging();
 // Joins libdatachannel's worker threads once every broker and peer connection is gone; call it
 // before main returns so OpenSSL's atexit cleanup cannot run under a worker. False on timeout.
 bool finish_webrtc(std::chrono::milliseconds timeout);
