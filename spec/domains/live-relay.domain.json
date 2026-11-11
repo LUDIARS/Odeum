@@ -7,6 +7,7 @@
   "membership": [
     {"pathPattern": "(^|/)native/relay/(?:.*/)?[^/]+$"},
     {"pathPattern": "(^|/)native/CMakeLists\\.txt$"},
+    {"pathPattern": "(^|/)spec/plan/2026-11-11-lorica-adoption\\.md$"},
     {"pathPattern": "(^|/)scripts/site/(?:.*/)?[^/]+$"},
     {"pathPattern": "(^|/)excubitor\\.(catalog\\.yaml|bootstrap\\.json)$"},
     {"pathPattern": "(^|/)augur\\.(contracts|inject)\\.json$"},
