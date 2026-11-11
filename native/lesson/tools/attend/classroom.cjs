@@ -10,7 +10,8 @@ const path = require('path');
 const { chromium } = require('playwright');
 const { parseArgs, numberOption } = require('./lib/args.cjs');
 const { startService, loadTimeline, DEFAULT_BIN } = require('./lib/service.cjs');
-const { buildSchedule, estimateSeconds, activitiesOf, sectionsOf } = require('./lib/schedule.cjs');
+const { buildSchedule, estimateSeconds, activitiesOf, sectionsOf, limitsOf, describeLimits, DEFAULTS } = require('./lib/schedule.cjs');
+const { loadAnswers, createTeacher } = require('./lib/teacher.cjs');
 const { openConsole } = require('./lib/operator.cjs');
 const { createRunner } = require('./lib/runner.cjs');
 const { installHooks } = require('./lib/seat-dom.cjs');
@@ -29,9 +30,17 @@ function options() {
   const { options: o } = parseArgs(process.argv.slice(2), {
     flags: ['no-wait-attendee', 'help'],
     allow: ['work', 'course', 'students', 'bin', 'plot', 'activity-seconds', 'windows', 'assignment-seconds', 'narration-seconds',
-      'section-seconds', 'reveal-seconds', 'share-after', 'linger', 'attendee-timeout'],
+      'section-seconds', 'demo-seconds', 'reveal-seconds', 'share-after', 'share-hold', 'linger', 'attendee-timeout', 'teacher-answers', 'teacher-delay'],
   });
-  if (o.help) { console.log(fs.readFileSync(path.join(__dirname, 'README.md'), 'utf8')); process.exit(0); }
+  if (o.help) {
+    console.log(fs.readFileSync(path.join(__dirname, 'README.md'), 'utf8'));
+    // The longest windows this course's own timeline allows (the lesson closes each one by itself after that).
+    try {
+      const timeline = loadTimeline({ bin: o.bin ? path.resolve(o.bin) : DEFAULT_BIN, course: o.course ?? 'action-game', plot: o.plot });
+      console.log(`Window limits for ${o.plot ?? o.course ?? 'action-game'} (the lesson's own time minus ${DEFAULTS.marginSeconds}s):\n${describeLimits(limitsOf(timeline))}`);
+    } catch (error) { console.log(`(window limits unavailable: ${error.message})`); }
+    process.exit(0);
+  }
   const work = o.work ?? process.env.ATTEND_WORK;
   if (!work) throw new Error('--work <dir> (or ATTEND_WORK) is required');
   const students = (o.students ?? 'agent,りく,はな').split(',').map((name) => name.trim()).filter(Boolean);
@@ -45,14 +54,17 @@ function options() {
   }
   return {
     work: path.resolve(work), course: o.course ?? 'action-game', students, bin: o.bin ? path.resolve(o.bin) : DEFAULT_BIN, plot: o.plot,
-    windows, linger: numberOption(o, 'linger', 20), waitAttendee: !o['no-wait-attendee'], attendeeTimeout: numberOption(o, 'attendee-timeout', 600, { min: 1 }),
+    windows, linger: numberOption(o, 'linger', 20),
+    teacherAnswers: o['teacher-answers'] ? path.resolve(o['teacher-answers']) : null, teacherDelay: numberOption(o, 'teacher-delay', 12), waitAttendee: !o['no-wait-attendee'], attendeeTimeout: numberOption(o, 'attendee-timeout', 600, { min: 1 }),
     settings: {
       activitySeconds: numberOption(o, 'activity-seconds', 60, { min: 5 }),
-      assignmentSeconds: numberOption(o, 'assignment-seconds', 120, { min: 10 }),
+      assignmentSeconds: numberOption(o, 'assignment-seconds', DEFAULTS.assignmentSeconds, { min: 10 }),
       narrationSeconds: numberOption(o, 'narration-seconds', 8, { min: 2 }),
       sectionSeconds: numberOption(o, 'section-seconds', 15, { min: 2 }),
+      demoSeconds: numberOption(o, 'demo-seconds', 8, { min: 2 }),
       revealSeconds: numberOption(o, 'reveal-seconds', 12, { min: 3 }),
       shareAfterSeconds: numberOption(o, 'share-after', 20, { min: 2 }),
+      shareHoldSeconds: numberOption(o, 'share-hold', 20, { min: 2 }),
     },
   };
 }
@@ -78,11 +90,13 @@ async function main() {
   for (const id of Object.keys(opt.windows)) if (![...activities.values()].some((plan) => plan.id === id)) throw new Error(`--windows: the course has no activity "${id}"`);
   const sectionIdOf = (title) => sectionsOf(timeline).find((section) => section.title === title)?.id ?? null;
   const estimate = estimateSeconds(schedule);
+  const answers = opt.teacherAnswers ? loadAnswers(opt.teacherAnswers) : null;
 
   const log = createEventLog(path.join(opt.work, 'attendee.jsonl'));
   const videoDir = path.join(opt.work, 'video');
   fs.rmSync(videoDir, { recursive: true, force: true });
-  log.write('session', { event: 'start', course: opt.course, students: opt.students, settings: schedule.settings, windows: opt.windows, estimate_seconds: estimate });
+  log.write('session', { event: 'start', course: opt.course, students: opt.students, settings: schedule.settings, windows: opt.windows, limits: schedule.limits,
+    teacher: answers ? { file: opt.teacherAnswers, entries: answers.map((entry) => entry.id), delay_seconds: opt.teacherDelay } : null, estimate_seconds: estimate });
   console.log(`[classroom] course ${opt.course}: ${schedule.steps.length} schedule steps, about ${Math.round(estimate / 60)} min`);
 
   const service = await startService({ bin: opt.bin, work: opt.work, plot: opt.plot });
@@ -105,6 +119,7 @@ async function main() {
   let control = null;
   let watcher = null;
   let runner = null;
+  let teacher = null;
   let attendeeStarted = false;
   const classmates = [];
   const fatal = (error) => { console.error(`[classroom] FAIL: ${error.message}`); log.write('error', { where: 'session', message: error.message }); exitCode = 1; shutdown(); };
@@ -137,16 +152,19 @@ async function main() {
 
   watcher = createWatcher({ page: attendee.page, observation, log, onError: fatal });
   watcher.start();
-  runner = createRunner({ page: operator.page, schedule, log, seatState: () => watcher.latest()?.lesson_state });
+  runner = createRunner({ page: operator.page, schedule, log, seat: () => watcher.latest() });
+  if (answers) teacher = createTeacher({ page: operator.page, answers, delaySeconds: opt.teacherDelay, log, onError: fatal });
 
   // ---- control API ----
   let attendeeArrived = null;
   const arrived = new Promise((resolve) => { attendeeArrived = resolve; });
   let returnedVersion = 0;
-  const look = async ({ all = false } = {}) => {
+  // Only observe / wait hand out private messages as new (and mark them read). An action's reply shows
+  // what is new too, but leaves it unread, so the next observe / wait still returns it exactly once.
+  const look = async ({ all = false, consume = true } = {}) => {
     const raw = await actions.view(attendee.page);
-    returnedVersion = watcher.version();
-    return { ...observation.shape(raw, { all }), video_seconds: log.seconds() };
+    if (consume) returnedVersion = watcher.version();
+    return { ...observation.shape(raw, { all, consume }), video_seconds: log.seconds() };
   };
   const act = (name, fn) => ({
     serial: true,
@@ -162,7 +180,7 @@ async function main() {
         observation.recordAnswer(plan.id, input.text ?? input.choices);
         if (result.acked) observation.recordAck(plan.id);
       }
-      return { ...result, action: name, observe: await look() };
+      return { ...result, action: name, observe: await look({ consume: false }) };
     },
   });
   const handlers = {
@@ -183,6 +201,7 @@ async function main() {
     say: act('say', (input) => actions.say(attendee.page, input)),
     vote: act('vote', (input) => actions.vote(attendee.page, input)),
     'tool-link': act('tool-link', () => actions.toolLink(attendee.page)),
+    unresolved: act('unresolved', (input) => actions.unresolved(attendee.page, input)),
     status: {
       run: async () => ({
         ok: true, schedule: runner.status(), estimate_seconds: Math.round(estimate), video_seconds: log.seconds(),
@@ -201,6 +220,7 @@ async function main() {
     shuttingDown = (async () => {
       console.log('[classroom] stopping: closing pages so the videos are finalised');
       runner?.stop();
+      teacher?.stop();
       for (const classmate of classmates) classmate.stop();
       watcher?.stop();
       await control?.close();
@@ -247,6 +267,7 @@ async function main() {
   writeSession({ state: 'running', started: new Date().toISOString(), work: opt.work });
   console.log('[classroom] lesson starting');
   for (const classmate of classmates) classmate.start(sectionIdOf);
+  teacher?.start();
   runner.start().then(async () => {
     if (runner.state() !== 'done') return;
     console.log(`[classroom] schedule finished; stopping in ${opt.linger}s${opt.linger === 0 ? ' (0 = wait for stop)' : ''}`);

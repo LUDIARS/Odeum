@@ -12,6 +12,7 @@
 //   ATTEND_WORK=<dir> node seat.cjs say --text "..."
 //   ATTEND_WORK=<dir> node seat.cjs vote --n 1
 //   ATTEND_WORK=<dir> node seat.cjs tool-link
+//   ATTEND_WORK=<dir> node seat.cjs unresolved --n 1      (「まだ分からない」 on your own question)
 //   ATTEND_WORK=<dir> node seat.cjs status
 //   ATTEND_WORK=<dir> node seat.cjs stop
 const http = require('http');
@@ -38,6 +39,7 @@ const COMMANDS = {
   say: { allow: ['text'], body: (o) => { if (!o.text) throw new Error('say needs --text'); return { text: o.text }; } },
   vote: { allow: ['n', 'id'], body: (o) => { const n = Number(o.n ?? o.id); if (!Number.isInteger(n)) throw new Error('vote needs --n N (the shared question\'s n from observe)'); return { n }; } },
   'tool-link': { body: () => ({}) },
+  unresolved: { allow: ['n'], body: (o) => { const n = Number(o.n); if (!Number.isInteger(n)) throw new Error('unresolved needs --n N (your question\'s n from observe my_questions)'); return { n }; } },
   status: { body: () => ({}) },
   stop: { body: () => ({}) },
 };

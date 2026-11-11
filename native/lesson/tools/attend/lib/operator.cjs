@@ -41,12 +41,39 @@ async function openConsole(page, { url, token, course }) {
   return (await page.textContent('#code')).replace(/[^0-9A-Z]/gi, '');
 }
 
+// The console page is driven by the schedule and by the scripted teacher; one at a time.
+let consoleChain = Promise.resolve();
+function exclusive(fn) { const run = consoleChain.then(fn, fn); consoleChain = run.catch(() => {}); return run; }
+
 const activityState = (page) => page.evaluate(() => document.getElementById('activity-count').textContent.trim());
 
 // One schedule step. Returns a short description of what the console showed afterwards.
-async function perform(page, step) {
+function perform(page, step) { return exclusive(() => performNow(page, step)); }
+async function performNow(page, step) {
   const name = step.label;
   switch (step.op) {
+    case 'cue': {
+      // 「この合図まで進める」: the console seeks to the cue and the timeline runs it itself.
+      await select(page, name, '#cues', String(step.cue));
+      await click(page, name, '#seek-cue');
+      if (step.expect === 'activity') {
+        await expectState(page, name, () => document.getElementById('activity-count').textContent.startsWith('受付中'));
+        return activityState(page);
+      }
+      if (step.expect === 'assignment') {
+        await expectState(page, name, () => document.getElementById('assignment-state').textContent.includes('実施中'));
+        return (await page.textContent('#assignment-state')).trim();
+      }
+      if (step.expect === 'end') {
+        await expectState(page, name, () => document.getElementById('player-state').textContent.trim() === '終了');
+        return 'player: 終了';
+      }
+      await expectState(page, name, (at) => {
+        const match = /^(\d+):(\d\d) \//.exec(document.getElementById('clock').textContent.trim());
+        return match && Number(match[1]) * 60 + Number(match[2]) >= Math.floor(at / 1000);
+      }, step.at_ms);
+      return (await page.textContent('#clock')).trim();
+    }
     case 'start':
       await click(page, name, '#start');
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
@@ -101,4 +128,4 @@ async function clock(page) {
   return { position: Number(match[1]) * 60 + Number(match[2]), duration: Number(match[3]) * 60 + Number(match[4]) };
 }
 
-module.exports = { openConsole, perform, clock };
+module.exports = { openConsole, perform, clock, exclusive };

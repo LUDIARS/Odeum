@@ -162,6 +162,21 @@ async function vote(page, { n }) {
   return outcome(page, hits, () => false);
 }
 
+// 「まだ分からない」 on one of this student's own questions (n from observe's my_questions).
+async function unresolved(page, { n }) {
+  const seat = await view(page);
+  const item = seat.my_questions.find((question) => question.n === n);
+  if (!item) return fail('bad_question', `あなたの質問の番号 (n) は ${seat.my_questions.map((question) => question.n).join(', ') || 'まだありません'} です。`);
+  if (!item.can_unresolve) return fail('not_available', `この質問には「まだ分からない」を押せません (いまの状態: ${item.state})。`);
+  const button = page.locator(`#my-questions li[data-attend-mine="${n}"] button`);
+  await button.scrollIntoViewIfNeeded();
+  const before = await counters(page);
+  await button.click();
+  const hits = await reaction(page, before, [{ id: 'my-questions' }, { id: 'feedback', nonEmpty: true }], REACT_MS);
+  if (!hits.length) return fail('no_response', '「まだ分からない」を押しましたが、画面に反応が出ませんでした。');
+  return outcome(page, hits, () => false);
+}
+
 // 「接続文字列を出す」: returns the string a tool (Ergo Studio's 「授業」 tab or POST /lesson/api/connect) takes.
 async function toolLink(page) {
   const seat = await view(page);
@@ -177,4 +192,4 @@ async function toolLink(page) {
   return { ok: true, link, note: (await page.textContent('#tool-state')).trim() };
 }
 
-module.exports = { view, focus, answer, tick, help, ask, say, vote, toolLink };
+module.exports = { view, focus, answer, tick, help, ask, say, vote, toolLink, unresolved };

@@ -5,8 +5,8 @@
 // report the outcome of an action (toast, answer state, private feed, ...), so an action can wait
 // for "the page reacted" even when the new text equals the old one. Purely observational.
 function installHooks() {
-  const watched = ['feedback', 'activity-state', 'activity-mine', 'private', 'private-notice', 'shared', 'conduct', 'enroll-code', 'assignment-status', 'tool-state', 'tool-string', 'say-state'];
-  window.__attend = { mutations: Object.fromEntries(watched.map((id) => [id, 0])), seq: {} };
+  const watched = ['feedback', 'activity-state', 'activity-mine', 'private', 'private-notice', 'shared', 'conduct', 'enroll-code', 'assignment-status', 'tool-state', 'tool-string', 'say-state', 'my-questions', 'tool-linked'];
+  window.__attend = { mutations: Object.fromEntries(watched.map((id) => [id, 0])), seq: {}, ids: {} };
   const attach = () => {
     for (const id of watched) {
       const node = document.getElementById(id);
@@ -25,7 +25,7 @@ function readSeat() {
     'slide-points', 'activity', 'activity-prompt', 'activity-code', 'activity-choices', 'activity-text', 'activity-send', 'activity-state',
     'activity-results', 'activity-bars', 'activity-answer', 'activity-explanation', 'activity-highlights', 'activity-personal', 'activity-mine', 'assignment', 'assignment-title',
     'assignment-brief', 'assignment-steps', 'help', 'assignment-status', 'private', 'private-notice', 'say', 'question', 'show-name', 'shared', 'feedback',
-    'tool', 'tool-link', 'tool-string', 'tool-state', 'say-state'];
+    'tool', 'tool-link', 'tool-string', 'tool-state', 'say-state', 'my-questions', 'tool-linked', 'tool-linked-text'];
   const missing = required.filter((id) => !document.getElementById(id));
   if (missing.length) return { missing };
   const $ = (id) => document.getElementById(id);
@@ -34,7 +34,16 @@ function readSeat() {
   const number = (list, key) => {
     // oldest first: the page prepends, so walk from the bottom
     const items = [...list.children].filter((item) => !item.classList.contains('ls-note')).reverse();
-    for (const item of items) if (!item.dataset[key]) item.dataset[key] = String((window.__attend.seq[key] = (window.__attend.seq[key] ?? 0) + 1));
+    // Items the page rebuilds (a question whose state changed) keep their number through the page's own
+    // question id; others are numbered once, in arrival order.
+    const byId = (window.__attend.ids[key] = window.__attend.ids[key] ?? {});
+    for (const item of items) {
+      if (item.dataset[key]) continue;
+      const id = item.dataset.question;
+      if (id && byId[id]) { item.dataset[key] = byId[id]; continue; }
+      item.dataset[key] = String((window.__attend.seq[key] = (window.__attend.seq[key] ?? 0) + 1));
+      if (id) byId[id] = item.dataset[key];
+    }
     return items;
   };
 
@@ -114,6 +123,13 @@ function readSeat() {
       can_vote: shown(button) && !button.disabled,
     };
   });
+  // This student's own questions and where each stands (答えあり / 先生の回答待ち / 先生から回答 / 見送り).
+  view.my_questions = number($('my-questions'), 'attendMine').map((item) => ({
+    n: Number(item.dataset.attendMine), question: text(item.querySelector('.ls-q')), state: text(item.querySelector('.ls-qstate')),
+    answer: item.querySelector('.ls-a') ? text(item.querySelector('.ls-a')) : null,
+    detail: [...item.querySelectorAll('.ls-meta > span:not(.ls-qstate)')].map(text),
+    can_unresolve: Boolean(item.querySelector('.ls-meta button:not([disabled])')),
+  }));
   const conduct = $('conduct');
   view.conduct = { standing: conduct.dataset.standing || 'good', text: shown(conduct) ? text(conduct) : null };
   view.toast = text($('feedback'));
@@ -121,7 +137,8 @@ function readSeat() {
   view.said = text($('say-state')) ? { taken_as: $('say-state').dataset.takenAs || null, text: text($('say-state')) } : null;
   // The note at the bottom of the screen that announces new private messages (null when not shown).
   view.private_notice = shown($('private-notice')) ? text($('private-notice')) : null;
-  view.tool = shown($('tool')) ? { state: text($('tool-state')), link: shown($('tool-string')) ? $('tool-string').value : null } : null;
+  view.tool = shown($('tool')) ? { state: text($('tool-state')), link: shown($('tool-string')) ? $('tool-string').value : null,
+    linked: shown($('tool-linked')) ? text($('tool-linked-text')) : null } : null;
   view.mutations = { ...window.__attend.mutations };
   return view;
 }

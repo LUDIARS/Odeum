@@ -22,6 +22,7 @@ function createObservation(activities) {
       private_new: raw.private.filter((item) => item.seq > returnedSeq),
       private_count: raw.private.length,
       shared_questions: raw.shared,
+      my_questions: raw.my_questions,
       conduct: raw.conduct,
       said: raw.said,
       toast: raw.toast || null,
@@ -53,6 +54,7 @@ function createObservation(activities) {
       lesson_state: raw.lesson_state, section: raw.section, slide: raw.slide, narration: raw.narration, demo: raw.demo,
       activity, assignment: raw.assignment, private: raw.private.map((item) => item.seq),
       shared: raw.shared.map((item) => [item.n, item.votes]), conduct: raw.conduct.standing, said: raw.said,
+      mine: raw.my_questions.map((item) => [item.n, item.state]), tool: raw.tool?.linked ?? null,
     });
   }
 

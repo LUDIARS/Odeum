@@ -89,6 +89,20 @@ function renderWelcome(message) {
     node.dataset.section = section.id;
     return node;
   }));
+  // The timeline's own cues (demo, question, assignment, sharing, end) as places to move to: a teacher who
+  // is done talking can bring the next one forward instead of waiting for the clock. The timeline then
+  // runs the cue itself.
+  const titles = new Map(message.sections.map((section) => [section.id, section.title]));
+  const CUE = {
+    demo: (cue) => `実演: ${cue.detail.note || cue.detail.feature} (${cue.detail.enabled ? 'ON' : 'OFF'})`,
+    'activity.open': (cue) => `問い: ${cue.detail.prompt.slice(0, 24)}`,
+    'assignment.assign': (cue) => `課題: ${cue.detail.title ?? cue.detail.id}`,
+    'questions.share': () => '良い質問の共有',
+    'lesson.end': () => '授業の終わり',
+  };
+  const cues = [];
+  message.timeline.cues.forEach((cue, index) => { if (CUE[cue.kind]) cues.push({ id: String(index), cue }); });
+  options($('cues'), cues, ({ cue }) => `${clock(cue.at_ms)} ${titles.get(cue.section) ?? ''} ${CUE[cue.kind](cue)}`.trim());
   send({ type: 'catalog' });
   renderSnapshot(message.snapshot);
 }
@@ -221,6 +235,7 @@ function renderSnapshot(snapshot) {
   $('pause').disabled = player.state !== 'running';
   $('resume').disabled = player.state !== 'paused';
   $('skip').disabled = player.state === 'idle';
+  $('seek-cue').disabled = player.state === 'idle';
   for (const node of $('sections').children) node.setAttribute('aria-current', String(node.dataset.section === player.section));
   $('entry-lock').checked = snapshot.class.entry_locked;
   $('demo-tool').hidden = !snapshot.class.demo_tool;
@@ -272,6 +287,10 @@ $('entry-lock').addEventListener('change', () => send({ type: 'entry.lock', lock
 for (const [id, type] of [['start', 'lesson.start'], ['pause', 'lesson.pause'], ['resume', 'lesson.resume'], ['skip', 'lesson.skip'],
   ['activity-close', 'activity.close'], ['activity-reveal', 'activity.reveal'], ['assignment-close', 'assignment.close'], ['share-best', 'questions.share']])
   $(id).addEventListener('click', () => send({ type }));
+$('seek-cue').addEventListener('click', () => {
+  const cue = welcome?.timeline.cues[Number($('cues').value)];
+  if (cue) send({ type: 'lesson.seek', position_ms: cue.at_ms });
+});
 $('activity-open').addEventListener('click', () => send({ type: 'activity.open', id: $('activities').value }));
 $('assignment-assign').addEventListener('click', () => send({ type: 'assignment.assign', id: $('assignments').value }));
 $('diarized').addEventListener('submit', (event) => {

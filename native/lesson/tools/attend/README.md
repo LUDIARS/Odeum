@@ -9,7 +9,8 @@
 | `classroom.cjs` | セッション本体 (長く動く)。サービス起動、操作卓と席の録画、縮めた台本の実行、制御 API、終了時の動画合成 |
 | `seat.cjs` | 出席者の CLI。1 回の呼び出しで 1 操作、JSON を標準出力に返して終わる |
 | `smoke.cjs` | ハーネスの通し確認 (台本どおりに動く簡単な出席者。AI ではない) |
-| `lib/` | 1 ファイル 1 役目: `service` (起動)、`schedule` (台本の導出)、`operator` (操作卓の操作)、`runner` (台本の実行)、`seat-dom` (画面の読み取り)、`seat-actions` (席の操作)、`observation` (observe の形)、`watcher` (画面の変化の追跡)、`classmates` (級友)、`control-server` (制御 API)、`event-log` (JSONL)、`video` (合成と確認) |
+| `teacher-answers.action-game.json` | サンプル授業で「人間の先生」役が答える内容 (`--teacher-answers`)。教材に照らして正しいこと、または一般的なことだけ |
+| `lib/` | 1 ファイル 1 役目: `service` (起動)、`schedule` (台本の導出)、`operator` (操作卓の操作)、`teacher` (台本の先生の回答)、`runner` (台本の実行)、`seat-dom` (画面の読み取り)、`seat-actions` (席の操作)、`observation` (observe の形)、`watcher` (画面の変化の追跡)、`classmates` (級友)、`control-server` (制御 API)、`event-log` (JSONL)、`video` (合成と確認) |
 
 要るもの: ビルド済みの `native/build/bin/odeum-lesson`、Node と Playwright (Chromium)、PATH 上の `ffmpeg` / `ffprobe` (libx264)。
 ポート 4410 / 4411 が空いていること (使われていれば起動を止める)。
@@ -29,6 +30,10 @@ node native/lesson/tools/attend/classroom.cjs --work $W --students agent,りく,
 - 授業が終わると `--linger 20` 秒後に自動で止まる (`0` なら `seat.cjs stop` か Ctrl-C まで待つ)。止めるとページを閉じて動画を確定し、
   1 本に合成して、結果の JSON (動画のパス・長さ・解像度・切り出した画像) を表示する。
 - 台本の途中で操作卓の操作が効かない・要素が無い・操作卓がエラーを出したときは、その手順の名前を出して止まる (動画は作る)。
+- `--teacher-answers <file.json>` で「人間の先生」役を付ける。操作卓に「先生の回答待ち」の質問が出ると、`--teacher-delay 12` 秒後に、
+  質問の文にファイルの `all` の語が全部 (`any` があればそのどれかも) 含まれる最初の答えを、操作卓の回答欄に打って「答える」を押す
+  (動画に映る)。どれにも当たらない質問は答えずに残す (忙しい先生と同じ)。「まだ分からない」で回答待ちに戻った質問には、
+  まだ使っていない次の答えがあればそれを、無ければ残す。形式はファイルの先頭のコメントと `lib/teacher.cjs`。
 
 ## 出席する (`seat.cjs`)
 
@@ -44,6 +49,7 @@ node native/lesson/tools/attend/seat.cjs ask --text "..." [--show-name]
 node native/lesson/tools/attend/seat.cjs say --text "..."          # 「先生に話す」の文字入力
 node native/lesson/tools/attend/seat.cjs vote --n 1                # 共有された質問に「私も知りたい」 (n は observe の shared_questions[].n)
 node native/lesson/tools/attend/seat.cjs tool-link                 # 「接続文字列を出す」を押し、道具に渡す接続文字列を返す ("link")
+node native/lesson/tools/attend/seat.cjs unresolved --n 1          # 自分の質問 (observe の my_questions[].n) に「まだ分からない」
 node native/lesson/tools/attend/seat.cjs status                    # 台本の位置 (次に先生が何をするか、あと何秒か)
 node native/lesson/tools/attend/seat.cjs stop
 ```
@@ -69,10 +75,12 @@ node native/lesson/tools/attend/seat.cjs stop
   "private_new": [{ "seq": 1, "kind": "質問の答え", "text": "決まった正解はありません。…" }],
   "private_count": 1,
   "shared_questions": [],
+  "my_questions": [{ "n": 1, "question": "…", "state": "先生の回答待ち", "answer": null, "detail": [], "can_unresolve": false }],
+  "said": { "taken_as": "remark", "text": "「なるほど…」→ 先生に伝えました。問いへの回答はすでに受け取っているので、…" },
   "conduct": { "standing": "good", "text": null },
   "toast": null,
   "private_notice": "先生からあなたへ 新着 1 件: …",
-  "tool": { "state": "", "link": null },
+  "tool": { "state": "", "link": null, "linked": null },
   "video_seconds": 212.4
 }
 ```
@@ -87,12 +95,20 @@ node native/lesson/tools/attend/seat.cjs stop
 - `assignment.steps[]`: `n` (1 始まり)・`label`・`done`・`auto` (道具の自動確認付き)・`watches` (自動の手順が見る変数と条件の文、
   例 `自動: 道具が feel.hit_stop_last_seconds > 0 を見たらチェック`)。`active` は「ヒントがほしい」が押せるか。課題が終わると
   チェック欄は押せず、次のセクションに入ると課題の欄は消える。
-- `private_new`: 「先生からあなたへ」に届いた分のうち、まだ返していないもの (ヒント・質問の答え・先生の答え・先生から)。`observe --all` で `private_all` に全部。
+- `private_new`: 「先生からあなたへ」に届いた分のうち、まだ `observe` / `wait` が返していないもの (ヒント・質問の答え・先生の答え・
+  先生から・答えられなかった質問)。既読にするのは `observe` と `wait` だけで、操作の返事の `observe` にも同じものが出るが既読にはしない。
+  だから個別メッセージは必ず 1 回、`observe` か `wait` から新着として返る。`observe --all` で `private_all` に全部。
   `private_notice` は一覧が画面に見えていないときに画面下に出る新着の知らせ (見えていれば `null`)。
 - `shared_questions[]`: `mine` (自分の質問。「私も知りたい」は出ない)、`can_vote`、`votes` (サーバが送った数)。
-- `tool`: 道具をつなぐ欄 (道具と連携する授業だけ)。`link` は出ている接続文字列。
+- `tool`: 道具をつなぐ欄 (道具と連携する授業だけ)。`link` は出ている接続文字列、`linked` は道具が接続文字列を受け取ったあとに
+  ページが出す「道具がつながりました: <道具の名前>…」(つながっていなければ `null`)。
+- `my_questions[]`: 自分の質問 (と「私も知りたい」を押した質問) とその状態 (`答えあり (用意した答え)` / `先生の回答待ち` /
+  `先生から回答` / `見送り`)。`can_unresolve` は「まだ分からない」が押せるか (自分の質問で答えがあるとき)。
+- `said`: 「先生に話す」で最後に送った言葉がどう受け取られたか (`taken_as`: `answer` / `remark` / `question` / `help` /
+  `trouble` (見えない・聞こえない・ついていけない) / `chatter` / `disruption`、`text` はページの表示)。
 - `wait --for change`: 前回の observe 以降に画面 (セクション・語り・スライド・実演・問いの状態・課題・個別メッセージ・共有質問・素行) が
   変わったらすぐ、変わらなければ `--timeout` 秒で返る。`changed` が付く。自分の入力中の文字は変化に数えない。
+- `say` の返事は `taken_as` (上と同じ) と `page_message` (「先生に話す」の下に出た文)。
 - 操作は返事に `ok` と、ページが出した文 (`page_message`) とエラー (`error.source` が `page` ならページの表示そのもの、例:
   「この質問は締め切られました。」「いまは発言できません。課題は続けられます。」) と、操作後の `observe` を付ける。
   締め切り後に答えようとすると `{"ok": false, "error": {"source": "harness", "code": "activity_closed", "text": "締め切りました。"}}`
@@ -111,22 +127,27 @@ node native/lesson/tools/attend/seat.cjs stop
 ## 縮めた台本の作り方
 
 サービスはタイムラインを実時間で再生する (サンプルは 90 分)。台本は `odeum-lesson timeline <コース>` の出力から
-セクションごとに作り、操作卓の本物のボタンだけで進める (サーバに早送りの機能は足していない):
+セクションごとに作り、操作卓の本物の操作だけで進める (サーバに早送りの機能は足していない):
 
 1. 最初のセクションは「開始」、以降は「次のセクションへ」(タイムラインがそのセクションの頭に飛び、題・スライド・最初の語りが出る)。
-2. 語りを `--narration-seconds 8` 秒見せる (問いも課題も無いセクションは `--section-seconds 15`)。
-3. 問いがあれば「出す」→ `--activity-seconds 60` 秒 (問いごとに `--windows hitstop-design=90,camera-open=90`) →「締め切る」→ 2 秒 →
-   「結果を見せる」→ `--reveal-seconds 12` 秒 (クラスの結果と自分への一言)。
-4. 課題があれば「出す」→ `--assignment-seconds 120` 秒 →「終える」。
-5. 良い質問の共有があるセクションは `--share-after 20` 秒後に「良い質問を共有する」。
-6. 最後のセクションは、タイムライン自身の終わり (授業の終わり) まで待つ。操作卓に終わりへ飛ぶ操作が無いため、
-   サンプルでは最後の「まとめ」3 分は実時間になる (語り 3 行と自動の質問共有がその間に出る)。
+   セクションの頭に実演の合図があれば、その実演の行が出席者のページに出るのを確かめる。
+2. 語りを `--narration-seconds 8` 秒見せる。
+3. セクションの中のタイムラインの合図を時刻の順に、操作卓の「合図」から選んで「この合図まで進める」で呼ぶ (操作卓がその時刻へ
+   移り、合図はタイムライン自身が出す):
+   - 実演 → 出席者のページに「先生の画面…で実演中: …」が出るのを待ち (10 秒まで。出なければ止まる)、`--demo-seconds 8` 秒見せる。
+   - 問い → タイムラインが問いを出す → `--activity-seconds 60` 秒 (問いごとに `--windows hitstop-design=150,camera-open=150`) →
+     「締め切る」→ 2 秒 →「結果を見せる」→ `--reveal-seconds 12` 秒。
+   - 課題 → タイムラインが課題を出す → `--assignment-seconds 240` 秒 →「終える」(60 秒ごとの進み具合の確認と、
+     150 秒止まった人への自動ヒントはこの間にタイムライン自身が出す)。
+   - 良い質問の共有 → `--share-after 20` 秒 →「良い質問を共有する」→ `--share-hold 20` 秒。
+4. 何も無いセクションは `--section-seconds 15` 秒。最後のセクションは「授業の終わり」の合図まで進めて終わる。
 
-タイムラインはセクションの中で、語りの後に問いや課題を自分で出す。台本はその前に手で出して次へ進むので、
-起動時に「各セクションの手順の合計 + 10 秒 < そのセクションでタイムラインが最初に自分で問い・課題・共有を出す時刻」を確かめ、
-収まらなければ起動しない (どのセクションかを出す)。実行中も操作の前に操作卓の時計で同じことを確かめる。
-既定値でのサンプルの所要はおよそ 13〜14 分 (6 問 × 約 82 秒 + 課題 約 2.5 分 + 導入 + まとめ 3 分)。
-セクションに飛んだ直後は最初の語りだけが出る (2 行目以降は実時間で数分後のため、縮めた台本では多くの場合出ない)。スライドには要点が全部出る。
+問いと課題はタイムライン自身が出すので、窓の長さの上限は授業自身の長さ (合図から、タイムラインが自分で締め切るまで) から
+余裕 5 秒を引いたもの。上限は `classroom.cjs --help` の最後と `seat.cjs status` の `schedule.limits` に出る。サンプルでは
+問いが 70〜175 秒、課題が 619 秒 (授業の 12 分から語りの分を引いた残り)。上限を超える指定は起動時に断る (どれの上限かを出す)。
+実行中も「締め切る」「終える」の前に操作卓の時計で、窓が上限の中にあることを確かめる。
+既定値でのサンプルの所要はおよそ 15〜16 分 (6 問 × 約 90 秒 + 課題 4 分 + 実演 3 回 + 共有)。
+セクションに入った直後は最初の語りだけが出る (2 行目以降は実時間で数分後のため、縮めた台本では多くの場合出ない)。スライドには要点が全部出る。
 
 ## 出力 (作業フォルダ)
 
@@ -149,18 +170,21 @@ NO_PROXY=127.0.0.1,localhost node native/lesson/tools/attend/smoke.cjs --work $W
 ```
 
 `classroom.cjs` を起動し、`seat.cjs` だけで全部の問いに答え、課題を全部チェックし、ヒントを求め、質問し、話し、投票して、
-接続文字列を出し、記述の問いに答えた後に話しても回答が置き換わらないことを確かめ、終わったら止める。`$W/smoke-report.json` に
-確認結果 (`checks`) を書く。
+接続文字列を出し、記述の問いに答えた後に話しても回答が置き換わらないこと、「デモがよく見えなかった」が質問ではなく知らせとして
+受け取られること、導入の実演の行が見えたこと、個別メッセージが `observe` / `wait` から 1 回ずつ返ることを確かめ、終わったら止める。
+`--teacher-answers native/lesson/tools/attend/teacher-answers.action-game.json` を付けると、先生役の回答が出席者に届くこと、
+「まだ分からない」で回答待ちに戻って先生が答えること、誰も答えない質問が授業の終わりに「答えられなかった」と伝わることも確かめる
+(付けないとこの 3 つは失敗になる)。`$W/smoke-report.json` に確認結果 (`checks`) を書く。
 
 ## 限界
 
 - 出席者の席の動画は 1 席だけ。級友の席は録らない。音声は無い (読み上げは使わない)。
-- 縮めた台本では、2 行目以降の語りと、課題中の定期確認 (60 秒ごと) や「止まっている」自動ヒント (150 秒) の多くが出る前に次へ進む。
+- 縮めた台本では、2 行目以降の語りの多くが出る前に次へ進む (合図まで進めると、その間の語りは飛ばす)。
 - 課題の「自動」手順も、道具をつながなければ手でチェックする。ハーネスは接続文字列を出すところまでで、Ergo Studio やサンプルは
   動かさない。マイクと声の登録は扱わない。
 - `tick` はページが確かめの表示を出さないため、1.5 秒以内にエラー表示が出なければ成功とみなす。サーバが断ったときはページが
   チェックを元に戻し、その文 (例「いまは課題が出ていません。」) がエラーとして返る。
-- `say` の返事の `taken_as_answer: true` は、話した言葉が開いている問いへの回答として受け取られたこと。
+- `say` の返事の `taken_as_answer: true` は `taken_as: "answer"` と同じ (話した言葉が開いている問いへの回答として受け取られた)。
 - `tool-link` の接続文字列は 120 秒・1 回だけ有効。返事には入るが `attendee.jsonl` には書かない (画面には出るので動画には映る)。
   道具 (Ergo Studio の「授業」タブ、窓の無い Studio なら `POST /lesson/api/connect` に `{"link": "…"}`) に渡すのは出席者の役目で、
   ハーネスは Ergo を起動しない。
