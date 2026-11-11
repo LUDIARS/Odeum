@@ -62,3 +62,46 @@ presenter / sender / program のアプリ部分は Windows・macOS 専用 (CMake
 
 `spec/plan/2026-10-30-runner-cpp-port.md` に未了の移植項目はなし (「移さない」とした項目と本社テストのみ)。
 sanitizer のビルド設定と fuzz の入口は repo 全体で未整備 (runner も含む)。
+
+## 5. 実施結果 (2 代目の担当で仕上げ)
+
+### 5.1 Lorica の適用
+
+- 固定: `5e8281b0e60fa16f814e16eaa620715937e8618d`。常に取り込む (`LORICA_SOURCE_DIR` でローカルの checkout も可)。
+- `native/cmake/OdeumLorica.cmake` の `odeum_harden(<t> [EXTENDED] [EXPORTED])` を自前の全ターゲットで呼ぶ
+  (`Lorica::boundary` + `lorica_harden_target` + GCC/Clang では `lorica_deprecate_unsafe_apis`)。
+  `odeum_lorica_require_coverage()` が、自前のディレクトリに未適用のコンパイル単位が残ると configure を FATAL_ERROR にする。
+- EXTENDED: odeum-relay (+ odeum_protocol, odeum_relay_state, odeum_relay_transport) と odeum-runner (+ runner の lib)。
+  ツールチェーンが EXTENDED を満たさなければ WARNING を出して baseline (`ODEUM_LORICA_EXTENDED=OFF` で明示的に切れる)。
+- 第三者 (datachannel, juice, srtp2, usrsctp, opus): 自前の CMake から `lorica_harden_target` (baseline) を差し込む。
+  ソースと CMake は変更しない。boundary と unsafe API の拒否は入れない (C のソースを含むので Lorica が拒否する)。
+- macOS: Lorica の hardening は macOS を拒否するので、`-DODEUM_LORICA_MACOS_UNHARDENED=ON` を明示したときだけ
+  hardening を飛ばして configure を通す (飛ばしたターゲットごとに WARNING)。boundary は入る。
+- MSVC: `lorica_deprecate_unsafe_apis` は `/we4996` で CRT の `getenv` なども拒否するので入れていない (本社で確認)。
+
+### 5.2 入力経路の上限
+
+| 経路 | 場所 | 上限 |
+|---|---|---|
+| relay WebSocket メッセージ | protocol/message.cpp (`parse_json_within`) | 16KiB、値 1024、深さ 8 |
+| チケット (ヘッダ・クレーム) | protocol/ticket.cpp | 8192 文字、1 パート値 256・深さ 4 |
+| relay HTTP クエリ | relay/http_query.cpp | 16 件 |
+| relay 公開鍵ファイル / ICE の env JSON | relay/config.cpp | 1MiB、値 16384、深さ 16 |
+| RTCP の PLI/FIR 判定 | protocol/rtcp.cpp (relay と presenter で共有) | 65535 バイト |
+| relay の RTP 転送 | relay/media.cpp | 65535 バイト超は捨てる |
+| presenter 起動 URL | presenter/core/launch_url.cpp | 8192 文字 (既存)、クエリ 16 件 |
+| presenter ticket_expiry | presenter/core/launch_url.cpp | 8192 文字、値 256・深さ 4 |
+| presenter / program 設定ファイル | core の `settings_from_text` + app の `read_file_within` | 64KiB、値 16384、深さ 16 |
+| program RTMP 受信 | program/core/rtmp_chunk.cpp | チャンクストリーム 64、保留バイト 32MiB |
+| program AMF0 | program/core/amf0.cpp | 1 ペイロード 4096 値、深さ 16 (既存) |
+| program archive.json | program/core/archive_reader.cpp | 16KiB (読みながら)、値 64、深さ 2 |
+| program 入力フレーム | program/core/input_frame_limits.hpp → transport/input_receiver.cpp | 映像 8MiB、音声 65535 |
+
+### 5.3 sanitizer と fuzz
+
+- `ODEUM_SANITIZE` (`address,undefined` / `thread`): 依存を含む全ターゲットに付く。
+- `ODEUM_FUZZ` (既定 OFF、Clang のみ): `native/fuzz/` の 10 入口を libFuzzer でビルド。
+  seed を 1 回ずつ流す `odeum.fuzz.*` は GCC のビルドでも ctest に入る。
+- TSan は `native/tests/tsan.supp` を使う (libdatachannel 内部の callback の競合だけ)。Clang の UBSan では libjuice に
+  `-fno-sanitize=function` (同梱の picohash が関数ポインタの型を合わせずに呼ぶため)。
+- 結果 (2026-11-11、Linux): GCC Release / ASan+UBSan / TSan、Clang ODEUM_FUZZ で ctest 各 46/46。fuzz 10 入口を各 30 秒、クラッシュなし。
