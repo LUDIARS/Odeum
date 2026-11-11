@@ -76,6 +76,12 @@ else()
     GIT_TAG 5e8281b0e60fa16f814e16eaa620715937e8618d)
   FetchContent_MakeAvailable(lorica)
 endif()
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/OdeumLorica.cmake)
+# libdatachannel and the libraries it builds from its submodules are compiled here from source,
+# so they get Lorica's baseline hardening too (their sources and CMake files are not changed).
+if(ODEUM_NEEDS_DATACHANNEL)
+  odeum_harden_third_party(datachannel datachannel-static juice juice-static srtp2 usrsctp)
+endif()
 add_library(odeum_boost INTERFACE)
 target_include_directories(odeum_boost SYSTEM INTERFACE ${boost_SOURCE_DIR})
 target_compile_definitions(odeum_boost INTERFACE BOOST_ERROR_CODE_HEADER_ONLY)
@@ -104,3 +110,5 @@ endif()
 if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()
+# Every compiled target in Odeum's own directories must have gone through odeum_harden.
+odeum_lorica_require_coverage()

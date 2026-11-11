@@ -16,3 +16,7 @@ target_link_libraries(odeum-relay PRIVATE odeum_relay_transport)
 set_target_properties(odeum-relay PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin" RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin")
 install(TARGETS odeum-relay RUNTIME DESTINATION bin)
+# odeum-relay is a long-running server: it and the libraries it is built from take EXTENDED.
+foreach(target odeum_relay_state odeum_relay_transport odeum-relay)
+  odeum_harden(${target} EXTENDED)
+endforeach()

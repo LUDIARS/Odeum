@@ -9,6 +9,7 @@ add_library(odeum_presenter_core
 target_include_directories(odeum_presenter_core PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/odeum-sender>)
 target_link_libraries(odeum_presenter_core PUBLIC odeum_protocol Threads::Threads)
+odeum_harden(odeum_presenter_core EXPORTED)
 
 if(NOT (ODEUM_BUILD_PRESENTER OR ODEUM_BUILD_SENDER OR ODEUM_BUILD_PROGRAM))
   return()
@@ -33,6 +34,7 @@ endif()
 add_library(odeum_sender STATIC transport/relay_link.cpp transport/ice_servers.cpp transport/media_sender.cpp transport/opus_audio_encoder.cpp
   ${ODEUM_SENDER_PLATFORM})
 target_link_libraries(odeum_sender PUBLIC odeum_presenter_core datachannel PRIVATE opus)
+odeum_harden(odeum_sender EXPORTED)
 if(WIN32)
   target_compile_definitions(odeum_sender PRIVATE UNICODE _UNICODE)
   target_link_libraries(odeum_sender PUBLIC d3d11 dxgi dwmapi mfplat mfuuid wmcodecdspuuid strmiids ksuser ole32 runtimeobject shell32 user32)
@@ -69,6 +71,7 @@ include(${PROJECT_SOURCE_DIR}/cmake/tela.cmake)
 # overlay and the reaction layer odeum-program draws onto the program.
 add_library(odeum_presenter_overlay app/labels.cpp app/good_fountain.cpp app/overlay_view.cpp)
 target_link_libraries(odeum_presenter_overlay PUBLIC odeum_sender Tela::Core)
+odeum_harden(odeum_presenter_overlay)
 
 if(NOT ODEUM_BUILD_PRESENTER)
   return()
@@ -77,6 +80,7 @@ endif()
 add_library(odeum_presenter_app app/settings_file.cpp app/presenter_controller.cpp app/panel_view.cpp app/inbox_view.cpp
   app/placement_mapping.cpp app/presenter_app.cpp)
 target_link_libraries(odeum_presenter_app PUBLIC odeum_presenter_overlay)
+odeum_harden(odeum_presenter_app)
 
 if(WIN32)
   add_executable(odeum-presenter WIN32 platform/windows/windows_main.cpp platform/windows/windows_platform.cpp
@@ -97,4 +101,5 @@ else()
 endif()
 set_target_properties(odeum-presenter PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin" RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin")
+odeum_harden(odeum-presenter)
 install(TARGETS odeum-presenter RUNTIME DESTINATION bin BUNDLE DESTINATION .)

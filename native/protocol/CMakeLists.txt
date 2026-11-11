@@ -1,3 +1,6 @@
-add_library(odeum_protocol message.cpp ticket.cpp slot.cpp)
+add_library(odeum_protocol message.cpp ticket.cpp slot.cpp json_limits.cpp bounded_file.cpp rtcp.cpp)
 target_include_directories(odeum_protocol PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
 target_link_libraries(odeum_protocol PUBLIC nlohmann_json::nlohmann_json PRIVATE OpenSSL::Crypto)
+# Installed with odeum_sender: Lorica stays a build-only dependency (its headers are not in ours).
+# Part of odeum-relay, so it takes the relay's EXTENDED profile.
+odeum_harden(odeum_protocol EXTENDED EXPORTED)
