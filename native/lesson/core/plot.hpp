@@ -30,7 +30,8 @@ struct ActivityPlan {
 // Lets a tool on the student's machine (Ergo Studio) tick the step: it is done once the variable
 // the running game publishes satisfies the comparison. Steps without a check are ticked by hand.
 struct StepCheck { std::string variable, op; Json value; };
-struct StepPlan { std::string id, label; std::vector<std::string> hints; std::optional<StepCheck> check; };
+// how: the exact way to do the step (commands to copy), shown under the step; empty when the label says it all.
+struct StepPlan { std::string id, label; std::vector<std::string> hints; std::optional<StepCheck> check; std::string how; };
 struct AssignmentPlan {
     std::string id, title, brief, extra;  // extra: a stretch goal offered to students who finish
     std::vector<StepPlan> steps;

@@ -21,9 +21,10 @@
     "Ergo のサンプルで演出を 1 つずつ戻し、何が変わったかを数値で確かめられる"
   ],
   "preparation": [
-    "Ergo をビルドし、Ergo Studio (ergo_studio) と授業用のサンプル (examples/lesson_action_feel の ergo_example_lesson_action_feel) を動かせるようにしておく。Windows 以外では、授業につなぐために -DERGO_WITH_CURL=ON で構成する",
-    "Studio を起動してから ergo_example_lesson_action_feel --plain を動かし、ログに connected to the Studio と出ることを確かめる。サンプルは遊べるゲームではなく、演出の ON / OFF とその結果を数値でログに出すシミュレーション",
-    "WebSocket クライアント (websocat など) を用意する。Studio にはまだ変数を切り替える画面が無いので、課題では Studio の /variable/ws に切り替えの命令を送る",
+    "Ergo をビルドする (Ergo の README の「ビルド」。Windows 以外では授業につなぐために -DERGO_WITH_CURL=ON を付けて構成する)。できるもの: <ビルドフォルダ>/studio/ergo_studio (Ergo Studio) と <ビルドフォルダ>/examples/ergo_example_lesson_action_feel (授業用のサンプル)。授業で読むソースは Ergo リポジトリの examples/lesson_action_feel/action_feel_sim.cpp",
+    "端末を 2 つ開き、どちらも cd <ビルドフォルダ> で移る。1 つ目で窓の無い Studio を起動する: ./studio/ergo_studio --headless 。最初に [ergo] http://127.0.0.1:5170/ と出る (5170 が Studio のポート。別のポートにするなら PORT=5180 ./studio/ergo_studio --headless)",
+    "2 つ目でサンプルを演出なしで起動する: ./examples/ergo_example_lesson_action_feel --plain (Studio のポートを変えたら --port 5180 を足す)。[lesson_action_feel] connected to the Studio と出て、2 秒ごとに world=… hits=… の行が出れば準備完了。サンプルは遊べるゲームではなく、演出の ON / OFF とその結果を数値で出すシミュレーション",
+    "Node 22 以降を用意する (node --version で v22 以上)。Studio にはまだ変数を切り替える画面が無いので、課題では Node の 1 行のコマンドで Studio の /variable/ws に切り替えの命令を送る",
     "好きなアクションゲームを 5 分遊び、攻撃が当たった瞬間に画面で何が起きているかを 3 つメモする",
     "このシートの「予習の問い」に、箇条書きで答えを書いておく (正解かどうかは問いません)"
   ],
@@ -248,7 +249,7 @@
       "assignment": {
         "id": "restore-feel",
         "title": "抜けた手触りを Ergo のサンプルで戻す",
-        "brief": "使うのは Ergo の授業用サンプル (examples/lesson_action_feel) と Ergo Studio です。サンプルはプレイヤーが敵を 0.5 秒ごとに叩き続けるだけのシミュレーションで、演出 3 つ (feel.hit_stop / feel.knockback / feel.camera_shake) を ON / OFF でき、実際に起きたことを 2 秒ごとにログへ出します。Studio を起動し (窓の無い Studio なら ergo_studio --headless)、ergo_example_lesson_action_feel --plain で演出をすべて OFF にして始めます。このページの「接続文字列を出す」で出た文字列を Studio の「授業」タブに貼る (窓なしなら POST /lesson/api/connect に {\"link\": \"…\"}) と、「自動」の手順は Studio がサンプルの変数を見てチェックします。",
+        "brief": "使うのは Ergo の授業用サンプル (examples/lesson_action_feel) と Ergo Studio です。サンプルはプレイヤーが敵を 0.5 秒ごとに叩き続けるだけのシミュレーションで、演出 3 つ (feel.hit_stop / feel.knockback / feel.camera_shake) を ON / OFF でき、実際に起きたことを 2 秒ごとにログへ出します。手順の下に、そのまま打てるコマンドがあります (<ビルドフォルダ> は Ergo のビルドフォルダ、5170 は Studio が起動時に出すポート)。このページの「接続文字列を出す」で出た文字列を Studio に渡す (窓なしなら手順 1 の curl) と、ページに「道具がつながりました」と出て、「自動」の手順は Studio がサンプルの変数を見てチェックします。",
         "minutes": 12,
         "stall_seconds": 150,
         "extra": "カメラの揺れ (feel.camera_shake) も ON にして shake= の変わり方を見る。余裕があれば action_feel_sim.cpp の FeelTuning (hit_stop・knockback・shake) の値を変えてビルドし直し、数値で比べる",
@@ -256,6 +257,7 @@
           {
             "id": "run-plain",
             "label": "サンプルを --plain (演出なし) で動かし、ログから「当たっても何も起きていない」と分かる値を 1 つメモする",
+            "how": "cd <ビルドフォルダ>\n./studio/ergo_studio --headless                       # 端末 1。[ergo] http://127.0.0.1:5170/ と出る\n./examples/ergo_example_lesson_action_feel --plain    # 端末 2。connected to the Studio と出る\n# 授業につなぐ (端末 3。<接続文字列> はこのページの「接続文字列を出す」で出たもの):\ncurl -s -X POST -H 'Content-Type: application/json' -d '{\"link\":\"<接続文字列>\"}' http://127.0.0.1:5170/lesson/api/connect",
             "hints": [
               "先に Studio を起動し、それから ergo_example_lesson_action_feel --plain を動かします。ログに connected to the Studio と出ればつながっています。",
               "2 秒ごとの行を見ます。hits= は増えるのに、hit_stop_last_seconds と knockback_last_impulse は 0、enemy_offset と shake も 0 のままです。"
@@ -264,6 +266,7 @@
           {
             "id": "find-hit",
             "label": "action_feel_sim.cpp で「攻撃が当たった瞬間」の処理と、そこで hit_stop を呼んでいる行を見つける",
+            "how": "ファイル: Ergo リポジトリの examples/lesson_action_feel/action_feel_sim.cpp\n関数: ActionFeelSim::frame (後半の ++hits_ の所が「当たった瞬間」)\nhit_stop の宣言: include/ergo/world_time/world_time.h",
             "hints": [
               "examples/lesson_action_feel/action_feel_sim.cpp の ActionFeelSim::frame の後半、hits_ を数えている所が「当たった瞬間」です。",
               "if (toggles.hit_stop) の中で world.hit_stop(tuning_.hit_stop) を呼んでいます。hit_stop は include/ergo/world_time/world_time.h にあります。"
@@ -272,9 +275,10 @@
           {
             "id": "add-hitstop",
             "label": "ヒットストップを ON に戻す (feel.hit_stop を true にする)",
+            "how": "node -e 'const [n,v]=process.argv.slice(1);const w=new WebSocket(`ws://127.0.0.1:${process.env.PORT||5170}/variable/ws`);w.onopen=()=>{w.send(JSON.stringify({op:\"hello\",role:\"ui\"}));w.send(JSON.stringify({op:\"set\",name:n,value:v===\"true\"}));setTimeout(()=>w.close(),300)}' feel.hit_stop true\n# Studio のポートを変えたときは先頭に PORT=5180 を付ける。サンプルのログに feel.hit_stop: OFF -> ON と出れば成功",
             "check": {"variable": "feel.hit_stop_last_seconds", "op": "gt", "value": 0},
             "hints": [
-              "Studio の /variable/ws (既定 ws://127.0.0.1:5170/variable/ws) に WebSocket クライアントでつなぎ、{\"op\":\"hello\",\"role\":\"ui\"} を送ってから {\"op\":\"set\",\"name\":\"feel.hit_stop\",\"value\":true} を送ります。",
+              "Studio の /variable/ws (ws://127.0.0.1:<Studio のポート>/variable/ws。ポートは Studio が起動時に出す数字で、PORT を指定しなければ 5170) に {\"op\":\"hello\",\"role\":\"ui\"} を送ってから {\"op\":\"set\",\"name\":\"feel.hit_stop\",\"value\":true} を送ります。手順の下の node のコマンドがそれを 1 行でします。",
               "サンプルのログに feel.hit_stop: OFF -> ON と出れば切り替わっています。次の当たりで hit_stop_last_seconds が 0.080 になります。",
               "「自動」のチェックが入らないときは、Studio の「授業」タブ (窓なしなら GET /lesson/api/state) で授業につながっているかを確かめます。自分でチェックを付けても構いません。"
             ]
@@ -282,6 +286,7 @@
           {
             "id": "measure-stop",
             "label": "ヒットストップの ON と OFF で、2 秒ごとのログの world= の進み方を比べる",
+            "how": "# OFF に戻すときは、手順 3 のコマンドの最後を feel.hit_stop false にする\n# ON と OFF で、2 秒ごとの行の world= がいくつずつ増えるかを比べる",
             "hints": [
               "OFF なら 2 秒で world= は約 2.0 進みます。ON では当たるたびに 0.08 秒止まり、2 秒の間に当たるのは 3 回か 4 回なので、進みは 1.7 か 1.8 (平均すると約 1.72) です。止めた分だけ世界の時間が遅れます。",
               "サンプルの長さは固定 (FeelTuning の hit_stop = 0.08 秒) です。ActionGameSample は「威力 ÷ 24 秒」で、強い攻撃ほど長く止まります。"
@@ -290,9 +295,10 @@
           {
             "id": "add-knockback",
             "label": "ノックバックを ON に戻す (feel.knockback を true にする)",
+            "how": "node -e 'const [n,v]=process.argv.slice(1);const w=new WebSocket(`ws://127.0.0.1:${process.env.PORT||5170}/variable/ws`);w.onopen=()=>{w.send(JSON.stringify({op:\"hello\",role:\"ui\"}));w.send(JSON.stringify({op:\"set\",name:n,value:v===\"true\"}));setTimeout(()=>w.close(),300)}' feel.knockback true\n# サンプルのログに feel.knockback: OFF -> ON と出れば成功",
             "check": {"variable": "feel.knockback_last_impulse", "op": "gt", "value": 0},
             "hints": [
-              "ヒットストップと同じく set を送ります。name は feel.knockback です。",
+              "手順 3 と同じく set を送ります。手順の下のコマンドは name が feel.knockback です。",
               "ログの enemy_offset が当たるたびに 0 より大きくなり、ばねで元の位置へ戻ります。knockback_last_impulse は 6.000 になります。",
               "サンプルには壁も足場の端もありません。壁際で何が起きるかは、自分の作品で確かめることになります。"
             ]

@@ -105,6 +105,15 @@ void Server::from_student(const std::string& class_id, const std::string& studen
         deliver(class_id, {to_student(student, tool_link({class_id, student, ToolDesk::Role::student}))});
         return;
     }
+    // The student cuts their own tools off (the page's 道具の接続を切る). Their tools get tool_unlinked.
+    if (message.value("type", Json()) == "tool.unlink") {
+        if (!school_.classroom(class_id).has_student(student)) throw ProtocolError("unknown_student", "Unknown student");
+        school_.tools().revoke_student(class_id, student);
+        auto state = school_.tools().link_state(class_id, student);
+        state["reason"] = "student";
+        deliver(class_id, {to_student(student, std::move(state))});
+        return;
+    }
     deliver(class_id, school_.classroom(class_id).from_student(student, message, monotonic_ms()));
 }
 void Server::close_class(const std::string& class_id) {

@@ -140,7 +140,7 @@ AssignmentPlan assignment(const Json& source, const std::string& where, std::set
     for (const auto& item : list(source, "steps", max_steps, where)) {
         object(item, where + ".steps");
         StepPlan step{identifier(item, where + ".steps", seen), text(item, "label", 200, where + ".steps"),
-            strings(item, "hints", 5, 400, where + ".steps"), std::nullopt};
+            strings(item, "hints", 5, 400, where + ".steps"), std::nullopt, text(item, "how", 800, where + ".steps", false)};
         if (const auto found = item.find("check"); found != item.end()) step.check = step_check(*found, where + ".steps[" + step.id + "].check");
         plan.steps.push_back(std::move(step));
     }

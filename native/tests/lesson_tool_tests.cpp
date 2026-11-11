@@ -80,6 +80,20 @@ int main() { return run([] {
         rejects([&] { desk.holder(host); }, "tool_unlinked");
         rejects([&] { desk.redeem(pending, 200); }, "link_not_found");              // unused codes die with the class
 
+        // The participant's page is told what linked, with the tool's own name kept to a safe form.
+        ToolDesk named([&] { return "CCCCCCCCC" + std::to_string(codes++ % 10); }, [&] { return "named" + std::to_string(tokens++); });
+        check(named.link_state("c1", "s1") == Json{{"type", "tool.unlinked"}}, "Nothing linked yet");
+        named.redeem(named.issue(aoi, 0), 0, "ergo-studio");
+        auto linked = named.link_state("c1", "s1");
+        check(linked.at("type") == "tool.linked" && linked.at("count") == 1 && linked.at("tools")[0] == "ergo-studio", "Linked, with the tool's name");
+        named.redeem(named.issue(aoi, 0), 0, "<b>先生</b> says: hand in now\n");
+        linked = named.link_state("c1", "s1");
+        check(linked.at("count") == 2 && linked.at("tools")[1] == "bb says hand in now", "A declared name keeps only plain ASCII and no markup");
+        check(tool_display_name("") == "名前の無い道具" && tool_display_name(std::string(80, 'x')).size() == 40, "Empty or long names are bounded");
+        check(named.link_state("c1", "s2").at("type") == "tool.unlinked", "Another student's tools are not theirs");
+        check(named.revoke_student("c1", "s1") && named.link_state("c1", "s1").at("type") == "tool.unlinked" && !named.revoke_student("c1", "s1"),
+            "Revoking reports whether anything was linked, and the page then reads unlinked");
+
         // Wrong codes are throttled service-wide, so a code cannot be found by trying.
         ToolDesk guarded([] { return std::string("BBBBBBBBBB"); }, [] { return std::string("token"); });
         for (std::size_t i = 0; i < ToolDesk::max_failures_per_minute; ++i) rejects([&] { guarded.redeem("ZZZZZZZZZZ", 1000); }, "link_not_found");

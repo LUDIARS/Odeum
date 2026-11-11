@@ -7,6 +7,18 @@ namespace {
 bool same(const ToolDesk::Holder& a, const ToolDesk::Holder& b) { return a.class_id == b.class_id && a.student == b.student && a.role == b.role; }
 }
 std::string_view tool_role_name(ToolDesk::Role role) { return role == ToolDesk::Role::presenter ? "presenter" : "student"; }
+std::string tool_display_name(std::string_view declared) {
+    constexpr std::size_t longest = 40;
+    std::string out;
+    for (const unsigned char c : declared) {
+        const bool plain = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == ' ' || c == '.' || c == '_'
+            || c == '-' || c == '+' || c == '(' || c == ')';
+        if (plain && out.size() < longest) out.push_back(static_cast<char>(c));
+    }
+    while (!out.empty() && out.back() == ' ') out.pop_back();
+    while (!out.empty() && out.front() == ' ') out.erase(out.begin());
+    return out.empty() ? "名前の無い道具" : out;
+}
 
 std::string ToolDesk::issue(const Holder& holder, Millis now) {
     std::erase_if(links_, [&](const auto& entry) { return entry.second.expires <= now || same(entry.second.holder, holder); });
@@ -15,7 +27,7 @@ std::string ToolDesk::issue(const Holder& holder, Millis now) {
     links_.emplace(code, Link{holder, now + link_ms});
     return code;
 }
-std::string ToolDesk::redeem(std::string_view code, Millis now) {
+std::string ToolDesk::redeem(std::string_view code, Millis now, std::string_view tool) {
     while (!failures_.empty() && failures_.front() <= now - 60'000) failures_.pop_front();
     if (failures_.size() >= max_failures_per_minute) throw ProtocolError("rate_limited", "Too many wrong codes; wait a minute");
     const auto normalised = relay::normalize_join_code(code);
@@ -34,7 +46,7 @@ std::string ToolDesk::redeem(std::string_view code, Millis now) {
     for (std::size_t i = 0; i + max_tokens_per_holder <= held.size(); ++i) grants_.erase(held[i].second);
     auto token = tokens_();
     while (grants_.contains(token)) token = tokens_();
-    grants_.emplace(token, Grant{holder, ++next_});
+    grants_.emplace(token, Grant{holder, ++next_, tool_display_name(tool)});
     return token;
 }
 const ToolDesk::Holder& ToolDesk::holder(std::string_view token) const {
@@ -46,10 +58,19 @@ bool ToolDesk::linked(const std::string& class_id, const std::string& student) c
     return std::any_of(grants_.begin(), grants_.end(), [&](const auto& entry) {
         return entry.second.holder.class_id == class_id && entry.second.holder.student == student; });
 }
-void ToolDesk::revoke_student(const std::string& class_id, const std::string& student) {
+Json ToolDesk::link_state(const std::string& class_id, const std::string& student) const {
+    std::vector<std::pair<std::uint64_t, std::string>> held;
+    for (const auto& [token, grant] : grants_)
+        if (grant.holder.class_id == class_id && grant.holder.student == student) held.emplace_back(grant.order, grant.tool);
+    if (held.empty()) return {{"type", "tool.unlinked"}};
+    std::sort(held.begin(), held.end());
+    Json tools = Json::array();
+    for (const auto& [order, name] : held) tools.push_back(name);
+    return {{"type", "tool.linked"}, {"tools", std::move(tools)}, {"count", held.size()}};
+}
+bool ToolDesk::revoke_student(const std::string& class_id, const std::string& student) {
     const auto match = [&](const auto& entry) { return entry.second.holder.class_id == class_id && entry.second.holder.student == student; };
-    std::erase_if(links_, match);
-    std::erase_if(grants_, match);
+    return std::erase_if(links_, match) + std::erase_if(grants_, match) > 0;
 }
 void ToolDesk::revoke_class(const std::string& class_id) {
     const auto match = [&](const auto& entry) { return entry.second.holder.class_id == class_id; };

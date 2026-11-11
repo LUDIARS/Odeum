@@ -11,10 +11,15 @@ Json Server::tool_pair(const Json& body) {
     const auto link = body.find("link");
     if (!body.is_object() || link == body.end() || !link->is_string()) throw ProtocolError("invalid_request", "Link code required");
     auto& tools = school_.tools();
-    const auto token = tools.redeem(link->get_ref<const std::string&>(), monotonic_ms());
-    const auto& holder = tools.holder(token);
-    return {{"token", token}, {"role", tool_role_name(holder.role)},
+    const auto declared = body.find("tool");
+    const auto token = tools.redeem(link->get_ref<const std::string&>(), monotonic_ms(),
+        declared != body.end() && declared->is_string() ? std::string_view(declared->get_ref<const std::string&>()) : std::string_view());
+    const auto holder = tools.holder(token);
+    Json reply{{"token", token}, {"role", tool_role_name(holder.role)},
         {"class", {{"title", school_.classroom(holder.class_id).plot().title}}}, {"poll_ms", poll_ms}};
+    // The participant who asked for the code sees that a tool really took it (the page stops the countdown).
+    if (holder.role == ToolDesk::Role::student) deliver(holder.class_id, {to_student(holder.student, tools.link_state(holder.class_id, holder.student))});
+    return reply;
 }
 Json Server::tool_state(std::string_view token) {
     const auto& holder = school_.tools().holder(token);

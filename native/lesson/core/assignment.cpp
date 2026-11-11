@@ -100,6 +100,7 @@ Json AssignmentBoard::brief() const {
     for (const auto& step : plan_->steps) {
         Json entry{{"id", step.id}, {"label", step.label}, {"auto", step.check.has_value()}};
         if (step.check) entry["check"] = {{"variable", step.check->variable}, {"op", step.check->op}, {"value", step.check->value}};
+        if (!step.how.empty()) entry["how"] = step.how;
         steps.push_back(std::move(entry));
     }
     return {{"id", plan_->id}, {"title", plan_->title}, {"brief", plan_->brief}, {"minutes", plan_->minutes}, {"steps", std::move(steps)}};

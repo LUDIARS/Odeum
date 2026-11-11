@@ -241,6 +241,8 @@ function renderAssignment(data) {
       if (step.check) words.append(el('span', 'ls-check', `自動: 道具が ${step.check.variable} ${OPS[step.check.op] ?? step.check.op} ${JSON.stringify(step.check.value)} を見たらチェック`));
     }
     item.append(row);
+    // The exact way to do the step (commands to copy), written by the author.
+    if (step.how) item.append(el('pre', 'ls-how', step.how));
     return item;
   }));
   $('assignment-status').textContent = '';
@@ -282,6 +284,29 @@ function showToolLink(message) {
   };
   tick();
   toolTimer = setInterval(tick, 1000);
+}
+
+// A tool that took the code is reported by the server (tool.linked, with the tool's own name kept to a
+// safe form); the countdown stops and the linked state stays until the link ends.
+function toolLinked(message) {
+  clearInterval(toolTimer);
+  $('tool-box').hidden = true;
+  $('tool-string').value = '';
+  const names = message.tools.join('、');
+  $('tool-linked-text').textContent = `道具がつながりました: ${names}${message.count > 1 ? ` (${message.count} 台)` : ''}。「自動」の手順は道具が見てチェックします。`;
+  $('tool-linked').hidden = false;
+  $('tool-state').textContent = '';
+  toast('道具がつながりました');
+}
+function toolUnlinked(message) {
+  const wasLinked = !$('tool-linked').hidden;
+  $('tool-linked').hidden = true;
+  if (wasLinked || message.reason) {
+    $('tool-state').textContent = message.reason === 'student'
+      ? '道具の接続を切りました。つなぎ直すときは接続文字列を出し直してください。'
+      : '道具の接続が切れました。つなぎ直すときは接続文字列を出し直してください。';
+    toast('道具の接続が切れました');
+  }
 }
 
 // ---- shared questions ----
@@ -438,6 +463,7 @@ function applyWelcome(message) {
   assignmentActive = false;
   if (state.assignment) renderAssignment(state.assignment); else $('assignment').hidden = true;
   $('tool').hidden = !message.lesson.tool;
+  $('tool-linked').hidden = true;   // the server follows the welcome with tool.linked when a tool is still linked
   $('tool-engine').textContent = message.lesson.engine || '道具';
   $('shared').replaceChildren(el('li', 'ls-note', 'まだありません。'));
   $('shared').firstElementChild.id = 'shared-empty';
@@ -466,6 +492,8 @@ const handlers = {
   progress: (m) => updateProgress(m.assignment),
   'progress.rejected': progressRejected,
   'tool.link': showToolLink,
+  'tool.linked': toolLinked,
+  'tool.unlinked': toolUnlinked,
   hint: (m) => addPrivate(m.kind === 'class_hint' ? '全員へ' : m.kind === 'praise' ? 'できました' : 'ヒント', m.text),
   reply: (m) => (m.about === 'question' ? questionReply(m) : addPrivate(REPLY_KIND[m.about] ?? '返事', m.text)),
   'question.shared': (m) => addShared(m.question),
@@ -536,6 +564,7 @@ $('activity-form').addEventListener('submit', (event) => {
   send({ type: 'answer', activity_id: activity.id, text });
 });
 $('tool-link').addEventListener('click', () => send({ type: 'tool.link' }));
+$('tool-unlink').addEventListener('click', () => send({ type: 'tool.unlink' }));
 $('tool-copy').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText($('tool-string').value); toast('コピーしました'); }
   catch { $('tool-string').select(); toast('選択しました。コピーしてください'); }

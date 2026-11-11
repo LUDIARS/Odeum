@@ -136,6 +136,8 @@ void Connection::route_students(const Request& request) {
         joined_ = true;
         auto welcome = classroom.connect(student_, now);
         welcome.front().body["stt"] = server_.config().browser_stt ? "browser" : "none";
+        // A page that reconnects (or reloads) learns whether this student's tools are still linked.
+        if (school.tools().linked(class_, student_)) welcome.push_back(to_student(student_, school.tools().link_state(class_, student_)));
         server_.deliver(class_, welcome);
     });
 }

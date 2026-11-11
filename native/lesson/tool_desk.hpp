@@ -24,14 +24,20 @@ public:
     std::string issue(const Holder& holder, Millis now);
     // Code -> token, once. Wrong codes are throttled across the service so a code cannot be
     // guessed by trying; throws link_not_found / rate_limited.
-    std::string redeem(std::string_view code, Millis now);
+    // `tool` is the name the tool declares for itself (pair's "tool"); only a sanitised form is kept
+    // (tool_display_name), to show the participant what linked.
+    std::string redeem(std::string_view code, Millis now, std::string_view tool = {});
     const Holder& holder(std::string_view token) const;   // throws tool_unlinked
     bool linked(const std::string& class_id, const std::string& student) const;
-    void revoke_student(const std::string& class_id, const std::string& student);
+    // What the participant's page shows about their tools: {type: "tool.linked", tools: [names], count}
+    // while at least one is linked, otherwise {type: "tool.unlinked"}.
+    Json link_state(const std::string& class_id, const std::string& student) const;
+    // Returns whether anything was linked (or pending) for that participant.
+    bool revoke_student(const std::string& class_id, const std::string& student);
     void revoke_class(const std::string& class_id);
 private:
     struct Link { Holder holder; Millis expires = 0; };
-    struct Grant { Holder holder; std::uint64_t order = 0; };
+    struct Grant { Holder holder; std::uint64_t order = 0; std::string tool; };
     Random codes_, tokens_;
     std::map<std::string, Link, std::less<>> links_;    // normalised code -> who asked
     std::map<std::string, Grant, std::less<>> grants_;  // token -> who it stands for
@@ -39,4 +45,7 @@ private:
     std::uint64_t next_ = 0;
 };
 std::string_view tool_role_name(ToolDesk::Role role);
+// A tool names itself; the page shows it. Kept to ASCII letters, digits, space and . _ - + ( ), at most
+// 40 characters, so a tool cannot put arbitrary text on the student's page. Empty -> a fixed label.
+std::string tool_display_name(std::string_view declared);
 }
