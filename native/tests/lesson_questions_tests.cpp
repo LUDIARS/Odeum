@@ -75,6 +75,17 @@ int main() { return run([] {
     board.withdraw("s1");
     check(board.shared_list("s9").size() == 2, "Already shared questions stay");
 
+    // Prepared answers answer the why / how the questions ask, not only restate definitions.
+    const auto answer_to = [&](const char* text) { return board.submit("s20", "x", false, text, context, 6000).review; };
+    const auto split = answer_to("ダメージと威力を分けておくと、具体的にどんなときに便利なんですか？同じダメージで重い武器と軽い武器を作り分けるため、という理解で合っていますか？");
+    check(!split.needs_teacher && split.answer.find("回数") != std::string::npos && split.answer.find("重く感じ") != std::string::npos, "Why damage and power are split");
+    const auto sick = answer_to("カメラの揺れが強すぎると酔うのはなぜですか？");
+    check(!sick.needs_teacher && sick.answer.find("食い違い") != std::string::npos, "Why shaking makes people sick");
+    const auto drift = answer_to("ヒットストップをONにしたら world= の進みが2秒ごとに約1.8秒になりました。0.08秒×当たった回数で考えるとずれるのはなぜですか？");
+    check(!drift.needs_teacher && drift.answer.find("3 回のときと 4 回のとき") != std::string::npos, "Why world= advances by 1.7 or 1.8");
+    const auto combo = answer_to("ノックバックで次の攻撃が届かなくなる問題って、実際のゲームではどうやって解決しているんですか？");
+    check(combo.needs_teacher, "A question the course cannot answer goes to the teacher instead of a loosely matching answer");
+
     // "I am stuck" reads as a call for help only while an assignment runs.
     const Context working{&plot, find_section(plot, "assignment"), false, true}, talking{&plot, find_section(plot, "assignment"), false, false};
     check(model->read("手順3で進みません。hit_stop を呼んでも world= が変わらないのはなぜですか？", working).intent == Intent::help, "Stuck report during the assignment");
