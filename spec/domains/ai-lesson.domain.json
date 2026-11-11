@@ -7,6 +7,6 @@
   "membership": [
     {"pathPattern": "(^|/)native/lesson/(?:.*/)?[^/]+$"},
     {"pathPattern": "(^|/)native/tests/lesson_[^/]+$"},
-    {"pathPattern": "(^|/)spec/(feature/ai-lesson\\.md|domains/ai-lesson\\.domain\\.json)$"}
+    {"pathPattern": "(^|/)spec/(feature/ai-lesson\\.md|tasks/2026-11-11-ai-lesson-handoff\\.md|domains/ai-lesson\\.domain\\.json)$"}
   ]
 }
