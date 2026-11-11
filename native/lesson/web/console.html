@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Odeum 授業 操作卓</title>
+<link rel="stylesheet" href="/web/lesson.css">
+<script type="module" src="/web/console.js"></script>
+</head>
+<body>
+<main class="co-page">
+  <header class="ls-card">
+    <div class="co-bar">
+      <h1>授業 操作卓</h1>
+      <span id="status" class="ls-status" role="status"></span>
+      <span id="model" class="co-tag"></span>
+    </div>
+    <div class="co-bar">
+      <label>コース<select id="plots"></select></label>
+      <button type="button" id="open">開講する</button>
+      <label>開講中の授業<select id="classes"></select></label>
+      <a id="prep" class="ls-link" href="#" download>予習シート (pptx)</a>
+    </div>
+    <div id="class-bar" class="co-bar" hidden>
+      <span class="ls-note">参加コード</span><span id="code" class="co-code"></span>
+      <label class="ls-inline"><input id="entry-lock" type="checkbox">入室を締め切る</label>
+      <button type="button" id="close" class="ls-danger-button">授業を閉じる</button>
+    </div>
+  </header>
+
+  <div id="workspace" class="co-grid" hidden>
+    <div class="co-col">
+      <section class="ls-card" aria-labelledby="timeline-heading">
+        <h2 id="timeline-heading">進行</h2>
+        <div class="co-player">
+          <button type="button" id="start">開始</button>
+          <button type="button" id="pause" class="ls-secondary">一時停止</button>
+          <button type="button" id="resume" class="ls-secondary">再開</button>
+          <button type="button" id="skip" class="ls-secondary">次のセクションへ</button>
+          <span id="clock" class="co-clock"></span>
+          <span id="player-state" class="co-tag"></span>
+        </div>
+        <div class="co-progress"><div id="progress"></div></div>
+        <div id="sections" class="co-sections"></div>
+        <p id="now" class="ls-note"></p>
+      </section>
+
+      <section class="ls-card" aria-labelledby="roster-heading">
+        <h2 id="roster-heading">生徒</h2>
+        <table class="co-table">
+          <thead><tr><th>名前</th><th>様子</th><th>課題</th><th>回答</th><th>操作</th></tr></thead>
+          <tbody id="roster"></tbody>
+        </table>
+        <p id="roster-empty" class="co-empty">まだ誰も参加していません。参加コードを伝えてください。</p>
+      </section>
+
+      <section class="ls-card" aria-labelledby="log-heading">
+        <h2 id="log-heading">聞こえた声と通知</h2>
+        <ul id="log" class="ls-feed co-log"></ul>
+      </section>
+    </div>
+
+    <div class="co-col">
+      <section class="ls-card" aria-labelledby="activity-heading">
+        <h2 id="activity-heading">みんなへの質問</h2>
+        <div class="co-bar">
+          <select id="activities"></select>
+          <button type="button" id="activity-open" class="ls-secondary">出す</button>
+          <button type="button" id="activity-close" class="ls-secondary">締め切る</button>
+          <button type="button" id="activity-reveal">結果を見せる</button>
+        </div>
+        <p id="activity-prompt" class="ls-prompt"></p>
+        <p id="activity-count" class="ls-note"></p>
+        <div id="activity-bars" class="ls-bars"></div>
+        <ul id="activity-highlights" class="ls-points"></ul>
+      </section>
+
+      <section class="ls-card" aria-labelledby="assignment-heading">
+        <h2 id="assignment-heading">課題</h2>
+        <div class="co-bar">
+          <select id="assignments"></select>
+          <button type="button" id="assignment-assign" class="ls-secondary">出す</button>
+          <button type="button" id="assignment-close" class="ls-secondary">終える</button>
+          <span id="assignment-state" class="ls-note"></span>
+        </div>
+      </section>
+
+      <section class="ls-card" aria-labelledby="questions-heading">
+        <h2 id="questions-heading">生徒の質問</h2>
+        <div class="co-bar"><button type="button" id="share-best" class="ls-secondary">良い質問を共有する</button></div>
+        <ul id="questions" class="ls-feed"></ul>
+      </section>
+
+      <section class="ls-card" aria-labelledby="room-heading">
+        <h2 id="room-heading">教室のマイク (話者分離の入力)</h2>
+        <form id="diarized" class="ls-row">
+          <input id="speaker" maxlength="64" placeholder="話者ラベル" value="spk_0">
+          <input id="heard" maxlength="280" placeholder="聞き取った文">
+          <button type="submit" class="ls-secondary">送る</button>
+        </form>
+        <p class="ls-note">話者分離を行う仕組みが、この操作卓と同じ接続で話者ラベルと文を送ります。ここは動作確認用の入力です。</p>
+      </section>
+    </div>
+  </div>
+</main>
+</body>
+</html>

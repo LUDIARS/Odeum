@@ -45,6 +45,9 @@ void origin(const std::string& value) {
 }
 }
 WebAccess WebAccess::from_environment(unsigned port) {
+    return from_environment(port, "ODEUM_RELAY_PUBLIC_URL", "ODEUM_RELAY_ALLOWED_ORIGINS");
+}
+WebAccess WebAccess::from_environment(unsigned port, const char* public_url_variable, const char* origins_variable) {
     WebAccess result;
     result.hosts_ = {"localhost", "127.0.0.1", "[::1]"};
     for (auto value : list("LUDIARS_ALLOWED_HOSTS")) {
@@ -53,11 +56,11 @@ WebAccess WebAccess::from_environment(unsigned port) {
         if (value.find(':') != std::string::npos) throw std::runtime_error("Allowed host must omit port");
         result.hosts_.push_back((subdomains ? "." : "") + host(value));
     }
-    if (const auto url = std::getenv("ODEUM_RELAY_PUBLIC_URL")) {
+    if (const auto url = std::getenv(public_url_variable)) {
         std::string value(url); origin(value); result.origins_.push_back(value);
         result.hosts_.push_back(host(value.substr(value.find("://") + 3)));
     }
-    for (const auto& value : list("ODEUM_RELAY_ALLOWED_ORIGINS")) { origin(value); result.origins_.push_back(value); }
+    for (const auto& value : list(origins_variable)) { origin(value); result.origins_.push_back(value); }
     result.origins_.push_back("http://localhost:" + std::to_string(port));
     result.origins_.push_back("http://127.0.0.1:" + std::to_string(port));
     return result;

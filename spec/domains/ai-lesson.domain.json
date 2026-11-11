@@ -1,0 +1,12 @@
+{
+  "name": "ai-lesson",
+  "description": "AI が進行する授業 odeum-lesson: プロットからのタイムラインと予習シート (pptx)、授業中の問い、課題の見守りと個別対応、発話の聞き分け、発言停止・退出、質問の共有、サンプル教材、その仕様。",
+  "presetRules": [],
+  "specRefs": ["spec/feature/ai-lesson.md"],
+  "templateRules": [],
+  "membership": [
+    {"pathPattern": "(^|/)native/lesson/(?:.*/)?[^/]+$"},
+    {"pathPattern": "(^|/)native/tests/lesson_[^/]+$"},
+    {"pathPattern": "(^|/)spec/(feature/ai-lesson\\.md|domains/ai-lesson\\.domain\\.json)$"}
+  ]
+}
