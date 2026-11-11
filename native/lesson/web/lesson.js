@@ -30,6 +30,8 @@ const ERROR_TEXT = {
   invalid_answer: '回答を確認してください。',
   invalid_question: '質問は 1〜280 文字で送ってください。',
   not_assigned: 'いまは課題が出ていません。',
+  own_question: '自分の質問には「私も知りたい」を押せません。',
+  unknown_question: 'その質問はもうありません。',
 };
 
 let connection = null;
@@ -38,6 +40,9 @@ let name = '';
 let activity = null;       // current prompt, or null
 let assignment = null;
 let lockTimer = null;
+let assignmentActive = false;
+const myQuestions = new Set();      // question ids this student asked (told by the server)
+const votedQuestions = new Set();   // question ids this student said "me too" to (told by the server)
 let stopped = false;
 let transcribe = false;
 
@@ -67,8 +72,46 @@ function showNarration(message, aloud) {
   $('narration').textContent = message.text;
   if (aloud) speak(message.text);
 }
+// A new section replaces everything the previous one put on screen. Its own slide and first line
+// arrive right after, so nothing of the old section stays next to the new title.
+function enterSection(message) {
+  $('section-title').textContent = `${message.index + 1} / ${message.total}  ${message.title}`;
+  $('demo').hidden = true;
+  $('demo').textContent = '';
+  $('slide').hidden = true;
+  $('slide-title').textContent = '';
+  $('slide-points').replaceChildren();
+  $('narration').textContent = '';
+  activity = null;
+  $('activity').hidden = true;
+  if (!assignmentActive) { assignment = null; $('assignment').hidden = true; }
+}
+function showDemo(message) {
+  $('demo').hidden = false;
+  const what = message.note || message.feature;
+  const watch = message.watch ? ` 見るところ: ${message.watch}` : '';
+  $('demo').textContent = `先生の画面 (配信・教室のスクリーン) で実演中: ${what} (${message.enabled ? 'ON' : 'OFF'})。${watch}`;
+}
 
 // ---- private feed ----
+// A private message must be noticed by a student who is busy answering, without taking the
+// keyboard away: the list is a live region, and a note at the bottom of the screen says how many
+// arrived until the student scrolls to them or presses the note.
+let unseenPrivate = 0;
+let privateVisible = false;
+function privateNotice() {
+  const notice = $('private-notice');
+  if (unseenPrivate === 0 || privateVisible) {
+    unseenPrivate = 0;
+    notice.hidden = true;
+    for (const item of $('private').querySelectorAll('.ls-new')) item.classList.remove('ls-new');
+    return;
+  }
+  const first = $('private').firstElementChild;
+  const preview = first ? [...first.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent).join('').slice(0, 40) : '';
+  notice.textContent = `先生からあなたへ 新着 ${unseenPrivate} 件: ${preview}${preview.length >= 40 ? '…' : ''} (押すと表示)`;
+  notice.hidden = false;
+}
 function addPrivate(kind, text) {
   const list = $('private');
   if (list.firstElementChild?.classList.contains('ls-note')) list.replaceChildren();
@@ -76,6 +119,8 @@ function addPrivate(kind, text) {
   item.append(el('span', 'ls-kind', kind), document.createTextNode(text));
   list.prepend(item);
   while (list.children.length > PRIVATE_KEEP) list.lastElementChild.remove();
+  if (!privateVisible) { item.classList.add('ls-new'); unseenPrivate += 1; }
+  privateNotice();
   speak(text);
 }
 
@@ -102,7 +147,32 @@ function renderActivity(prompt) {
     });
   }
   $('activity-results').hidden = true;
+  $('activity-personal').hidden = true;
+  showMine(prompt.answer ?? null);
   setActivityOpen(prompt.state === 'open', prompt.answered ? '回答済みです。締め切りまで変更できます。' : '');
+}
+// The answer the server holds for this student, shown as it is, so the page never claims a
+// different one. Choices are re-checked from it; text goes back into the field.
+function showMine(answer) {
+  const mine = $('activity-mine');
+  if (!answer || !activity) { mine.hidden = true; mine.textContent = ''; return; }
+  if (answer.choices) {
+    const chosen = answer.choices.map((index) => activity.choices?.[index]).filter(Boolean);
+    for (const input of $('activity-choices').querySelectorAll('input')) input.checked = answer.choices.includes(Number(input.value));
+    mine.textContent = `いまのあなたの回答: ${chosen.join('、')}`;
+  } else {
+    $('activity-text').value = answer.text;
+    mine.textContent = `いまのあなたの回答: ${answer.text}`;
+  }
+  mine.hidden = false;
+}
+function acknowledge(message) {
+  if (!activity || message.activity_id !== activity.id) return;
+  showMine(message.answer);
+  if (message.via === 'utterance') {
+    $('activity-state').textContent = '「先生に話す」で送った言葉を、この問いへのあなたの回答として受け取りました。締め切りまで、ここで書き直せます。';
+    toast('話した言葉を回答として受け取りました');
+  } else $('activity-state').textContent = '受け取りました。締め切りまで変更できます。';
 }
 function setActivityOpen(open, note) {
   $('activity-send').disabled = !open;
@@ -130,20 +200,24 @@ function renderResults(results) {
     for (const point of results.points) bars.append(bar(point.label, point.count, results.answered, false));
   }
   const answer = $('activity-answer');
-  answer.textContent = results.has_answer ? results.model_answer ?? '' : 'この質問に正解はありません。理由を言えることが大事です。';
+  answer.textContent = results.has_answer ? results.model_answer ?? '' : 'この質問に正解はありません。';
   answer.hidden = answer.textContent === '';
+  $('activity-explanation').textContent = results.explanation ? `解説: ${results.explanation}` : '';
+  $('activity-explanation').hidden = !results.explanation;
   $('activity-highlights').replaceChildren(...(results.highlights ?? []).map((text) => el('li', '', text)));
   setActivityOpen(false, `${results.answered} 人が答えました。`);
 }
 function renderPersonal(result) {
   $('activity-personal').hidden = false;
-  $('activity-personal').textContent = result.feedback;
+  const graded = result.text ?? (result.choices && activity ? result.choices.map((index) => activity.choices?.[index]).join('、') : '');
+  $('activity-personal').textContent = graded ? `あなたの回答「${graded}」について: ${result.feedback}` : result.feedback;
   speak(result.feedback);
 }
 
 // ---- assignment ----
 function renderAssignment(data) {
   assignment = data;
+  assignmentActive = true;
   $('assignment').hidden = false;
   $('assignment-title').textContent = data.title;
   $('assignment-brief').textContent = data.brief;
@@ -155,15 +229,35 @@ function renderAssignment(data) {
     input.type = 'checkbox';
     input.checked = Boolean(done[index]);
     input.addEventListener('change', () => {
+      // The box shows what was asked; the server's progress (or its refusal) sets it for good.
       if (!send({ type: 'progress', assignment_id: data.id, step: index, done: input.checked })) input.checked = !input.checked;
     });
-    row.append(input, document.createTextNode(step.label));
-    if (step.auto) row.append(el('span', 'ls-auto', '自動'));
+    const words = el('span', '', step.label);
+    row.append(input, words);
+    if (step.auto) {
+      row.append(el('span', 'ls-auto', '自動'));
+      if (step.check) words.append(el('span', 'ls-check', `自動: 道具が ${step.check.variable} ${OPS[step.check.op] ?? step.check.op} ${JSON.stringify(step.check.value)} を見たらチェック`));
+    }
     item.append(row);
     return item;
   }));
   $('assignment-status').textContent = '';
   $('help').disabled = false;
+}
+const OPS = { gt: '>', ge: '>=', lt: '<', le: '<=', eq: '=', ne: '!=' };
+function closeAssignment() {
+  assignmentActive = false;
+  $('assignment-status').textContent = '課題の時間は終わりました。';
+  $('help').disabled = true;
+  for (const input of $('assignment-steps').querySelectorAll('input')) input.disabled = true;
+}
+function progressRejected(message) {
+  // Put every box back to what the server holds; with no record for this assignment, undo all ticks.
+  const boxes = $('assignment-steps').querySelectorAll('input');
+  const done = message.assignment && assignment && message.assignment.id === assignment.id ? message.assignment.done : [];
+  boxes.forEach((box, index) => { box.checked = Boolean(done[index]); });
+  toast(ERROR_TEXT[message.code] ?? '進み具合を受け付けられませんでした。');
+  if (message.code === 'not_assigned' && assignmentActive) closeAssignment();
 }
 function updateProgress(progress) {
   const boxes = $('assignment-steps').querySelectorAll('input');
@@ -181,7 +275,7 @@ function showToolLink(message) {
   $('tool-box').hidden = false;
   const tick = () => {
     if (left <= 0) { clearInterval(toolTimer); $('tool-box').hidden = true; $('tool-string').value = ''; $('tool-state').textContent = '期限が切れました。もう一度出してください。'; return; }
-    $('tool-state').textContent = `「授業」タブに貼り付けてください。あと ${left} 秒、1 回だけ使えます。`;
+    $('tool-state').textContent = `道具の「授業」タブに貼り付けてください (窓の無い Ergo Studio は POST /lesson/api/connect に {"link": "…"})。あと ${left} 秒、1 回だけ使えます。`;
     left -= 1;
   };
   tick();
@@ -189,19 +283,55 @@ function showToolLink(message) {
 }
 
 // ---- shared questions ----
+// Counts shown here are only ever the server's. The asker is not offered "私も知りたい" on their
+// own question; a vote is shown as given once the server confirms it.
+function renderVote(item) {
+  const id = item.dataset.question;
+  const button = item.querySelector('button');
+  if (!button) return;
+  const mine = myQuestions.has(id);
+  button.hidden = mine;
+  button.disabled = mine || votedQuestions.has(id) || button.dataset.pending === 'true';
+  button.textContent = votedQuestions.has(id) ? '知りたいを押しました' : '私も知りたい';
+  item.querySelector('.ls-mine-tag')?.toggleAttribute('hidden', !mine);
+}
+function sharedItem(id) { return [...$('shared').children].find((item) => item.dataset.question === id) ?? null; }
 function addShared(question) {
   $('shared-empty')?.remove();
+  if (question.mine) myQuestions.add(question.id);
+  if (question.voted) votedQuestions.add(question.id);
   const item = el('li');
+  item.dataset.question = question.id;
   item.append(el('p', 'ls-q', question.text), el('p', 'ls-a', question.answer));
   const meta = el('div', 'ls-meta');
   if (question.name) meta.append(el('span', '', question.name));
-  const votes = el('span', '', `知りたい ${question.votes}`);
+  meta.append(el('span', 'ls-votes', `知りたい ${question.votes}`));
+  const tag = el('span', 'ls-mine-tag', 'あなたの質問');
+  tag.hidden = true;
   const button = el('button', 'ls-secondary', '私も知りたい');
   button.type = 'button';
-  button.addEventListener('click', () => { if (send({ type: 'question.vote', id: question.id })) { button.disabled = true; votes.textContent = `知りたい ${question.votes + 1}`; } });
-  meta.append(votes, button);
+  button.addEventListener('click', () => { if (send({ type: 'question.vote', id: question.id })) { button.dataset.pending = 'true'; button.disabled = true; } });
+  meta.append(tag, button);
   item.append(meta);
-  $('shared').prepend(item);
+  const existing = sharedItem(question.id);
+  if (existing) existing.replaceWith(item); else $('shared').prepend(item);
+  renderVote(item);
+}
+function questionReply(message) {
+  if (message.relation === 'asker') myQuestions.add(message.question_id);
+  if (message.relation === 'me_too') votedQuestions.add(message.question_id);
+  const item = sharedItem(message.question_id);
+  if (item) renderVote(item);
+  addPrivate(message.from === 'teacher' ? '先生の答え' : '質問の答え', message.text);
+}
+function voted(message) {
+  votedQuestions.add(message.id);
+  const item = sharedItem(message.id);
+  if (item) { delete item.querySelector('button')?.dataset.pending; renderVote(item); }
+}
+function votesChanged(message) {
+  const item = sharedItem(message.id);
+  if (item) item.querySelector('.ls-votes').textContent = `知りたい ${message.votes}`;
 }
 
 // ---- conduct ----
@@ -245,9 +375,11 @@ function applyWelcome(message) {
   $('section-title').textContent = current >= 0 ? `${current + 1} / ${message.lesson.sections.length}  ${message.lesson.sections[current].title}` : 'まもなく始まります';
   if (state.slide) showSlide(state.slide);
   if (state.narration) showNarration(state.narration, false);
+  activity = null;
   if (state.activity) renderActivity(state.activity); else $('activity').hidden = true;
   if (state.activity_results) renderResults(state.activity_results);
   if (state.activity_personal) renderPersonal(state.activity_personal);
+  assignmentActive = false;
   if (state.assignment) renderAssignment(state.assignment); else $('assignment').hidden = true;
   $('tool').hidden = !message.lesson.tool;
   $('tool-engine').textContent = message.lesson.engine || '道具';
@@ -259,31 +391,36 @@ function applyWelcome(message) {
 
 const handlers = {
   welcome: applyWelcome,
-  section: (m) => { $('section-title').textContent = `${m.index + 1} / ${m.total}  ${m.title}`; $('demo').hidden = true; },
+  section: enterSection,
   slide: showSlide,
   narration: (m) => showNarration(m, true),
-  demo: (m) => { $('demo').hidden = false; $('demo').textContent = `画面で実演: ${m.note || m.feature} (${m.enabled ? 'ON' : 'OFF'})`; },
-  'activity.open': (m) => { renderActivity(m.activity); $('activity-text').value = ''; $('activity-personal').hidden = true; $('activity').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); },
+  demo: showDemo,
+  'activity.open': (m) => { $('activity-text').value = ''; renderActivity(m.activity); $('activity').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); },
   'activity.closed': () => setActivityOpen(false),
   'activity.reveal': (m) => renderResults(m.results),
   'activity.personal': (m) => renderPersonal(m.result),
-  'answer.ack': () => { $('activity-state').textContent = '受け取りました。締め切りまで変更できます。'; },
+  'answer.ack': acknowledge,
   assignment: (m) => renderAssignment(m.assignment),
-  'assignment.closed': () => { $('assignment-status').textContent = '課題の時間は終わりました。'; $('help').disabled = true; },
+  'assignment.closed': closeAssignment,
   'assignment.status': (m) => { $('assignment-status').textContent = `${m.total} 人中 ${m.done} 人が終わりました。`; },
   progress: (m) => updateProgress(m.assignment),
+  'progress.rejected': progressRejected,
   'tool.link': showToolLink,
   hint: (m) => addPrivate(m.kind === 'class_hint' ? '全員へ' : m.kind === 'praise' ? 'できました' : 'ヒント', m.text),
-  reply: (m) => addPrivate(m.about === 'question' ? '質問の答え' : m.about === 'teacher' ? '先生から' : '返事', m.text),
+  reply: (m) => (m.about === 'question' ? questionReply(m) : addPrivate(m.about === 'teacher' ? '先生から' : '返事', m.text)),
   'question.shared': (m) => addShared(m.question),
+  'question.voted': voted,
+  'question.votes': votesChanged,
   conduct: showConduct,
-  'utterance.ack': () => toast('聞こえました'),
+  'utterance.ack': (m) => toast(m.note ?? '聞こえました'),
   'voice.enroll': (m) => { $('enroll-code').textContent = m.code; },
   'voice.enrolled': () => { $('enroll-code').textContent = '登録できました'; },
   'lesson.end': () => { $('section-title').textContent = '授業は終わりました'; showNarration({ text: 'おつかれさまでした。' }, false); },
   'class.closed': () => { stopped = true; connection?.stop(); $('status').textContent = '授業は閉じられました'; },
   error: (m) => {
     const text = ERROR_TEXT[m.code] ?? '送信できませんでした。';
+    // A refused vote: let the button be pressed again only if a vote is still possible.
+    for (const button of $('shared').querySelectorAll('button[data-pending="true"]')) { delete button.dataset.pending; renderVote(button.closest('li')); }
     if ($('stage').hidden) { $('entry-status').textContent = text; if (['ejected', 'entry_locked', 'invalid_name', 'capacity'].includes(m.code)) { stopped = true; connection?.stop(); } }
     else toast(text);
   },
@@ -358,6 +495,17 @@ $('mic').addEventListener('click', async () => {
   $('mic').textContent = on ? 'マイクを止める' : 'マイクを使う';
 });
 $('enroll').addEventListener('click', () => send({ type: 'voice.enroll' }));
+$('private-notice').addEventListener('click', () => {
+  $('private-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  unseenPrivate = 0;
+  privateNotice();
+});
+if ('IntersectionObserver' in window) {
+  new IntersectionObserver((entries) => {
+    privateVisible = entries.some((entry) => entry.isIntersecting && (entry.intersectionRatio >= 0.5 || entry.intersectionRect.height >= window.innerHeight * 0.4));
+    if (privateVisible) privateNotice();
+  }, { threshold: [0, 0.25, 0.5, 0.75, 1] }).observe($('private-card'));
+}
 
 const fragment = new URLSearchParams(location.hash.slice(1));
 $('code').value = fragment.get('code') ?? '';

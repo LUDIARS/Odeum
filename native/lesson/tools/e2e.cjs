@@ -22,7 +22,7 @@ fs.mkdirSync(`${S}/e2e`, { recursive: true });
   const join = async (name) => { const p = await page({ viewport: { width: 420, height: 900 } }); await p.goto(`http://127.0.0.1:4410/lesson#code=${code}`); await p.fill('#name', name); await p.click('#entry-form button'); await p.waitForSelector('#stage:not([hidden])'); return p; };
   const aoi = await join('あおい'), riku = await join('りく');
   await con.click('#start');
-  await aoi.waitForFunction(() => document.getElementById('section-title').textContent.includes('完成版'));
+  await aoi.waitForFunction(() => document.getElementById('section-title').textContent.includes('演出が入った状態'));
   // question
   await con.selectOption('#activities', 'hitstop-design'); await con.click('#activity-open');
   await aoi.waitForSelector('#activity:not([hidden])');

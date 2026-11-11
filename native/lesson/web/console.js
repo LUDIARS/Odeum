@@ -13,8 +13,8 @@ const el = (tag, className, text) => {
 const LOG_KEEP = 80;
 const STANDING = { good: ['', ''], warned: ['注意', 'warn'], locked: ['発言停止', 'danger'], ejected: ['退出', 'danger'] };
 const PROGRESS = { not_started: '未着手', working: '作業中', stuck: '止まっている', needs_teacher: '直接見る', done: '完了' };
-const INTENT = { question: '質問', answer: '回答', help: '助けて', chatter: '発言', disruption: 'ふざけ', unattributed: '話者不明' };
-const REASON = { question_needs_teacher: '答えを用意できない質問です', asked_for_help: '助けを求めています', hints_exhausted: 'ヒントを出し切りました' };
+const INTENT = { question: '質問', answer: '回答', remark: '回答済みの人の発言', help: '助けて', chatter: '発言', disruption: 'ふざけ', unattributed: '話者不明' };
+const REASON = { question_needs_teacher: '答えを用意できない質問です (「生徒の質問」で答えるか見送ってください)', asked_for_help: '助けを求めています', hints_exhausted: 'ヒントを出し切りました' };
 const ERRORS = {
   console_token_required: 'トークンが違います。トークンファイルの値を付けて開き直してください。',
   invalid_state: 'いまはその操作ができません。', unknown_class: '授業を選んでください。', capacity: '上限に達しています。',
@@ -159,20 +159,51 @@ function renderActivity(activity, connected) {
   else for (const point of tally.points) $('activity-bars').append(bar(point.label, point.count, tally.answered, false));
   $('activity-highlights').replaceChildren(...(tally.highlights ?? []).map((text) => el('li', '', text)));
 }
+// Questions the model could not answer stay at the top, marked, until the operator answers or
+// dismisses them. The list is rebuilt only when it changes, and drafts survive a rebuild, so the
+// snapshot every 500 ms does not wipe what the operator is typing.
+let questionsShown = '';
+const answerDrafts = new Map();   // question id -> its answer field
+function answerField(question) {
+  let form = answerDrafts.get(question.id);
+  if (form) return form;
+  form = el('form', 'ls-row');
+  const input = el('input');
+  input.maxLength = 400;
+  input.placeholder = 'この質問に先生が答える (質問した人と「知りたい」の人に届きます)';
+  input.setAttribute('aria-label', `質問への回答: ${question.text}`);
+  const submit = el('button', 'ls-secondary', '答える');
+  submit.type = 'submit';
+  form.append(input, submit);
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const text = input.value.trim();
+    if (text && send({ type: 'questions.answer', id: question.id, text })) { input.value = ''; answerDrafts.delete(question.id); }
+  });
+  answerDrafts.set(question.id, form);
+  return form;
+}
 function renderQuestions(questions) {
-  const order = { pending: 0, shared: 1, dismissed: 2 };
-  const sorted = [...questions].sort((a, b) => order[a.status] - order[b.status] || b.score + 8 * b.votes - (a.score + 8 * a.votes));
+  const digest = JSON.stringify(questions.map(({ at, ...rest }) => rest));
+  if (digest === questionsShown) return;
+  questionsShown = digest;
+  const order = (question) => question.status === 'pending' ? (question.needs_teacher ? 0 : 1) : question.status === 'shared' ? 2 : 3;
+  const sorted = [...questions].sort((a, b) => order(a) - order(b) || b.score + 8 * b.votes - (a.score + 8 * a.votes));
   $('questions').replaceChildren(...sorted.map((question) => {
     const item = el('li');
+    item.dataset.question = question.id;
     item.append(el('p', 'ls-q', question.text), el('p', 'ls-a', question.answer));
     const meta = el('div', 'ls-meta');
     meta.append(el('span', '', nameOf(question.student)), el('span', '', `評価 ${question.score}`), el('span', '', `知りたい ${question.votes}`));
-    if (question.needs_teacher) { const tag = el('span', 'co-tag', '答えが未確定'); tag.dataset.tone = 'warn'; meta.append(tag); }
+    if (question.needs_teacher && question.status === 'pending') { const tag = el('span', 'co-tag', '先生の回答待ち'); tag.dataset.tone = 'warn'; meta.append(tag); }
+    if (question.answered_by_teacher) { const tag = el('span', 'co-tag', '先生が回答済み'); tag.dataset.tone = 'good'; meta.append(tag); }
     if (question.status === 'pending') {
       meta.append(button('共有', 'ls-secondary', () => send({ type: 'questions.share', id: question.id })),
         button('見送る', 'ls-secondary', () => send({ type: 'questions.dismiss', id: question.id })));
     } else meta.append(el('span', 'co-tag', question.status === 'shared' ? '共有済み' : '見送り'));
     item.append(meta);
+    if (question.status !== 'dismissed' && (question.needs_teacher || question.status === 'pending')) item.append(answerField(question));
+    else answerDrafts.delete(question.id);
     return item;
   }));
   if (questions.length === 0) $('questions').append(el('li', 'ls-note', 'まだ質問はありません。'));

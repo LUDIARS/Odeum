@@ -49,6 +49,7 @@
       <h2 id="activity-heading">みんなに質問</h2>
       <p id="activity-prompt" class="ls-prompt"></p>
       <pre id="activity-code" class="ls-code" hidden></pre>
+      <p id="activity-mine" class="ls-mine" hidden></p>
       <form id="activity-form">
         <div id="activity-choices" class="ls-choices"></div>
         <textarea id="activity-text" rows="4" maxlength="400" hidden></textarea>
@@ -61,6 +62,7 @@
         <h3>クラスの結果</h3>
         <div id="activity-bars" class="ls-bars"></div>
         <p id="activity-answer" class="ls-answer" hidden></p>
+        <p id="activity-explanation" class="ls-answer" hidden></p>
         <ul id="activity-highlights" class="ls-points"></ul>
         <p id="activity-personal" class="ls-personal" hidden></p>
       </div>
@@ -79,7 +81,7 @@
 
     <section id="tool" class="ls-card" hidden aria-labelledby="tool-heading">
       <h2 id="tool-heading"><span id="tool-engine"></span> をつなぐ</h2>
-      <p class="ls-note">つなぐと、課題の「自動」と付いた手順は、あなたのゲームの動きを見てチェックが入ります。つながなくても自分でチェックできます。</p>
+      <p class="ls-note">つなぐと、課題の「自動」と付いた手順は、道具があなたの機械で動いているゲームの変数 (手順の下に書いてあるもの) を見て、条件を満たしたときにチェックを入れます。つながなくても自分でチェックできます。</p>
       <div class="ls-row">
         <button type="button" id="tool-link" class="ls-secondary">接続文字列を出す</button>
         <span id="tool-state" class="ls-note"></span>
@@ -90,9 +92,9 @@
       </div>
     </section>
 
-    <section class="ls-card" aria-labelledby="private-heading">
+    <section id="private-card" class="ls-card" aria-labelledby="private-heading">
       <h2 id="private-heading">先生からあなたへ</h2>
-      <ul id="private" class="ls-feed"><li class="ls-note">ここには、あなただけに向けたヒントや質問の答えが届きます。</li></ul>
+      <ul id="private" class="ls-feed" role="log" aria-live="polite" aria-relevant="additions"><li class="ls-note">ここには、あなただけに向けたヒントや質問の答えが届きます。</li></ul>
     </section>
 
     <section class="ls-card" aria-labelledby="talk-heading">
@@ -126,6 +128,7 @@
       <ul id="shared" class="ls-feed"><li class="ls-note" id="shared-empty">まだありません。</li></ul>
     </section>
     <p id="feedback" class="ls-toast" role="status"></p>
+    <button type="button" id="private-notice" class="ls-notice" hidden></button>
   </div>
 </main>
 </body>

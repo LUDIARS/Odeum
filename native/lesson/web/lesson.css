@@ -108,6 +108,12 @@ label { display: grid; gap: 4px; font-size: 0.95rem; }
 .ls-enroll { font-size: 1.6rem; letter-spacing: 0.2em; font-variant-numeric: tabular-nums; }
 .ls-toast { position: sticky; bottom: 12px; justify-self: center; padding: 8px 14px; border-radius: 20px; background: var(--ls-fg); color: var(--ls-bg); font-size: 0.9rem; }
 .ls-toast:empty { display: none; }
+/* New private messages: a note at the bottom of the screen, never a focus change. */
+.ls-notice { position: fixed; right: 12px; bottom: 12px; z-index: 10; max-width: min(420px, calc(100vw - 24px)); text-align: left;
+  padding: 10px 14px; border-radius: 12px; background: var(--ls-warn-soft); color: var(--ls-warn); border: 1px solid var(--ls-warn); font-size: 0.9rem; box-shadow: 0 4px 16px rgb(0 0 0 / 0.15); }
+.ls-feed li.ls-new { outline: 2px solid var(--ls-warn); }
+.ls-mine { padding: 8px 12px; border-radius: 10px; background: var(--ls-bg); border: 1px dashed var(--ls-line); font-size: 0.95rem; overflow-wrap: anywhere; }
+.ls-check { display: block; font-size: 0.8rem; color: var(--ls-muted); font-family: ui-monospace, Menlo, Consolas, monospace; text-decoration: none; }
 
 /* Operator console */
 .co-page { max-width: 1320px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
