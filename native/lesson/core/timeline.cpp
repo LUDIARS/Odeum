@@ -25,6 +25,10 @@ Timeline build_timeline(const Plot& plot, const LessonModel& model) {
     Timeline timeline;
     timeline.duration = static_cast<Millis>(plot.minutes) * 60'000;
     const auto total = std::accumulate(plot.sections.begin(), plot.sections.end(), 0, [](int sum, const Section& s) { return sum + s.minutes; });
+    // Sections are spread over the lesson in proportion to their minutes; with no minutes at all there is
+    // nothing to be proportional to. parse_plot already requires at least one section of 1..240 minutes; a
+    // plot built in code can still get here, so reject it the same way instead of dividing by zero.
+    if (total <= 0) throw ProtocolError("invalid_plot", "Invalid plot: plot.sections.minutes");
     const auto add = [&](Millis at, CueKind kind, const Section& section, Json detail) {
         timeline.cues.push_back({at, kind, section.id, std::move(detail)});
     };
