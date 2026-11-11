@@ -158,7 +158,7 @@ async function say(page, { text }) {
   // trouble (could not see / hear / follow) / chatter / disruption.
   return { ok: true, reacted: hits, page_message: said.text, taken_as: said.taken_as, taken_as_answer: said.taken_as === 'answer' };
 }
-async function vote(page, { n }) {
+async function vote(page, { n, timeout }) {
   const seat = await view(page);
   const item = seat.shared.find((question) => question.n === n);
   if (!item) return fail('bad_question', `共有された質問の番号 (n) は ${seat.shared.map((question) => question.n).join(', ') || 'まだありません'} です。`);
@@ -167,7 +167,7 @@ async function vote(page, { n }) {
   const button = page.locator(`#shared li[data-attend-shared="${n}"] button`);
   await button.scrollIntoViewIfNeeded();
   const before = await counters(page);
-  await button.click();
+  await button.click(timeout ? { timeout } : {});
   // The count changes only when the server confirms the vote.
   const hits = await reaction(page, before, [{ id: 'shared' }, { id: 'feedback', nonEmpty: true }], REACT_MS);
   if (!hits.length) return fail('no_response', '「私も知りたい」を押しましたが、画面に反応が出ませんでした。');

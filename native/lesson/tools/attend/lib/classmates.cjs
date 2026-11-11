@@ -27,6 +27,7 @@ const CANNED = [
     question: { section: 'camera', text: 'カメラの揺れが強すぎると酔うのはなぜですか？' },
   },
 ];
+const CLICK_MS = 10000;   // a classmate's click gives up sooner than Playwright's 30 s, so the screen is re-read while it still matters
 const GENERIC = { text: 'まだ考え中ですが、見た目で分かることが大事だと思います', choice: [0] };
 
 function createClassmate({ name, page, slot, observation, log, onError, stepSeconds = 20 }) {
@@ -44,35 +45,67 @@ function createClassmate({ name, page, slot, observation, log, onError, stepSeco
 
   const record = (what, result) => log.write('classmate', { seat: name, what, ok: result.ok, error: result.error ?? null });
 
+  // What the page offers right now. A classmate only attempts an action the screen offers, and every action
+  // is optional: when it does not go through, the screen is read again. If the action is no longer offered
+  // (the question closed, the assignment ended, the shared question was removed or already voted on, the
+  // lesson ended) it is logged as skipped. If the page still offers it, the failure is a real one and stops
+  // the session.
+  const running = (view) => view.lesson_state === 'running';
+  const OFFERS = {
+    answer: (view, id) => running(view) && view.activity?.state === 'open' && observation.activityId(view.activity.prompt)?.id === id,
+    tick: (view, n) => running(view) && Boolean(view.assignment?.active) && view.assignment.steps.some((step) => step.n === n && !step.done),
+    help: (view) => running(view) && Boolean(view.assignment?.active),
+    ask: (view) => running(view),
+    vote: (view, question) => running(view) && view.shared.some((item) => item.question === question && item.can_vote),
+  };
+  const why = (view, kind) => (!running(view) ? `lesson ${view.lesson_state}`
+    : { answer: 'the question is no longer open', tick: 'the step or the assignment is no longer open', help: 'the assignment is no longer open',
+      ask: 'questions are not offered', vote: 'the shared question can no longer be voted on' }[kind]);
+  async function attempt(what, kind, arg, run) {
+    let result;
+    let failure = null;
+    try { result = await run(); } catch (error) { failure = error; }
+    if (!failure && result.ok) { record(what, result); return; }
+    const now = await actions.view(page);
+    if (!OFFERS[kind](now, arg)) {
+      log.write('classmate', { seat: name, what, ok: false, skipped: true, reason: why(now, kind), error: result?.error ?? (failure ? failure.message.split('\n')[0] : null) });
+      return;
+    }
+    throw failure ?? new Error(`${what} was refused while the page still offers it: ${JSON.stringify(result.error)}`);
+  }
+
   async function act(raw) {
     const activity = raw.activity && observation.activityId(raw.activity.prompt);
-    if (raw.activity?.state === 'open' && activity && !answered.has(activity.id)) {
+    if (activity && OFFERS.answer(raw, activity.id) && !answered.has(activity.id)) {
       if (!openedAt.has(activity.id)) openedAt.set(activity.id, Date.now());
       if (Date.now() - openedAt.get(activity.id) >= delay * 1000) {
         answered.add(activity.id);
         const canned = script[activity.id] ?? (activity.kind === 'choice' ? GENERIC.choice : GENERIC.text);
-        const result = Array.isArray(canned) ? await actions.answer(page, { choices: canned }) : await actions.answer(page, { text: canned });
-        record(`answer ${activity.id}`, result);
+        await attempt(`answer ${activity.id}`, 'answer', activity.id,
+          () => (Array.isArray(canned) ? actions.answer(page, { choices: canned }) : actions.answer(page, { text: canned })));
       }
     }
-    if (raw.assignment?.active) {
+    if (OFFERS.help(raw)) {
       const next = raw.assignment.steps.find((step) => !step.done);
       if (next && Date.now() - lastStep >= stepSeconds * 1000) {
         if (lastStep === 0) lastStep = Date.now();    // start working a little after it is given
-        else { lastStep = Date.now(); record(`tick ${next.n}`, await actions.tick(page, { step: next.n })); }
+        else { lastStep = Date.now(); await attempt(`tick ${next.n}`, 'tick', next.n, () => actions.tick(page, { step: next.n })); }
       }
       if (slot === 0 && !helped && raw.assignment.steps.filter((step) => step.done).length >= 2) {
         helped = true;
-        record('help', await actions.help(page));
+        await attempt('help', 'help', null, () => actions.help(page));
       }
     }
-    if (!asked && script.question && raw.sectionTitleId === script.question.section) {
+    if (!asked && script.question && raw.sectionTitleId === script.question.section && OFFERS.ask(raw)) {
       asked = true;
-      record('ask', await actions.ask(page, { text: script.question.text, showName: slot === 0 }));
+      await attempt('ask', 'ask', null, () => actions.ask(page, { text: script.question.text, showName: slot === 0 }));
     }
-    if (!voted && raw.section?.index && raw.section.index === raw.section.total && raw.shared.length) {
+    if (!voted && running(raw) && raw.section?.index && raw.section.index === raw.section.total && raw.shared.length) {
       const target = raw.shared.find((question) => question.can_vote && question.question !== script.question?.text);
-      if (target) { voted = true; record(`vote ${target.n}`, await actions.vote(page, { n: target.n })); }
+      if (target) {
+        voted = true;
+        await attempt(`vote ${target.n}`, 'vote', target.question, () => actions.vote(page, { n: target.n, timeout: CLICK_MS }));
+      }
     }
   }
 

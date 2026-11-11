@@ -109,6 +109,7 @@ function privateNotice() {
   if (unseenPrivate === 0 || privateVisible) {
     unseenPrivate = 0;
     notice.hidden = true;
+    document.body.style.paddingBottom = '';
     for (const item of $('private').querySelectorAll('.ls-new')) item.classList.remove('ls-new');
     return;
   }
@@ -116,6 +117,9 @@ function privateNotice() {
   const preview = first ? [...first.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent).join('').slice(0, 40) : '';
   notice.textContent = `先生からあなたへ 新着 ${unseenPrivate} 件: ${preview}${preview.length >= 40 ? '…' : ''} (押すと表示)`;
   notice.hidden = false;
+  // The note floats over the bottom of the page; leave room under the last controls (the shared questions'
+  // 私も知りたい) so they can still be scrolled above it and pressed.
+  document.body.style.paddingBottom = `${notice.offsetHeight + 24}px`;
 }
 function addPrivate(kind, text) {
   const list = $('private');
