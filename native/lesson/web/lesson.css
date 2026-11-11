@@ -150,3 +150,4 @@ label { display: grid; gap: 4px; font-size: 0.95rem; }
 .co-log { max-height: 280px; overflow-y: auto; }
 .co-log li { font-size: 0.88rem; }
 .co-empty { color: var(--ls-muted); font-size: 0.9rem; }
+.co-waiting { margin: 8px 0 0; padding: 8px 12px; border-radius: 8px; font-weight: 600; background: var(--ls-warn-soft); color: var(--ls-warn); }

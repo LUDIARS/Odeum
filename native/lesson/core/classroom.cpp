@@ -130,6 +130,17 @@ void Classroom::ask(Outbox& out, const Student& from, const std::string& text, b
         {"pending_teacher", submitted.review.needs_teacher}}));
     if (submitted.review.needs_teacher && !submitted.duplicate)
         out.push_back(to_consoles({{"type", "attention"}, {"student", from.id}, {"reason", "question_needs_teacher"}, {"question_id", submitted.id}}));
+    out.push_back(to_student(from.id, {{"type", "question.status"}, {"question", questions_.status_for(from.id, submitted.id)}}));
+}
+// What the rules know is that an answer was prepared, not that it settled the asker's doubt. The
+// asker can say it did not; the question then waits for the human teacher again.
+void Classroom::mark_unresolved(Outbox& out, const Student& from, const std::string& id) {
+    questions_.unresolved(from.id, id);
+    dirty_ = true;
+    out.push_back(to_consoles({{"type", "attention"}, {"student", from.id}, {"reason", "question_unresolved"}, {"question_id", id}}));
+    out.push_back(to_student(from.id, {{"type", "reply"}, {"about", "question"}, {"question_id", id}, {"relation", "asker"},
+        {"text", "「まだ分からない」を受け取りました。この質問は人間の先生の回答待ちに戻し、自動ではクラスに共有しません。先生から答えが届いたらここに出ます。"}}));
+    question_status(out, id);
 }
 // A message sent as a question that reads as "I am stuck on the assignment" goes where it can be
 // helped: the hint for the step the student is on, not the question board.
@@ -260,7 +271,7 @@ Outbox Classroom::from_student(const std::string& id, const Json& message, Milli
             {"seconds", SpeakerRegistry::enrollment_ms / 1000}}));
         return out;
     }
-    if (type != "answer" && type != "question" && type != "question.vote" && type != "utterance")
+    if (type != "answer" && type != "question" && type != "question.vote" && type != "question.unresolved" && type != "utterance")
         throw ProtocolError("unknown_type", "Unknown message type");
     if (!allowed_to_post(out, from, now)) return out;
     if (type == "answer") answer(out, from, message, now);
@@ -282,6 +293,7 @@ Outbox Classroom::from_student(const std::string& id, const Json& message, Milli
         // Counts on the page come only from here, so nobody sees a number the server did not keep.
         if (questions_.shared(question)) out.push_back(to_all({{"type", "question.votes"}, {"id", question}, {"votes", votes}}));
     }
+    else if (type == "question.unresolved") mark_unresolved(out, from, text_field(message, "id", 32));
     else hear(out, from, text_field(message, "text", max_utterance_scalars), now);
     return out;
 }
@@ -302,10 +314,10 @@ Outbox Classroom::from_console(const Json& message, Millis now) {
     else if (type == "assignment.assign") assign(out, text_field(message, "id", 64), now);
     else if (type == "assignment.close") close_assignment(out);
     else if (type == "questions.share") {
-        if (message.contains("id")) { const auto id = text_field(message, "id", 32); questions_.share(id); share_questions(out, {id}); }
-        else share_questions(out, questions_.share_best());
+        if (message.contains("id")) { const auto id = text_field(message, "id", 32); questions_.share(id); share_questions(out, {id}, true); }
+        else share_questions(out, questions_.share_best(), false);
     }
-    else if (type == "questions.dismiss") questions_.dismiss(text_field(message, "id", 32));
+    else if (type == "questions.dismiss") dismiss_question(out, text_field(message, "id", 32));
     else if (type == "questions.answer") answer_question(out, text_field(message, "id", 32), text_field(message, "text", max_tell_scalars));
     else if (type == "student.lock") {
         const auto id = target();

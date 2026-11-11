@@ -30,6 +30,8 @@ const ERROR_TEXT = {
   invalid_answer: '回答を確認してください。',
   invalid_question: '質問は 1〜280 文字で送ってください。',
   not_assigned: 'いまは課題が出ていません。',
+  not_your_question: '自分の質問だけに「まだ分からない」を送れます。',
+  no_answer_yet: 'この質問はすでに先生の回答待ちです。',
   own_question: '自分の質問には「私も知りたい」を押せません。',
   unknown_question: 'その質問はもうありません。',
 };
@@ -302,7 +304,7 @@ function addShared(question) {
   if (question.voted) votedQuestions.add(question.id);
   const item = el('li');
   item.dataset.question = question.id;
-  item.append(el('p', 'ls-q', question.text), el('p', 'ls-a', question.answer));
+  item.append(el('p', 'ls-q', question.text), el('p', 'ls-a', question.answer_from === 'none' ? 'まだ答えはありません (先生の回答待ち)' : question.answer_from === 'teacher' ? `先生の答え: ${question.answer}` : question.answer));
   const meta = el('div', 'ls-meta');
   if (question.name) meta.append(el('span', '', question.name));
   meta.append(el('span', 'ls-votes', `知りたい ${question.votes}`));
@@ -344,6 +346,48 @@ function heardBack(message) {
   $('say-state').textContent = `${said}${note}`;
   $('say-state').dataset.takenAs = message.taken_as ?? '';
   toast(note);
+}
+
+// ---- this student's own questions ----
+// Each question the student asked (or said "me too" to) with where it stands, so a question passed to
+// the human teacher does not simply vanish. States come only from the server (question.status).
+const QUESTION_STATE = { answered: '答えあり (用意した答え)', waiting: '先生の回答待ち', teacher: '先生から回答', dismissed: '見送り' };
+const ownQuestions = new Map();
+function renderOwnQuestions() {
+  const list = $('my-questions');
+  if (ownQuestions.size === 0) { list.replaceChildren(el('li', 'ls-note', 'まだありません。')); return; }
+  list.replaceChildren(...[...ownQuestions.values()].reverse().map((question) => {
+    const item = el('li');
+    item.dataset.question = question.id;
+    item.dataset.state = question.state;
+    item.append(el('p', 'ls-q', question.text));
+    if (question.answer) item.append(el('p', 'ls-a', question.answer));
+    const meta = el('div', 'ls-meta');
+    const state = el('span', 'co-tag ls-qstate', QUESTION_STATE[question.state] ?? question.state);
+    if (question.state === 'waiting') state.dataset.tone = 'warn';
+    if (question.state === 'dismissed') state.dataset.tone = 'danger';
+    meta.append(state);
+    if (question.relation === 'me_too') meta.append(el('span', '', '「知りたい」を押した質問'));
+    if (question.shared) meta.append(el('span', '', 'クラスに共有済み'));
+    if (question.unresolved && question.state === 'waiting') meta.append(el('span', '', '「まだ分からない」を送りました'));
+    if (question.relation === 'asker' && (question.state === 'answered' || question.state === 'teacher')) {
+      const button = el('button', 'ls-secondary', 'まだ分からない');
+      button.type = 'button';
+      button.addEventListener('click', () => { if (send({ type: 'question.unresolved', id: question.id })) button.disabled = true; });
+      meta.append(button);
+    }
+    item.append(meta);
+    return item;
+  }));
+}
+function questionStatus(question) {
+  ownQuestions.set(question.id, question);
+  if (question.relation === 'asker') myQuestions.add(question.id);
+  renderOwnQuestions();
+}
+function questionRemoved(message) {
+  sharedItem(message.id)?.remove();
+  if ($('shared').children.length === 0) { $('shared').replaceChildren(el('li', 'ls-note', 'まだありません。')); $('shared').firstElementChild.id = 'shared-empty'; }
 }
 
 // ---- conduct ----
@@ -398,10 +442,13 @@ function applyWelcome(message) {
   $('shared').replaceChildren(el('li', 'ls-note', 'まだありません。'));
   $('shared').firstElementChild.id = 'shared-empty';
   for (const question of state.questions) addShared(question);
+  ownQuestions.clear();
+  for (const question of state.my_questions ?? []) ownQuestions.set(question.id, question);
+  renderOwnQuestions();
   showConduct(state.conduct);
 }
 
-const REPLY_KIND = { teacher: '先生から', help: '返事', trouble: '先生に知らせました' };
+const REPLY_KIND = { teacher: '先生から', help: '返事', trouble: '先生に知らせました', questions_unanswered: '答えられなかった質問' };
 const handlers = {
   welcome: applyWelcome,
   section: enterSection,
@@ -422,6 +469,8 @@ const handlers = {
   hint: (m) => addPrivate(m.kind === 'class_hint' ? '全員へ' : m.kind === 'praise' ? 'できました' : 'ヒント', m.text),
   reply: (m) => (m.about === 'question' ? questionReply(m) : addPrivate(REPLY_KIND[m.about] ?? '返事', m.text)),
   'question.shared': (m) => addShared(m.question),
+  'question.status': (m) => questionStatus(m.question),
+  'question.removed': questionRemoved,
   'question.voted': voted,
   'question.votes': votesChanged,
   conduct: showConduct,

@@ -90,7 +90,11 @@ private:
     void reveal_activity(Outbox& out);
     void assign(Outbox& out, const std::string& id, Millis now);
     void close_assignment(Outbox& out);
-    void share_questions(Outbox& out, const std::vector<std::string>& ids);
+    void share_questions(Outbox& out, const std::vector<std::string>& ids, bool by_operator);
+    void question_status(Outbox& out, const std::string& id);   // each asker / me-too gets their own view of it
+    void dismiss_question(Outbox& out, const std::string& id);
+    void mark_unresolved(Outbox& out, const Student& from, const std::string& id);
+    void tell_unanswered(Outbox& out);
     void answer_question(Outbox& out, const std::string& id, const std::string& text);
     void supervise(Outbox& out, Millis now);
     void switch_demo(const std::string& feature, bool enabled);

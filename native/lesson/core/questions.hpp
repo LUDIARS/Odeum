@@ -25,7 +25,22 @@ public:
     // Marks up to max_per_share of the best pending questions as shared and returns their ids, best first.
     std::vector<std::string> share_best();
     void share(const std::string& id);
-    void dismiss(const std::string& id);
+    // Returns who should be told: the asker first, then everyone who said "me too".
+    std::vector<std::string> dismiss(const std::string& id);
+    // The asker says the answer they received did not settle it (「まだ分からない」). The question goes
+    // back to waiting for the human teacher and is no longer shared automatically.
+    // Throws unknown_question / not_your_question / no_answer_yet.
+    void unresolved(const std::string& student, const std::string& id);
+    // Who hears about a change to this question: the asker first, then the me-toos.
+    std::vector<std::string> audience(const std::string& id) const;
+    // One question as `student` sees it in their own list: {id, text, state, answer, shared, relation}.
+    // state: answered (a prepared answer) / waiting (先生の回答待ち) / teacher (先生から回答) / dismissed (見送り).
+    Json status_for(const std::string& student, const std::string& id) const;
+    Json mine(const std::string& student) const;   // the questions `student` asked or said "me too" to
+    // Questions still waiting for the teacher that `student` asked or joined and has not yet been told
+    // about; they are marked as told.
+    std::vector<std::string> take_unanswered(const std::string& student);
+    std::size_t waiting() const;                    // questions waiting for the human teacher
     // The human teacher answers a question. It stops needing the teacher and may now be shared.
     // Returns who should hear the answer: the asker first, then everyone who said "me too".
     std::vector<std::string> answer(const std::string& id, const std::string& text);
@@ -39,6 +54,7 @@ public:
     Json console_list() const;                      // console: all, with asker ids and scores
     bool knows(const std::string& id) const { return questions_.contains(id); }
     const std::string& asker(const std::string& id) const { return questions_.at(id).student; }
+    const std::string& text(const std::string& id) const { return questions_.at(id).text; }
 private:
     struct Question {
         std::string id, student, name, text, answer;
@@ -48,7 +64,8 @@ private:
         int score = 0;
         Millis at = 0;
         Status status = Status::pending;
-        bool show_name = false, needs_teacher = false, answered_by_teacher = false;
+        bool show_name = false, needs_teacher = false, answered_by_teacher = false, unresolved = false;
+        std::set<std::string> told_unanswered;   // students already told it was not answered in class
     };
     const LessonModel* model_;
     std::map<std::string, Question> questions_;

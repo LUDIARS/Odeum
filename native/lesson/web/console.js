@@ -15,6 +15,7 @@ const STANDING = { good: ['', ''], warned: ['注意', 'warn'], locked: ['発言�
 const PROGRESS = { not_started: '未着手', working: '作業中', stuck: '止まっている', needs_teacher: '直接見る', done: '完了' };
 const INTENT = { question: '質問', answer: '回答', remark: '回答済みの人の発言', trouble: '見えない・聞こえない', help: '助けて', chatter: '発言', disruption: 'ふざけ', unattributed: '話者不明' };
 const REASON = { question_needs_teacher: '答えを用意できない質問です (「生徒の質問」で答えるか見送ってください)', asked_for_help: '助けを求めています', hints_exhausted: 'ヒントを出し切りました',
+  question_unresolved: '答えを受け取った生徒が「まだ分からない」と言っています (「生徒の質問」で答えてください)',
   cannot_follow: '授業が見えない・聞こえない・ついていけないと言っています (対応してください)' };
 const ERRORS = {
   console_token_required: 'トークンが違います。トークンファイルの値を付けて開き直してください。',
@@ -28,6 +29,7 @@ let names = new Map();
 let welcome = null;
 let selected = '';
 let attached = false;   // this socket has been attached to `selected`
+let waiting = 0;        // questions waiting for the human teacher (from the snapshot)
 
 const connection = connectWithBackoff({
   url: () => relaySocketUrl('/v1/console', { token }),
@@ -188,7 +190,7 @@ function renderQuestions(questions) {
   const digest = JSON.stringify(questions.map(({ at, ...rest }) => rest));
   if (digest === questionsShown) return;
   questionsShown = digest;
-  const order = (question) => question.status === 'pending' ? (question.needs_teacher ? 0 : 1) : question.status === 'shared' ? 2 : 3;
+  const order = (question) => question.status !== 'dismissed' && question.needs_teacher ? 0 : question.status === 'pending' ? 1 : question.status === 'shared' ? 2 : 3;
   const sorted = [...questions].sort((a, b) => order(a) - order(b) || b.score + 8 * b.votes - (a.score + 8 * a.votes));
   $('questions').replaceChildren(...sorted.map((question) => {
     const item = el('li');
@@ -196,7 +198,8 @@ function renderQuestions(questions) {
     item.append(el('p', 'ls-q', question.text), el('p', 'ls-a', question.answer));
     const meta = el('div', 'ls-meta');
     meta.append(el('span', '', nameOf(question.student)), el('span', '', `評価 ${question.score}`), el('span', '', `知りたい ${question.votes}`));
-    if (question.needs_teacher && question.status === 'pending') { const tag = el('span', 'co-tag', '先生の回答待ち'); tag.dataset.tone = 'warn'; meta.append(tag); }
+    if (question.needs_teacher && question.status !== 'dismissed') { const tag = el('span', 'co-tag', '先生の回答待ち'); tag.dataset.tone = 'warn'; meta.append(tag); }
+    if (question.unresolved) { const tag = el('span', 'co-tag', '「まだ分からない」'); tag.dataset.tone = 'warn'; meta.append(tag); }
     if (question.answered_by_teacher) { const tag = el('span', 'co-tag', '先生が回答済み'); tag.dataset.tone = 'good'; meta.append(tag); }
     if (question.status === 'pending') {
       meta.append(button('共有', 'ls-secondary', () => send({ type: 'questions.share', id: question.id })),
@@ -227,6 +230,11 @@ function renderSnapshot(snapshot) {
   renderActivity(snapshot.activity, snapshot.students.filter((student) => student.connected && student.standing !== 'ejected').length);
   $('assignment-state').textContent = snapshot.assignment ? `${snapshot.assignment.title}: ${snapshot.assignment.active ? '実施中' : '終了'}` : '';
   renderQuestions(snapshot.questions);
+  waiting = snapshot.questions_waiting ?? 0;
+  // Unanswered questions stay in sight, most of all near the end and before the class is closed:
+  // their askers are told at the end that no answer came.
+  $('waiting').hidden = waiting === 0;
+  $('waiting').textContent = `先生の回答待ちの質問: ${waiting} 件 — 「生徒の質問」で答えるか見送ってください。授業の終わりに、質問した生徒には「授業中に答えられなかった」と伝わります。`;
 }
 
 // The presenter's tool (the Studio on the machine that shows the demo) is linked with a
@@ -255,7 +263,10 @@ const handlers = {
 $('open').addEventListener('click', () => { selected = ''; send({ type: 'class.open', plot: $('plots').value }); });
 $('plots').addEventListener('change', () => { $('prep').href = `/v1/prep.pptx?plot=${encodeURIComponent($('plots').value)}`; });
 $('classes').addEventListener('change', () => { selected = $('classes').value; if (selected) send({ type: 'class.select', class: selected }); else send({ type: 'catalog' }); });
-$('close').addEventListener('click', () => { if (confirm('授業を閉じます。参加中の全員が切断されます。')) { selected = ''; send({ type: 'class.close' }); } });
+$('close').addEventListener('click', () => {
+  const unanswered = waiting > 0 ? `先生の回答待ちの質問が ${waiting} 件残っています。閉じると答えを届けられません。\n` : '';
+  if (confirm(`${unanswered}授業を閉じます。参加中の全員が切断されます。`)) { selected = ''; send({ type: 'class.close' }); }
+});
 $('tool-link').addEventListener('click', () => send({ type: 'tool.link' }));
 $('entry-lock').addEventListener('change', () => send({ type: 'entry.lock', locked: $('entry-lock').checked }));
 for (const [id, type] of [['start', 'lesson.start'], ['pause', 'lesson.pause'], ['resume', 'lesson.resume'], ['skip', 'lesson.skip'],
