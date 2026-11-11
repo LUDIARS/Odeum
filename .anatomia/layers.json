@@ -2,7 +2,31 @@
   "layers": [
     { "glob": "custos/public/js/**", "layer": "presentation" },
     { "glob": "custos/scripts/setup-gaze.mjs", "layer": "infrastructure" },
-    { "glob": "custos/tests/**", "layer": "test" }
+    { "glob": "custos/tests/**", "layer": "test" },
+    { "glob": "native/fuzz/*", "layer": "test" },
+    { "glob": "native/tests/*", "layer": "test" },
+    { "glob": "native/protocol/*", "layer": "domain" },
+    { "glob": "native/protocol/include/odeum/*", "layer": "domain" },
+    { "glob": "native/relay/*", "layer": "presentation" },
+    { "glob": "native/relay/web/*", "layer": "presentation" },
+    { "glob": "native/presenter/core/*", "layer": "domain" },
+    { "glob": "native/presenter/app/*", "layer": "application" },
+    { "glob": "native/presenter/transport/*", "layer": "infrastructure" },
+    { "glob": "native/presenter/platform/windows/*", "layer": "infrastructure" },
+    { "glob": "native/presenter/platform/macos/*", "layer": "infrastructure" },
+    { "glob": "native/program/core/*", "layer": "domain" },
+    { "glob": "native/program/app/*", "layer": "application" },
+    { "glob": "native/program/render/*", "layer": "presentation" },
+    { "glob": "native/program/transport/*", "layer": "infrastructure" },
+    { "glob": "native/program/platform/windows/*", "layer": "infrastructure" },
+    { "glob": "native/program/platform/macos/*", "layer": "infrastructure" },
+    { "glob": "native/runner/core/*", "layer": "domain" },
+    { "glob": "native/runner/adapters/*", "layer": "infrastructure" },
+    { "glob": "native/runner/app/*", "layer": "application" },
+    { "glob": "native/runner/webrtc/*", "layer": "infrastructure" },
+    { "glob": "native/runner/unityctl/*", "layer": "application" },
+    { "glob": "native/runner/tests/compat/*", "layer": "test" },
+    { "glob": "native/runner/tests/golden/*", "layer": "test" }
   ],
   "mergeCouplingThreshold": 1
 }
