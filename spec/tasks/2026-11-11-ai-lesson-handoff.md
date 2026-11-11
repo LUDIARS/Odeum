@@ -32,12 +32,15 @@ Odeum をベースに AI 授業を作る。講師モデルは後で届くので�
 - ブランチ `claude/charming-goldberg-p51pyj` (LUDIARS/Odeum)。GitHub PR #5 (open、未レビュー、未マージ)。
 - 変更は Odeum だけ。同じ名前のブランチが指定されていた他の 9 リポ (Officina / Curare / Ingenium / Discutere / Manus /
   Tirocinium / Revisor / Lorica / AIFormat) は無変更。
-- 上の 1〜6 は一通り実装済みで、授業側の単体テスト 14 本が通る。ブラウザでの通し確認も済み (下の「再現手順」)。
+- 上の 1〜6 は一通り実装済みで、授業側の単体テスト 16 本が通る。ブラウザでの通し確認も済み (下の「再現手順」)。
 - AI の生徒を実際に出席させて見つけた欠陥 (発話が提出済みの回答を置き換える、仮モデルが守れない約束・根拠の無い講評、
   キーワードの取りこぼし、選択問題の解説が無い、模範解答と採点観点の食い違い、課題が実在しない手順を前提にしていた、
   生徒ページの表示の食い違い) を直した。2 回目の出席で見つけた欠陥 (回答後の発言に反応が無く質問扱いになる、先生に回した質問の
   行方が分からない、薄い答えが「いい質問」として共有される、課題のコマンドとポートが不十分、道具がつながったことが分からない、
-  採点の語が広すぎる、ハーネスの窓の上限・実演の取りこぼし・個別メッセージの既読) も直した。振る舞いは仕様 (`spec/feature/ai-lesson.md`) に反映済み。
+  採点の語が広すぎる、ハーネスの窓の上限・実演の取りこぼし・個別メッセージの既読) も直した。3 回目の出席で見つけた欠陥
+  (級友の投票が画面下の新着の知らせに隠れて失敗しセッションが exit 1、observe に手順のコマンドが無い、共有の後すぐ終わる、記述の窓が短い、
+  「まだ分からない」の後に前の操作の表示が残る、用意した答えが後の問いの答えを明かす (FAQ の `after`)、採点の語 (気持ちいい・追いかける・
+  進む方向)、「見えない・聞こえない」の知らせに続きが無い) も直した。振る舞いは仕様 (`spec/feature/ai-lesson.md`) に反映済み。
 - 確認したのは Linux / GCC 13 だけ。
 
 ## 構成 (読む順)
@@ -72,7 +75,7 @@ Odeum をベースに AI 授業を作る。講師モデルは後で届くので�
 export LC_ALL=C.UTF-8        # 無いと Boost の zip 展開が configure で失敗する
 cmake -S native -B native/build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build native/build
-ctest --test-dir native/build -R lesson --output-on-failure      # 14 本
+ctest --test-dir native/build -R lesson --output-on-failure      # 16 本
 
 native/build/bin/odeum-lesson courses
 native/build/bin/odeum-lesson timeline action-game
