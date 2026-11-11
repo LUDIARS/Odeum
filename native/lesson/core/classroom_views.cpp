@@ -12,7 +12,8 @@ Json Classroom::welcome(const Student& to, Millis now) const {
     Json sections = Json::array();
     for (const auto& section : plot_.sections) sections.push_back({{"id", section.id}, {"title", section.title}});
     Json state{{"player", player_state_name(player_.state())}, {"section", section_ ? Json(section_->id) : Json(nullptr)},
-        {"questions", questions_.shared_list(to.id)}, {"my_questions", questions_.mine(to.id)}, {"conduct", standing_json(to.id, now)}};
+        {"questions", questions_.shared_list(to.id)}, {"my_questions", questions_.mine(to.id)},
+        {"my_reports", reports_.mine(to.id)}, {"conduct", standing_json(to.id, now)}};
     if (!slide_.is_null()) state["slide"] = slide_;
     if (!narration_.is_null()) state["narration"] = narration_;
     if (activity_) {
@@ -69,7 +70,7 @@ Json Classroom::console_snapshot(Millis now) const {
         {"player", {{"state", player_state_name(player_.state())}, {"position_ms", player_.position(now)},
             {"duration_ms", player_.timeline().duration}, {"section", section_ ? Json(section_->id) : Json(nullptr)}}},
         {"students", std::move(students)}, {"speakers", voice_.speakers(now)}, {"questions", questions_.console_list()},
-        {"questions_waiting", questions_.waiting()}};
+        {"questions_waiting", questions_.waiting()}, {"reports", reports_.console_list()}, {"reports_open", reports_.open()}};
     if (activity_) {
         out["activity"] = activity_->prompt();
         out["activity"]["tally"] = activity_->state() == Activity::State::revealed ? activity_->results() : activity_->tally();

@@ -2,7 +2,7 @@
 # whole lesson flow is testable; the transport adds the HTTP/WebSocket service and embedded pages.
 add_library(odeum_lesson_core
   core/text.cpp core/plot.cpp core/provisional_model.cpp core/timeline.cpp core/timeline_player.cpp
-  core/activity.cpp core/assignment.cpp core/conduct.cpp core/questions.cpp core/voice.cpp
+  core/activity.cpp core/assignment.cpp core/conduct.cpp core/questions.cpp core/reports.cpp core/voice.cpp
   core/classroom.cpp core/classroom_cues.cpp core/classroom_views.cpp
   core/zip.cpp core/prep_sheet.cpp core/pptx.cpp)
 target_include_directories(odeum_lesson_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/core)

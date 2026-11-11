@@ -47,6 +47,7 @@ async function attend(report) {
     collect(view);
     if (view.demo) report.demos[view.section?.index ?? 0] = view.demo;
     report.mine = view.my_questions ?? report.mine;
+    for (const item of view.my_reports ?? []) report.reports.push({ text: item.text, state: item.state });
     const activity = view.activity;
     if (activity?.state === 'open' && activity.id && !answered.has(activity.id)) {
       answered.add(activity.id);
@@ -188,7 +189,7 @@ async function main() {
   }
   say('session ready');
   const report = { answers: {}, feedback: {}, explanations: {}, ticks: [], private: [], demos: {}, mine: [], help: null, question: null, say: null, vote: null,
-    remark: null, trouble: null, unresolved: null, tool_link: null, last_assignment: null, status: null };
+    reports: [], remark: null, trouble: null, unresolved: null, tool_link: null, last_assignment: null, status: null };
   try { await attend(report); } catch (error) { report.error = error.message; }
   say('lesson over; stopping');
   await seat('stop').catch(() => {});
@@ -200,6 +201,7 @@ async function main() {
   const returned = report.private.map((message) => message.seq);
   const state = (text) => report.mine.find((item) => item.question === text)?.state ?? null;
   const events = fs.readFileSync(path.join(work, 'attendee.jsonl'), 'utf8').trim().split('\n').map((line) => JSON.parse(line));
+  report.teacher_acknowledged = events.filter((event) => event.kind === 'operator' && event.event === 'teacher.ack_report').map((event) => event.report_id);
   report.teacher_answers = events.filter((event) => event.kind === 'operator' && event.event === 'teacher.answer').map((event) => event.entry);
   report.checks = {
     every_activity_answered_and_acked: activities.length > 0 && activities.every((id) => report.answers[id].ok && report.answers[id].acked),
@@ -215,6 +217,8 @@ async function main() {
     trouble_acknowledged_not_a_question: Boolean(report.trouble?.ok && report.trouble.taken_as === 'trouble' && report.trouble.answer_on_page === TEXT
       && !report.mine.some((item) => item.question === TROUBLE)),
     remark_acknowledged: report.remark?.taken_as === 'remark',
+    trouble_report_shown_then_acknowledged: report.reports.some((item) => item.text === TROUBLE && item.state.startsWith('知らせました'))
+      && report.reports.some((item) => item.text === TROUBLE && item.state === '先生が確認しました') && report.teacher_acknowledged.length > 0,
     operator_answer_reached_attendee: report.private.some((message) => message.kind === '先生の答え') && state(TEACHER_QUESTION) === '先生から回答',
     unresolved_back_to_waiting_then_answered: report.unresolved?.after === '先生の回答待ち' && state(UNRESOLVED_QUESTION) === '先生から回答',
     unanswered_told_at_end: state(LEFT_QUESTION) === '先生の回答待ち' && report.private.some((message) => message.kind === '答えられなかった質問'),

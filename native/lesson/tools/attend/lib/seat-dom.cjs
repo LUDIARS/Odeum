@@ -5,7 +5,7 @@
 // report the outcome of an action (toast, answer state, private feed, ...), so an action can wait
 // for "the page reacted" even when the new text equals the old one. Purely observational.
 function installHooks() {
-  const watched = ['feedback', 'activity-state', 'activity-mine', 'private', 'private-notice', 'shared', 'conduct', 'enroll-code', 'assignment-status', 'tool-state', 'tool-string', 'say-state', 'my-questions', 'tool-linked'];
+  const watched = ['feedback', 'activity-state', 'activity-mine', 'private', 'private-notice', 'shared', 'conduct', 'enroll-code', 'assignment-status', 'tool-state', 'tool-string', 'say-state', 'my-questions', 'tool-linked', 'my-reports'];
   window.__attend = { mutations: Object.fromEntries(watched.map((id) => [id, 0])), seq: {}, ids: {} };
   const attach = () => {
     for (const id of watched) {
@@ -25,7 +25,7 @@ function readSeat() {
     'slide-points', 'activity', 'activity-prompt', 'activity-code', 'activity-choices', 'activity-text', 'activity-send', 'activity-state',
     'activity-results', 'activity-bars', 'activity-answer', 'activity-explanation', 'activity-highlights', 'activity-personal', 'activity-mine', 'assignment', 'assignment-title',
     'assignment-brief', 'assignment-steps', 'help', 'assignment-status', 'private', 'private-notice', 'say', 'question', 'show-name', 'shared', 'feedback',
-    'tool', 'tool-link', 'tool-string', 'tool-state', 'say-state', 'my-questions', 'tool-linked', 'tool-linked-text'];
+    'tool', 'tool-link', 'tool-string', 'tool-state', 'say-state', 'my-questions', 'tool-linked', 'tool-linked-text', 'my-reports'];
   const missing = required.filter((id) => !document.getElementById(id));
   if (missing.length) return { missing };
   const $ = (id) => document.getElementById(id);
@@ -39,7 +39,7 @@ function readSeat() {
     const byId = (window.__attend.ids[key] = window.__attend.ids[key] ?? {});
     for (const item of items) {
       if (item.dataset[key]) continue;
-      const id = item.dataset.question;
+      const id = item.dataset.question ?? item.dataset.report;
       if (id && byId[id]) { item.dataset[key] = byId[id]; continue; }
       item.dataset[key] = String((window.__attend.seq[key] = (window.__attend.seq[key] ?? 0) + 1));
       if (id) byId[id] = item.dataset[key];
@@ -129,6 +129,11 @@ function readSeat() {
     answer: item.querySelector('.ls-a') ? text(item.querySelector('.ls-a')) : null,
     detail: [...item.querySelectorAll('.ls-meta > span:not(.ls-qstate)')].map(text),
     can_unresolve: Boolean(item.querySelector('.ls-meta button:not([disabled])')),
+  }));
+  // This student's can't-follow reports and whether the teacher has seen them (知らせました / 先生が確認しました / 先生から返事).
+  view.my_reports = number($('my-reports'), 'attendReport').map((item) => ({
+    n: Number(item.dataset.attendReport), text: text(item.querySelector('.ls-q')), state: text(item.querySelector('.ls-rstate')),
+    reply: item.querySelector('.ls-a') ? text(item.querySelector('.ls-a')).replace(/^先生から: /, '') : null,
   }));
   const conduct = $('conduct');
   view.conduct = { standing: conduct.dataset.standing || 'good', text: shown(conduct) ? text(conduct) : null };

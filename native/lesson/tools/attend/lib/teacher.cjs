@@ -9,6 +9,9 @@
 //   The first matching entry is used. A question nothing matches is left waiting (as a busy teacher would).
 //   A question that waits again after an answer (the student pressed まだ分からない) gets the next
 //   matching entry not used for it yet, or is left waiting.
+//
+// Can't-follow reports (対応が要る知らせ on the console) are acknowledged with the console's 確認した button,
+// after the same delay, as a teacher who has fixed what was wrong (made the demo bigger, spoken up) would.
 const fs = require('fs');
 const { exclusive } = require('./operator.cjs');
 
@@ -64,10 +67,29 @@ function createTeacher({ page, answers, delaySeconds, revealed = () => new Set()
       question.id, { timeout: 8000, polling: 200 });
   }
 
+  const reportsSeen = new Map();   // report id -> when it was first seen open
+  const openReports = () => page.evaluate(() => [...document.querySelectorAll('#reports li[data-report]')].map((item) => item.dataset.report));
+  async function acknowledgeReports() {
+    const now = await openReports();
+    for (const id of [...reportsSeen.keys()]) if (!now.includes(id)) reportsSeen.delete(id);
+    for (const id of now) {
+      if (!reportsSeen.has(id)) reportsSeen.set(id, Date.now());
+      if (Date.now() - reportsSeen.get(id) < delaySeconds * 1000) continue;
+      const control = page.locator(`#reports li[data-report="${id}"] .ls-meta button`, { hasText: '確認した' });
+      if (await control.count() !== 1) throw new Error(`report ${id}: the console shows no 確認した button`);
+      await control.scrollIntoViewIfNeeded();
+      await control.click();
+      await page.waitForFunction((report) => !document.querySelector(`#reports li[data-report="${report}"]`), id, { timeout: 8000, polling: 200 });
+      reportsSeen.delete(id);
+      log.write('operator', { event: 'teacher.ack_report', report_id: id });
+    }
+  }
+
   async function poll() {
     if (stopped) return;
     try {
       await exclusive(async () => {
+        await acknowledgeReports();
         const now = await waiting();
         // Answered ones leave the waiting list; if one comes back, it is a new wait.
         for (const id of [...seen.keys()]) if (!now.some((question) => question.id === id)) { seen.delete(id); left.delete(id); }

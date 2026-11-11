@@ -87,18 +87,41 @@ void Classroom::dismiss_question(Outbox& out, const std::string& id) {
     question_status(out, id);
     if (was_shared) out.push_back(to_all({{"type", "question.removed"}, {"id", id}}));
 }
-// At the end of the lesson, nobody is left wondering whether an answer is still coming.
+// At the end of the lesson, nobody is left wondering whether an answer is still coming, or whether the
+// teacher ever saw that they could not follow.
 void Classroom::tell_unanswered(Outbox& out) {
     for (const auto& [id, who] : students_) {
         if (conduct_.ejected(id)) continue;
         const auto waiting = questions_.take_unanswered(id);
-        if (waiting.empty()) continue;
+        if (!waiting.empty()) {
+            std::string list;
+            for (const auto& question : waiting) list += "「" + questions_.text(question) + "」";
+            out.push_back(to_student(id, {{"type", "reply"}, {"about", "questions_unanswered"}, {"count", waiting.size()},
+                {"text", "授業の時間内に先生の答えが届かなかった質問が " + std::to_string(waiting.size()) + " 件あります: " + list
+                    + "。この授業の中では答えられませんでした。授業のあとに先生へ直接たずねてください。"}}));
+        }
+        const auto unseen = reports_.take_unacknowledged(id);
+        if (unseen.empty()) continue;
         std::string list;
-        for (const auto& question : waiting) list += "「" + questions_.text(question) + "」";
-        out.push_back(to_student(id, {{"type", "reply"}, {"about", "questions_unanswered"}, {"count", waiting.size()},
-            {"text", "授業の時間内に先生の答えが届かなかった質問が " + std::to_string(waiting.size()) + " 件あります: " + list
-                + "。この授業の中では答えられませんでした。授業のあとに先生へ直接たずねてください。"}}));
+        for (const auto& report : unseen) list += "「" + reports_.text(report) + "」";
+        out.push_back(to_student(id, {{"type", "reply"}, {"about", "reports_unacknowledged"}, {"count", unseen.size()},
+            {"text", "「見えない・聞こえない」の知らせのうち、授業の時間内に先生が確認できなかったものが " + std::to_string(unseen.size()) + " 件あります: " + list
+                + "。授業のあとに先生へ直接伝えてください。"}}));
     }
+}
+// The operator has seen a can't-follow report (and, for example, made the demo bigger). The reporter's page says so.
+void Classroom::acknowledge_report(Outbox& out, const std::string& id) {
+    reports_.acknowledge(id);
+    dirty_ = true;
+    out.push_back(to_student(reports_.reporter(id), {{"type", "report.status"}, {"report", reports_.status(id)}}));
+}
+// The operator answers a can't-follow report; the answer reaches the reporter as a message from the teacher.
+void Classroom::reply_report(Outbox& out, const std::string& id, const std::string& text) {
+    reports_.reply(id, text);
+    dirty_ = true;
+    const auto& student = reports_.reporter(id);
+    out.push_back(to_student(student, {{"type", "reply"}, {"about", "report"}, {"report_id", id}, {"from", "teacher"}, {"text", "先生から: " + text}}));
+    out.push_back(to_student(student, {{"type", "report.status"}, {"report", reports_.status(id)}}));
 }
 // The operator answers a question the model could not. The answer reaches the asker and everyone who
 // said "me too", as the answer to that question; a shared question is updated for the whole class.

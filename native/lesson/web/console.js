@@ -16,7 +16,7 @@ const PROGRESS = { not_started: '未着手', working: '作業中', stuck: '止�
 const INTENT = { question: '質問', answer: '回答', remark: '回答済みの人の発言', trouble: '見えない・聞こえない', help: '助けて', chatter: '発言', disruption: 'ふざけ', unattributed: '話者不明' };
 const REASON = { question_needs_teacher: '答えを用意できない質問です (「生徒の質問」で答えるか見送ってください)', asked_for_help: '助けを求めています', hints_exhausted: 'ヒントを出し切りました',
   question_unresolved: '答えを受け取った生徒が「まだ分からない」と言っています (「生徒の質問」で答えてください)',
-  cannot_follow: '授業が見えない・聞こえない・ついていけないと言っています (対応してください)' };
+  cannot_follow: '授業が見えない・聞こえない・ついていけないと言っています (上の「対応が要る知らせ」で確認するか返事をしてください)' };
 const ERRORS = {
   console_token_required: 'トークンが違います。トークンファイルの値を付けて開き直してください。',
   invalid_state: 'いまはその操作ができません。', unknown_class: '授業を選んでください。', capacity: '上限に達しています。',
@@ -30,6 +30,7 @@ let welcome = null;
 let selected = '';
 let attached = false;   // this socket has been attached to `selected`
 let waiting = 0;        // questions waiting for the human teacher (from the snapshot)
+let reportsOpen = 0;    // can't-follow reports nobody has acknowledged yet (from the snapshot)
 
 const connection = connectWithBackoff({
   url: () => relaySocketUrl('/v1/console', { token }),
@@ -39,7 +40,11 @@ const connection = connectWithBackoff({
     if (state === 'connecting') attached = false;
   },
 });
-function send(message) { if (!connection.send(message)) $('status').textContent = '接続していません'; }
+function send(message) {
+  if (connection.send(message)) return true;
+  $('status').textContent = '接続していません';
+  return false;
+}
 function log(kind, text, tone) {
   const item = el('li');
   const tag = el('span', 'co-tag', kind);
@@ -226,6 +231,50 @@ function renderQuestions(questions) {
   }));
   if (questions.length === 0) $('questions').append(el('li', 'ls-note', 'まだ質問はありません。'));
 }
+// Reports that a student cannot see / hear / follow the class. Like questions waiting for the teacher, each
+// stays in the header, with the student's name and words, until it is marked as seen or answered; the answer
+// goes to that student as a message from the teacher.
+let reportsShown = '';
+const replyDrafts = new Map();   // report id -> its reply form
+function replyField(report) {
+  let form = replyDrafts.get(report.id);
+  if (form) return form;
+  form = el('form', 'ls-row');
+  const input = el('input');
+  input.maxLength = 400;
+  input.placeholder = 'この生徒に返事をする (その生徒にだけ届きます)';
+  input.setAttribute('aria-label', `知らせへの返事: ${report.text}`);
+  const submit = el('button', 'ls-secondary', '返事する');
+  submit.type = 'submit';
+  form.append(input, submit);
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const text = input.value.trim();
+    if (text && send({ type: 'reports.reply', id: report.id, text })) { input.value = ''; replyDrafts.delete(report.id); }
+  });
+  replyDrafts.set(report.id, form);
+  return form;
+}
+function renderReports(reports) {
+  const open = (reports ?? []).filter((report) => report.state === 'reported');
+  const digest = JSON.stringify([open, [...names]]);
+  if (digest === reportsShown) return;
+  reportsShown = digest;
+  $('reports-box').hidden = open.length === 0;
+  $('reports-count').textContent = `対応が要る知らせ (見えない・聞こえない・ついていけない): ${open.length} 件 — 対応したら「確認した」、言葉を返すなら「返事する」。確認されないまま授業が終わると、その生徒に「確認されなかった」と伝わります。`;
+  for (const id of [...replyDrafts.keys()]) if (!open.some((report) => report.id === id)) replyDrafts.delete(id);
+  $('reports').replaceChildren(...open.map((report) => {
+    const item = el('li');
+    item.dataset.report = report.id;
+    item.append(el('p', 'ls-q', report.text));
+    const meta = el('div', 'ls-meta');
+    const tag = el('span', 'co-tag', '対応が要る');
+    tag.dataset.tone = 'warn';
+    meta.append(el('span', '', nameOf(report.student)), tag, button('確認した', 'ls-secondary', () => send({ type: 'reports.ack', id: report.id })));
+    item.append(meta, replyField(report));
+    return item;
+  }));
+}
 function renderSnapshot(snapshot) {
   const player = snapshot.player;
   $('clock').textContent = `${clock(player.position_ms)} / ${clock(player.duration_ms)}`;
@@ -245,6 +294,8 @@ function renderSnapshot(snapshot) {
   renderActivity(snapshot.activity, snapshot.students.filter((student) => student.connected && student.standing !== 'ejected').length);
   $('assignment-state').textContent = snapshot.assignment ? `${snapshot.assignment.title}: ${snapshot.assignment.active ? '実施中' : '終了'}` : '';
   renderQuestions(snapshot.questions);
+  renderReports(snapshot.reports);
+  reportsOpen = snapshot.reports_open ?? 0;
   waiting = snapshot.questions_waiting ?? 0;
   // Unanswered questions stay in sight, most of all near the end and before the class is closed:
   // their askers are told at the end that no answer came.
@@ -280,7 +331,8 @@ $('plots').addEventListener('change', () => { $('prep').href = `/v1/prep.pptx?pl
 $('classes').addEventListener('change', () => { selected = $('classes').value; if (selected) send({ type: 'class.select', class: selected }); else send({ type: 'catalog' }); });
 $('close').addEventListener('click', () => {
   const unanswered = waiting > 0 ? `先生の回答待ちの質問が ${waiting} 件残っています。閉じると答えを届けられません。\n` : '';
-  if (confirm(`${unanswered}授業を閉じます。参加中の全員が切断されます。`)) { selected = ''; send({ type: 'class.close' }); }
+  const unseen = reportsOpen > 0 ? `確認していない「見えない・聞こえない」の知らせが ${reportsOpen} 件あります。\n` : '';
+  if (confirm(`${unanswered}${unseen}授業を閉じます。参加中の全員が切断されます。`)) { selected = ''; send({ type: 'class.close' }); }
 });
 $('tool-link').addEventListener('click', () => send({ type: 'tool.link' }));
 $('entry-lock').addEventListener('change', () => send({ type: 'entry.lock', locked: $('entry-lock').checked }));

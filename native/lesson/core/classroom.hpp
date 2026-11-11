@@ -3,6 +3,7 @@
 #include "assignment.hpp"
 #include "conduct.hpp"
 #include "questions.hpp"
+#include "reports.hpp"
 #include "timeline_player.hpp"
 #include "voice.hpp"
 #include <functional>
@@ -64,6 +65,7 @@ private:
     std::map<std::string, bool> demo_states_;      // what the demos have switched so far
     std::uint64_t demo_seq_ = 0;                   // grows with every demo cue, so a tool can tell old from new
     QuestionBoard questions_;
+    TroubleReports reports_;
     Conduct conduct_;
     VoiceDesk voice_;
     SpeakerRegistry speakers_;
@@ -96,6 +98,8 @@ private:
     void dismiss_question(Outbox& out, const std::string& id);
     void mark_unresolved(Outbox& out, const Student& from, const std::string& id);
     void tell_unanswered(Outbox& out);
+    void acknowledge_report(Outbox& out, const std::string& id);
+    void reply_report(Outbox& out, const std::string& id, const std::string& text);
     void answer_question(Outbox& out, const std::string& id, const std::string& text);
     void supervise(Outbox& out, Millis now);
     void switch_demo(const std::string& feature, bool enabled);

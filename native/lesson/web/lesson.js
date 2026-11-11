@@ -410,6 +410,34 @@ function questionStatus(question) {
   if (question.relation === 'asker') myQuestions.add(question.id);
   renderOwnQuestions();
 }
+// ---- this student's can't-follow reports ----
+// A report that the class could not be followed is not a question, but it must not vanish either: the page
+// shows whether the human teacher has seen it (states only from the server, report.status).
+const REPORT_STATE = { reported: '知らせました (先生の確認待ち)', acknowledged: '先生が確認しました', replied: '先生から返事' };
+const ownReports = new Map();
+function renderOwnReports() {
+  $('my-reports-box').hidden = ownReports.size === 0;
+  $('my-reports').replaceChildren(...[...ownReports.values()].reverse().map((report) => {
+    const item = el('li');
+    item.dataset.report = report.id;
+    item.dataset.state = report.state;
+    item.append(el('p', 'ls-q', report.text));
+    if (report.reply) item.append(el('p', 'ls-a', `先生から: ${report.reply}`));
+    const meta = el('div', 'ls-meta');
+    const state = el('span', 'co-tag ls-rstate', REPORT_STATE[report.state] ?? report.state);
+    state.dataset.tone = report.state === 'reported' ? 'warn' : 'good';
+    meta.append(state);
+    item.append(meta);
+    return item;
+  }));
+}
+function reportStatus(report) {
+  const before = ownReports.get(report.id)?.state;
+  ownReports.set(report.id, report);
+  renderOwnReports();
+  if (before === 'reported' && report.state === 'acknowledged') toast('先生があなたの知らせを確認しました');
+}
+
 function questionRemoved(message) {
   sharedItem(message.id)?.remove();
   if ($('shared').children.length === 0) { $('shared').replaceChildren(el('li', 'ls-note', 'まだありません。')); $('shared').firstElementChild.id = 'shared-empty'; }
@@ -471,10 +499,14 @@ function applyWelcome(message) {
   ownQuestions.clear();
   for (const question of state.my_questions ?? []) ownQuestions.set(question.id, question);
   renderOwnQuestions();
+  ownReports.clear();
+  for (const report of state.my_reports ?? []) ownReports.set(report.id, report);
+  renderOwnReports();
   showConduct(state.conduct);
 }
 
-const REPLY_KIND = { teacher: '先生から', help: '返事', trouble: '先生に知らせました', questions_unanswered: '答えられなかった質問' };
+const REPLY_KIND = { teacher: '先生から', help: '返事', trouble: '先生に知らせました', questions_unanswered: '答えられなかった質問',
+  report: '先生から', reports_unacknowledged: '確認されなかった知らせ' };
 const handlers = {
   welcome: applyWelcome,
   section: enterSection,
@@ -499,6 +531,7 @@ const handlers = {
   'question.shared': (m) => addShared(m.question),
   'question.status': (m) => questionStatus(m.question),
   'question.removed': questionRemoved,
+  'report.status': (m) => reportStatus(m.report),
   'question.voted': voted,
   'question.votes': votesChanged,
   conduct: showConduct,

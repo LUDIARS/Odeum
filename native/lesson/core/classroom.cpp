@@ -104,6 +104,7 @@ void Classroom::apply(Outbox& out, const std::string& id, const Conduct::Verdict
     // so the same person cannot simply walk back in under a new name.
     if (assignment_) assignment_->withdraw(id);
     questions_.withdraw(id);
+    reports_.withdraw(id);
     voice_.leave(id);
     speakers_.forget(id);
     entry_locked_ = true;
@@ -168,17 +169,21 @@ void Classroom::ask_for_help(Outbox& out, const Student& from, Millis now) {
 }
 // A report that the class itself could not be followed (the demo was too small, the voice dropped):
 // not a question about the content, so it stays off the question board. The operator is asked to act.
+// The report stays on the console until the operator acknowledges or answers it, and the student's page
+// shows where it stands (report.status).
 void Classroom::report_trouble(Outbox& out, const Student& from, const std::string& text) {
+    const auto id = reports_.add(from.id, text);
     dirty_ = true;
     out.push_back(to_consoles({{"type", "heard"}, {"student", from.id}, {"intent", "trouble"}, {"text", text}}));
-    out.push_back(to_consoles({{"type", "attention"}, {"student", from.id}, {"reason", "cannot_follow"}}));
+    out.push_back(to_consoles({{"type", "attention"}, {"student", from.id}, {"reason", "cannot_follow"}, {"report_id", id}}));
+    out.push_back(to_student(from.id, {{"type", "report.status"}, {"report", reports_.status(id)}}));
 }
 namespace {
 // What the student is told about how their words were taken. Each says only what the classroom did.
 const char* speech_note(const char* taken_as) {
     const std::string_view kind = taken_as;
     if (kind == "trouble") return "「見えない・聞こえない・ついていけない」という知らせとして受け取りました。質問ではないので質問ボードには載せていません。"
-                                  "人間の先生に「対応が要る」と知らせました。";
+                                  "人間の先生に「対応が要る」と知らせました。先生が確認したかどうかは「あなたの知らせ」に出ます。";
     if (kind == "question") return "質問として受け取りました。答えは「先生からあなたへ」に届きます。";
     if (kind == "help") return "助けを求める声として受け取りました。先生にも伝えました。";
     if (kind == "answer") return "開いている問いへのあなたの回答として受け取りました。";
@@ -319,6 +324,8 @@ Outbox Classroom::from_console(const Json& message, Millis now) {
     }
     else if (type == "questions.dismiss") dismiss_question(out, text_field(message, "id", 32));
     else if (type == "questions.answer") answer_question(out, text_field(message, "id", 32), text_field(message, "text", max_tell_scalars));
+    else if (type == "reports.ack") acknowledge_report(out, text_field(message, "id", 32));
+    else if (type == "reports.reply") reply_report(out, text_field(message, "id", 32), text_field(message, "text", max_tell_scalars));
     else if (type == "student.lock") {
         const auto id = target();
         apply(out, id, conduct_.lock(id, integer_field(message, "seconds", 1, 900) * 1000, now, "先生の判断で一時的に発言を止めています"), now);
