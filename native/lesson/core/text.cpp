@@ -1,6 +1,7 @@
 #include "text.hpp"
 #include <odeum/message.hpp>
 #include <algorithm>
+#include <array>
 #include <set>
 
 namespace odeum::lesson {
@@ -40,9 +41,29 @@ bool separator(char32_t c) {
         || (c >= 0x2000 && c <= 0x206f);                                          // general punctuation
 }
 }
+namespace {
+// Halfwidth katakana (U+FF66-FF9D) as fullwidth katakana; IMEs and phones still produce them.
+constexpr std::u32string_view halfwidth_kana =
+    U"ヲァィゥェォャュョッーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン";
+bool kanji(char32_t c) { return (c >= 0x4e00 && c <= 0x9fff) || (c >= 0x3400 && c <= 0x4dbf) || c == 0x3005; }
+bool hiragana(char32_t c) { return c >= 0x3041 && c <= 0x3096; }
+// Applies a (halfwidth or combining) voiced / semi-voiced mark to the katakana just before it.
+bool voice(std::u32string& out, bool semi) {
+    if (out.empty()) return false;
+    char32_t& c = out.back();
+    constexpr std::u32string_view voiceable = U"かきくけこさしすせそたちつてとはひふへほ";
+    if (!semi && c == U'う') { c = U'ゔ'; return true; }
+    if (voiceable.find(c) == std::u32string_view::npos || (semi && !(c >= U'は' && c <= U'ほ'))) return false;
+    c += semi ? 2 : 1;
+    return true;
+}
+}
 std::u32string fold(std::string_view text) {
     std::u32string out;
     for (char32_t c : decode_utf8(text)) {
+        if (c >= 0xff66 && c <= 0xff9d) c = halfwidth_kana[c - 0xff66];
+        if ((c == 0xff9e || c == 0x3099) && voice(out, false)) continue;   // ﾞ and the combining dakuten
+        if ((c == 0xff9f || c == 0x309a) && voice(out, true)) continue;    // ﾟ and the combining handakuten
         if (c >= 0xff01 && c <= 0xff5e) c -= 0xfee0;       // fullwidth ASCII
         if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
         if (c >= 0x30a1 && c <= 0x30f6) c -= 0x60;         // katakana -> hiragana
@@ -50,9 +71,46 @@ std::u32string fold(std::string_view text) {
     }
     return out;
 }
+namespace {
+// Okurigana: a keyword written in dictionary form ("見える", "広く", "下がる") also matches its other
+// forms ("見えない", "広め", "下がった"). The last kana is dropped; when that leaves a kanji, the text
+// must continue with a kana that the word's inflection can produce, so "広く" never matches "広告"
+// and "重い" never matches "重なる".
+constexpr std::array<std::u32string_view, 10> kana_rows{U"ぁあぃいぅうぇえぉおゔ", U"かがきぎくぐけげこご", U"さざしじすずせぜそぞ",
+    U"ただちぢっつづてでとど", U"なにぬねの", U"はばぱひびぴふぶぷへべぺほぼぽ", U"まみむめも", U"ゃやゅゆょよ", U"らりるれろ", U"ゎわゐゑをん"};
+constexpr std::u32string_view dictionary_endings = U"うくぐすつぬぶむるい";
+constexpr std::u32string_view adjective_forms = U"いくかけさめそ";  // 広い 広く 広かった 広ければ 広さ 広め 広そう
+std::u32string_view row_of(char32_t c) {
+    for (const auto row : kana_rows) if (row.find(c) != std::u32string_view::npos) return row;
+    return {};
+}
+bool inflects_to(char32_t ending, char32_t next) {
+    if (ending == U'い' || ending == U'く') if (adjective_forms.find(next) != std::u32string_view::npos) return true;
+    if (ending == U'い') return false;
+    if (row_of(ending).find(next) != std::u32string_view::npos) return true;
+    // Sound changes before て / た: 押って 飛んで 書いて, and 言わない.
+    if (next == U'っ') return ending == U'う' || ending == U'つ' || ending == U'る';
+    if (next == U'ん') return ending == U'む' || ending == U'ぶ' || ending == U'ぬ';
+    if (next == U'い') return ending == U'く' || ending == U'ぐ';
+    return next == U'わ' && ending == U'う';
+}
+bool mentions_inflected(std::u32string_view folded, std::u32string_view needle) {
+    if (needle.size() < 2 || dictionary_endings.find(needle.back()) == std::u32string_view::npos) return false;
+    if (std::none_of(needle.begin(), needle.end() - 1, kanji)) return false;
+    const auto stem = needle.substr(0, needle.size() - 1);
+    const bool open = kanji(stem.back());
+    for (auto at = folded.find(stem); at != std::u32string_view::npos; at = folded.find(stem, at + 1)) {
+        if (!open) return true;
+        const auto next = at + stem.size();
+        if (next < folded.size() && hiragana(folded[next]) && inflects_to(needle.back(), folded[next])) return true;
+    }
+    return false;
+}
+}
 bool mentions(std::u32string_view folded, std::string_view keyword) {
     const auto needle = fold(keyword);
-    return !needle.empty() && folded.find(needle) != std::u32string_view::npos;
+    if (needle.empty()) return false;
+    return folded.find(needle) != std::u32string_view::npos || mentions_inflected(folded, needle);
 }
 bool mentions_any(std::u32string_view folded, const std::vector<std::string>& keywords) {
     return std::any_of(keywords.begin(), keywords.end(), [&](const std::string& k) { return mentions(folded, k); });
