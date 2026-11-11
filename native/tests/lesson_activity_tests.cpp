@@ -112,4 +112,20 @@ int main() { return run([] {
     check(!has(grade("knockback-effects", "逆に言えば、届かなくなる"), "direction") && !has(grade("knockback-effects", "中途半端な距離"), "terrain"), "逆に / 中途半端 are not direction / terrain");
     check(has(grade("knockback-effects", "背後から当てると逆向きに飛ぶ"), "direction") && has(grade("knockback-effects", "画面端で止まる"), "terrain"), "…while 逆向き / 画面端 still count");
     check(!has(grade("camera-open", "引き換えに視点が固定される"), "view") && !has(grade("camera-open", "自分で作るならこうする"), "control"), "引き換え / 自分で作る are not view / control");
+
+    // Third attended run. Keeping inputs pressed during the stop is about 操作感 (the point's own label),
+    // so the credit stands, but it must come from the buffering itself, not from 「気持ちいい」 alone.
+    const auto buffered = grade("hitstop-design", "まず止める長さを決めます。自分なら0.1秒くらいから始めて、強い攻撃ほど長くします。次に何を止めるかで、"
+        "当てた側と当たった側のキャラは止めるけど、止めた時間を数えるタイマーやUI、入力の受付は止めないようにしたいです。"
+        "止まっている間に押したボタンは捨てずに覚えておいて、動き出したら出せると気持ちいいと思います。");
+    check(has(buffered, "tempo") && has(buffered, "exempt") && has(buffered, "length") && has(buffered, "scale") && has(buffered, "scope"),
+        "Input buffering during the stop counts as 操作感");
+    check(!has(grade("hitstop-design", "当たったときに止まると気持ちいいと思います"), "tempo"), "「気持ちいい」 alone says nothing about tempo or feel of control");
+    // Following the player at all is not about smoothness or lag; showing more of where the player is heading is what to centre on.
+    const auto heading = grade("camera-open", "自分が作るなら、カメラは基本プレイヤーを追いかけて、少しだけ進む方向の先を多めに映します。"
+        "前から来る敵の攻撃が見えないと、さっきの話みたいに当たっても納得できないからです。自分でカメラを回さなくても戦えるようにして、"
+        "揺れは強い攻撃のときだけ小さく入れます。ずっと揺れると酔うし、何が起きたか見づらくなると思います。");
+    check(!has(heading, "follow") && has(heading, "target"), "追いかける is not 追い方; 進む方向の先を映す is 何を中心に映すか");
+    check(has(heading, "view") && has(heading, "control") && has(heading, "shake") && has(heading, "comfort"), "The other perspectives of that answer still count");
+    check(has(grade("camera-open", "プレイヤーになめらかに追従する"), "follow") && has(grade("camera-open", "少し遅らせてついてくる"), "follow"), "Smoothness and lag still count as 追い方");
 }); }
