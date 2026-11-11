@@ -5,6 +5,7 @@
   "runners": {
     "vitest": {
       "command": ["node", "custos/node_modules/vitest/vitest.mjs", "run"]
-    }
+    },
+    "command": {}
   }
 }

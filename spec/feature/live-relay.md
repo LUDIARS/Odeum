@@ -122,6 +122,7 @@ NAT では同一 UDP port の転送が必要。TURN/srflx candidate は変更し
 | ODEUM_RELAY_ALLOWED_ORIGINS | GLab の HTTPS Origin を完全一致で列挙。カンマ区切り |
 
 明示された空値・不正値は起動失敗。表示名、本文、チケット、SDP をログに出さない。
+`WebAccess` は `odeum_relay_state` に属し、`odeum-lesson` も変数名だけ替えて同じ規則を使う。
 `config.cpp` → `WebAccess::from_environment` → `Connection::route` で Ex 注入 Host を検証する。
 loopback Host は常に許可。Origin のない native/Bearer 通信は許可し、ブラウザ Origin は完全一致のみ。
 relay 自身が配信するページとゲスト/overlay の受け口だけは、Origin が `http(s)://<許可済み Host>` の same-origin を許可する。

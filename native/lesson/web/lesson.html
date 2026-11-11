@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Odeum 授業</title>
+<link rel="stylesheet" href="/web/lesson.css">
+<script type="module" src="/web/lesson.js"></script>
+</head>
+<body>
+<main class="ls-page">
+  <section id="entry" class="ls-card ls-entry">
+    <h1>授業に参加する</h1>
+    <form id="entry-form">
+      <label>参加コード<input id="code" autocomplete="off" autocapitalize="characters" maxlength="16" required></label>
+      <label>表示名<input id="name" autocomplete="nickname" maxlength="32" required></label>
+      <button type="submit">参加する</button>
+    </form>
+    <p id="entry-status" class="ls-note" role="status"></p>
+    <p class="ls-note">ログインは不要です。表示名は先生の画面に出ます。質問を全体に共有するときは、名前を出すかどうかを自分で選べます。</p>
+  </section>
+
+  <div id="stage" hidden>
+    <header class="ls-head">
+      <div>
+        <p id="lesson-title" class="ls-title"></p>
+        <p id="section-title" class="ls-section"></p>
+      </div>
+      <div class="ls-head-side">
+        <p id="status" class="ls-status" role="status"></p>
+        <a id="prep" class="ls-link" href="#" download>予習シート (pptx)</a>
+      </div>
+    </header>
+    <p id="conduct" class="ls-conduct" role="alert" hidden></p>
+
+    <section class="ls-card" aria-labelledby="teacher-heading">
+      <h2 id="teacher-heading">先生</h2>
+      <p id="narration" class="ls-narration">授業が始まるまでお待ちください。</p>
+      <p id="demo" class="ls-demo" hidden></p>
+      <div id="slide" hidden>
+        <h3 id="slide-title"></h3>
+        <ul id="slide-points" class="ls-points"></ul>
+      </div>
+      <label class="ls-inline"><input id="speak" type="checkbox">先生の言葉を読み上げる</label>
+    </section>
+
+    <section id="activity" class="ls-card ls-activity" hidden aria-labelledby="activity-heading">
+      <h2 id="activity-heading">みんなに質問</h2>
+      <p id="activity-prompt" class="ls-prompt"></p>
+      <pre id="activity-code" class="ls-code" hidden></pre>
+      <p id="activity-mine" class="ls-mine" hidden></p>
+      <form id="activity-form">
+        <div id="activity-choices" class="ls-choices"></div>
+        <textarea id="activity-text" rows="4" maxlength="400" hidden></textarea>
+        <div class="ls-row">
+          <button type="submit" id="activity-send">答える</button>
+          <span id="activity-state" class="ls-note"></span>
+        </div>
+      </form>
+      <div id="activity-results" hidden>
+        <h3>クラスの結果</h3>
+        <div id="activity-bars" class="ls-bars"></div>
+        <p id="activity-answer" class="ls-answer" hidden></p>
+        <p id="activity-explanation" class="ls-answer" hidden></p>
+        <ul id="activity-highlights" class="ls-points"></ul>
+        <p id="activity-personal" class="ls-personal" hidden></p>
+      </div>
+    </section>
+
+    <section id="assignment" class="ls-card" hidden aria-labelledby="assignment-heading">
+      <h2 id="assignment-heading">課題</h2>
+      <h3 id="assignment-title"></h3>
+      <p id="assignment-brief" class="ls-note"></p>
+      <ol id="assignment-steps" class="ls-steps"></ol>
+      <div class="ls-row">
+        <button type="button" id="help" class="ls-secondary">ヒントがほしい</button>
+        <span id="assignment-status" class="ls-note"></span>
+      </div>
+    </section>
+
+    <section id="tool" class="ls-card" hidden aria-labelledby="tool-heading">
+      <h2 id="tool-heading"><span id="tool-engine"></span> をつなぐ</h2>
+      <p class="ls-note">つなぐと、課題の「自動」と付いた手順は、道具があなたの機械で動いているゲームの変数 (手順の下に書いてあるもの) を見て、条件を満たしたときにチェックを入れます。つながなくても自分でチェックできます。</p>
+      <div class="ls-row">
+        <button type="button" id="tool-link" class="ls-secondary">接続文字列を出す</button>
+        <span id="tool-state" class="ls-note"></span>
+      </div>
+      <div id="tool-linked" class="ls-row ls-linked" role="status" hidden>
+        <span id="tool-linked-text"></span>
+        <button type="button" id="tool-unlink" class="ls-secondary">道具の接続を切る</button>
+      </div>
+      <div id="tool-box" class="ls-row" hidden>
+        <input id="tool-string" readonly aria-label="接続文字列">
+        <button type="button" id="tool-copy" class="ls-secondary">コピー</button>
+      </div>
+    </section>
+
+    <section id="private-card" class="ls-card" aria-labelledby="private-heading">
+      <h2 id="private-heading">先生からあなたへ</h2>
+      <ul id="private" class="ls-feed" role="log" aria-live="polite" aria-relevant="additions"><li class="ls-note">ここには、あなただけに向けたヒントや質問の答えが届きます。</li></ul>
+    </section>
+
+    <section class="ls-card" aria-labelledby="talk-heading">
+      <h2 id="talk-heading">先生に話す</h2>
+      <div class="ls-row">
+        <button type="button" id="mic" class="ls-secondary" aria-pressed="false">マイクを使う</button>
+        <div class="ls-meter" aria-hidden="true"><div id="meter"></div></div>
+        <span id="mic-state" class="ls-note"></span>
+      </div>
+      <form id="say-form" class="ls-row">
+        <input id="say" maxlength="280" autocomplete="off" placeholder="話す代わりに文字で送る">
+        <button type="submit">送る</button>
+      </form>
+      <p id="say-state" class="ls-note" role="status"></p>
+      <div id="my-reports-box" hidden>
+        <h3>あなたの知らせ (見えない・聞こえない・ついていけない)</h3>
+        <ul id="my-reports" class="ls-feed"></ul>
+      </div>
+      <details class="ls-details">
+        <summary>教室のマイクで話すとき</summary>
+        <p class="ls-note">教室に 1 本だけマイクがあるときは、あなたの声を登録します。ボタンを押して出た番号を、マイクに向かって読み上げてください。</p>
+        <div class="ls-row"><button type="button" id="enroll" class="ls-secondary">声を登録する</button><strong id="enroll-code" class="ls-enroll"></strong></div>
+      </details>
+    </section>
+
+    <section class="ls-card" aria-labelledby="question-heading">
+      <h2 id="question-heading">質問する</h2>
+      <form id="question-form">
+        <textarea id="question" rows="2" maxlength="280" placeholder="分からないこと、気になったこと"></textarea>
+        <div class="ls-row">
+          <label class="ls-inline"><input id="show-name" type="checkbox">全体に共有されるとき名前を出す</label>
+          <button type="submit">質問する</button>
+        </div>
+      </form>
+      <h3>あなたの質問</h3>
+      <ul id="my-questions" class="ls-feed"><li class="ls-note" id="my-questions-empty">まだありません。</li></ul>
+      <h3>みんなに共有された質問</h3>
+      <ul id="shared" class="ls-feed"><li class="ls-note" id="shared-empty">まだありません。</li></ul>
+    </section>
+    <p id="feedback" class="ls-toast" role="status"></p>
+    <button type="button" id="private-notice" class="ls-notice" hidden></button>
+  </div>
+</main>
+</body>
+</html>

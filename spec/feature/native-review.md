@@ -11,7 +11,7 @@ outside Praesidium's currently supported source extensions, not verified here.
 
 The language standards follow `native/CMakeLists.txt` (C++20) and
 `custos/native/custos-h264/CMakeLists.txt` (C++17). Repository-relative include
-roots cover protocol, relay, presenter, program and the Custos encoder.
+roots cover protocol, relay, presenter, program, odeum-lesson and the Custos encoder.
 The Windows, static datachannel and header-only Boost definitions follow the
 native CMake build. No warning suppression, replacement headers or analyzer
 disabling defines are used.
@@ -99,3 +99,49 @@ The SYSTEM-include limitation is tracked as Actio
 `393aed37-522c-470c-aa15-c0ddbc48b1eb` (Revisor). Both Revisor issues are separate
 from this repository's configuration change; this patch does not modify the
 reviewer's checks or acceptance policy.
+
+## odeum-lesson units {#SPEC-ODEUM-NATIVE-REVIEW-LESSON}
+
+The 42 odeum-lesson translation units (`native/lesson/**`, `native/tests/lesson_*_tests.cpp`)
+follow the CMake targets in `native/lesson/CMakeLists.txt` rather than the relay's
+all-package entry, so each unit only asks the host for headers its target links:
+
+| Target | Units | Include roots | Packages | Extra definitions |
+| --- | --- | --- | --- | --- |
+| `odeum_lesson_core` | `core/*.cpp` (17) | `native/protocol/include`, `native/lesson/core` | `odeum-json-3-11-3` | none |
+| `odeum_lesson_service` | `catalog`, `school`, `tool_desk`, `console_guard` | + `native/relay`, `native/lesson` | + `odeum-openssl-3` | none |
+| `odeum_lesson_transport` + `odeum-lesson` | `config`, `server`, `server_tools`, `connection`, `main` | as service | + `odeum-boost-1-87-0` | `BOOST_ERROR_CODE_HEADER_ONLY` |
+| lesson tests | `native/tests/lesson_*_tests.cpp` (16) | as service + `native/tests` | as service | none |
+
+All of them carry the Windows definitions the other Odeum units use
+(`WIN32_LEAN_AND_MEAN`, `NOMINMAX`, `_WIN32_WINNT=0x0A00`, `UNICODE`, `_UNICODE`). The
+libdatachannel definitions are omitted because no lesson target links libdatachannel.
+
+The first scoped analysis of the lesson change (Windows target, clang 18) found:
+
+- `core/timeline.cpp`: `core.DivideZero` in `build_timeline` when the sections' minutes add up
+  to zero. `parse_plot` never produces such a plot, but `build_timeline` is public; it now
+  rejects it with `invalid_plot`, and `lesson_timeline_tests.cpp` checks that.
+- `server.cpp`, `connection.cpp`: the two `deadcode.DeadStores` warnings in Boost's
+  `inflate_stream.ipp`, the same SYSTEM-include limitation described above for
+  `relay/server.cpp` (Actio `393aed37-522c-470c-aa15-c0ddbc48b1eb`). They are not lesson defects
+  and remain errors until Praesidium can pass host packages as system includes.
+
+## Registered native tests {#SPEC-ODEUM-NATIVE-REVIEW-TESTS}
+
+Because `.augur/tests.jsonl` exists, Revisor runs only the registered preparation cases
+(names such as `configure`, `setup-*`, `install-*`) and then the Augur bundle of each target
+domain; plain `build` / `ctest` cases are not run for code changes. The native CTest tests are
+therefore ledger records (`runner: command`), one per CTest name, for example
+`ctest --test-dir native/build -R ^odeum\.lesson\.plot$ --output-on-failure --no-tests=error`.
+`--no-tests=error` makes a record fail when its executable was not built instead of passing empty.
+
+- `odeum.lesson.*` (16): business domain `ai-lesson`.
+- `odeum.protocol`, `odeum.ticket`: `live-protocol`. The other default-build relay tests: `live-relay`.
+- `odeum.overlay` is registered as `candidate`, so domain bundles do not run it: it is a
+  pre-existing flaky test (see `spec/tasks/2026-11-11-ai-lesson-handoff.md`). Promote it once fixed.
+- Presenter and program tests are only built with their CMake options and are not registered here.
+
+The records expect `native/build` to be configured and built by the Revisor registration's
+preparation cases, in this order: `configure` (`cmake -S native -B native/build -G Ninja
+-DCMAKE_BUILD_TYPE=Release`) and `setup-build` (`cmake --build native/build`).

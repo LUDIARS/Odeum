@@ -4,6 +4,10 @@ Odeum provides network screen capture (`odeum-presenter`), relay (`odeum-relay`)
 composition (`odeum-program`). Custos remains a separate, unchanged product; its complete source
 copy is described in [CUSTOS-SOURCE.md](CUSTOS-SOURCE.md).
 
+`odeum-lesson` runs AI-led classes on top of these: a lesson plot becomes a timeline and a prep sheet (pptx), students answer
+in-class questions and work on assignments from their own devices, and the lecturer responds to each student. See
+[AI lesson](spec/feature/ai-lesson.md); the sample course is "アクションゲームの作り方" (Ergo Studio).
+
 See [capture and archives](spec/feature/capture-and-archives.md) for source selection and background
 recording/rebroadcast. The native live pipeline does not require HDMI or OBS. The older Spectator
 review application and historical OBS deployment files below are retained as separate components.
