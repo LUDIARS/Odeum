@@ -102,4 +102,14 @@ int main() { return run([] {
     check(has(grade("knockback-effects", "壁にめり込んだり崖から落ちたりする"), "terrain") && has(grade("knockback-effects", "のけぞって動けなくなる"), "stun"), "地形 / 硬直");
     check(has(grade("knockback-effects", "敵がまとまっていると巻き込んでばらける"), "formation") && has(grade("knockback-effects", "軽い敵はよく滑る"), "physics"), "並び / 物理");
     check(!has(grade("knockback-effects", "敵が重なって動けない"), "physics"), "重なる is not 重い");
+    // Over-broad single words: naming input or sound as something not to stop is not about tempo.
+    const auto exempted = grade("hitstop-design", "決めるのは、何秒止めるかと、何を止めるか（キャラだけか画面全体か）と、止めちゃいけないもの（入力の受付やBGM、"
+        "止めた時間を数えるタイマー）だと思います。自分なら0.05〜0.1秒くらいで、強い攻撃ほど長くして、当てた側と当たった側だけ止めます。");
+    check(!has(exempted, "tempo") && has(exempted, "exempt") && has(exempted, "length") && has(exempted, "scope") && has(exempted, "scale"),
+        "入力の受付 / BGM are things not to stop, not tempo");
+    check(has(grade("hitstop-design", "長く止めると操作感が悪くなる"), "tempo") && has(grade("hitstop-design", "入力が遅れて感じる"), "tempo"), "Tempo still found when it is meant");
+    check(!has(grade("hitstop-design", "音を出すタイミングだけ考える"), "tempo") && !has(grade("missing-feel", "サーバーのオーバーヘッド"), "hp_bar"), "バー is not a gauge");
+    check(!has(grade("knockback-effects", "逆に言えば、届かなくなる"), "direction") && !has(grade("knockback-effects", "中途半端な距離"), "terrain"), "逆に / 中途半端 are not direction / terrain");
+    check(has(grade("knockback-effects", "背後から当てると逆向きに飛ぶ"), "direction") && has(grade("knockback-effects", "画面端で止まる"), "terrain"), "…while 逆向き / 画面端 still count");
+    check(!has(grade("camera-open", "引き換えに視点が固定される"), "view") && !has(grade("camera-open", "自分で作るならこうする"), "control"), "引き換え / 自分で作る are not view / control");
 }); }
