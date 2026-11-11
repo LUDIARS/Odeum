@@ -50,10 +50,17 @@ async function reaction(page, before, watch, timeout) {
 }
 const counters = (page) => page.evaluate(() => ({ ...window.__attend.mutations }));
 const toast = (page) => page.evaluate(() => document.getElementById('feedback').textContent.trim());
+const toastIsError = (page) => page.evaluate(() => document.getElementById('feedback').dataset.kind === 'error');
 
-async function outcome(page, hits, okWhen) {
-  const message = await toast(page);
-  if (hits.includes('feedback') && !okWhen(message)) return { ok: false, error: { source: 'page', text: message }, page_message: message };
+// The toast counts only when it changed after the action (`before`): a toast still showing from an earlier
+// action is not this action's message.
+async function freshToast(page, before) {
+  return (await counters(page)).feedback > (before.feedback ?? 0) ? toast(page) : '';
+}
+// A fresh toast the page marks as an error is a refusal; an informational one (「私も知りたい」を受け付けました) is not.
+async function outcome(page, before, hits) {
+  const message = await freshToast(page, before);
+  if (hits.includes('feedback') && message && await toastIsError(page)) return { ok: false, error: { source: 'page', text: message }, page_message: message };
   return { ok: true, reacted: hits, page_message: message || null };
 }
 
@@ -81,8 +88,10 @@ async function answer(page, { text, choices }) {
   await page.click('#activity-send');
   const hits = await reaction(page, before, [{ id: 'activity-state', includes: '受け取りました' }, { id: 'feedback', nonEmpty: true }], REACT_MS);
   if (!hits.length) return fail('no_response', '答えを送りましたが、画面に受け取りの表示が出ませんでした。');
-  if (hits.includes('activity-state')) return { ok: true, acked: true, page_message: (await toast(page)) || null };
-  return outcome(page, hits, () => false);
+  if (hits.includes('activity-state')) return { ok: true, acked: true, page_message: (await freshToast(page, before)) || null };
+  // Without the page's 受け取りました the answer is not confirmed, whatever else the page said.
+  const refused = await outcome(page, before, hits);
+  return refused.ok ? fail('no_ack', '答えを送りましたが、画面に受け取りの表示が出ませんでした。', { page_message: refused.page_message }) : refused;
 }
 
 async function tick(page, { step, undo }) {
@@ -95,7 +104,7 @@ async function tick(page, { step, undo }) {
   const before = await counters(page);
   await page.locator('#assignment-steps input').nth(step - 1).setChecked(!undo);
   const hits = await reaction(page, before, [{ id: 'feedback', nonEmpty: true }, { id: 'private' }], QUIET_MS);
-  return outcome(page, hits, () => false);
+  return outcome(page, before, hits);
 }
 
 async function help(page) {
@@ -108,10 +117,10 @@ async function help(page) {
   const hits = await reaction(page, before, [{ id: 'private' }, { id: 'feedback', nonEmpty: true }], REACT_MS);
   if (!hits.length) return fail('no_response', 'ヒントを求めましたが、画面に返事が出ませんでした。');
   if (hits.includes('private')) await focus(page, '#private');
-  return outcome(page, hits, () => false);
+  return outcome(page, before, hits);
 }
 
-const SENT_QUESTION = '質問を送りました。答えは「先生からあなたへ」に届きます。';
+const SENT_QUESTION = '送りました。返事は「先生からあなたへ」に届きます。';   // lesson.js SENT_TEXT
 async function ask(page, { text, showName }) {
   if (typeof text !== 'string' || !text.trim()) return fail('text_required', '--text で質問を渡してください。');
   await focus(page, '#question-form');
@@ -120,9 +129,9 @@ async function ask(page, { text, showName }) {
   const before = await counters(page);
   await page.click('#question-form button[type=submit]');
   const hits = await reaction(page, before, [{ id: 'private' }, { id: 'feedback', nonEmpty: true, exclude: [SENT_QUESTION] }], REACT_MS);
-  if (!hits.length) return fail('no_response', '質問を送りましたが、画面に答えが出ませんでした。', { page_message: (await toast(page)) || null });
+  if (!hits.length) return fail('no_response', '質問を送りましたが、画面に答えが出ませんでした。', { page_message: (await freshToast(page, before)) || null });
   if (hits.includes('private')) await focus(page, '#private');
-  return outcome(page, hits, (message) => message === SENT_QUESTION);
+  return outcome(page, before, hits);
 }
 
 async function say(page, { text }) {
@@ -138,7 +147,10 @@ async function say(page, { text }) {
   if (!hits.includes('say-state')) {
     // The acknowledgement can follow a moment after a toast; give it a little more time.
     const late = await reaction(page, before, [{ id: 'say-state', nonEmpty: true }], QUIET_MS);
-    if (!late.length) return outcome(page, hits, () => false);
+    if (!late.length) {
+      const refused = await outcome(page, before, hits);
+      return refused.ok ? fail('no_response', '送りましたが、どう受け取られたかが画面に出ませんでした。', { page_message: refused.page_message }) : refused;
+    }
     hits.push(...late);
   }
   const said = await page.evaluate(() => ({ text: document.getElementById('say-state').textContent.trim(), taken_as: document.getElementById('say-state').dataset.takenAs || null }));
@@ -159,7 +171,7 @@ async function vote(page, { n }) {
   // The count changes only when the server confirms the vote.
   const hits = await reaction(page, before, [{ id: 'shared' }, { id: 'feedback', nonEmpty: true }], REACT_MS);
   if (!hits.length) return fail('no_response', '「私も知りたい」を押しましたが、画面に反応が出ませんでした。');
-  return outcome(page, hits, () => false);
+  return outcome(page, before, hits);
 }
 
 // 「まだ分からない」 on one of this student's own questions (n from observe's my_questions).
@@ -174,7 +186,7 @@ async function unresolved(page, { n }) {
   await button.click();
   const hits = await reaction(page, before, [{ id: 'my-questions' }, { id: 'feedback', nonEmpty: true }], REACT_MS);
   if (!hits.length) return fail('no_response', '「まだ分からない」を押しましたが、画面に反応が出ませんでした。');
-  return outcome(page, hits, () => false);
+  return outcome(page, before, hits);
 }
 
 // 「接続文字列を出す」: returns the string a tool (Ergo Studio's 「授業」 tab or POST /lesson/api/connect) takes.
@@ -186,7 +198,7 @@ async function toolLink(page) {
   await page.click('#tool-link');
   const hits = await reaction(page, before, [{ id: 'tool-state', includes: '秒' }, { id: 'feedback', nonEmpty: true }], REACT_MS);
   if (!hits.length) return fail('no_response', '接続文字列を求めましたが、画面に出ませんでした。');
-  if (!hits.includes('tool-state')) return outcome(page, hits, () => false);
+  if (!hits.includes('tool-state')) return outcome(page, before, hits);
   const link = await page.inputValue('#tool-string');
   if (!/\/v1\/tool#[0-9A-Z]{10}$/.test(link)) return fail('bad_link', '画面の接続文字列の形が想定と違います。');
   return { ok: true, link, note: (await page.textContent('#tool-state')).trim() };

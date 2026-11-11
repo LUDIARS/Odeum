@@ -26,7 +26,7 @@ const ERROR_TEXT = {
   ejected: 'この授業からは退出になっています。',
   capacity: '満席です。先生に声をかけてください。',
   locked: 'いまは発言できません。課題は続けられます。',
-  activity_closed: 'この質問は締め切られました。',
+  activity_closed: 'この問いは締め切られました。',
   invalid_answer: '回答を確認してください。',
   invalid_question: '質問は 1〜280 文字で送ってください。',
   not_assigned: 'いまは課題が出ていません。',
@@ -48,13 +48,16 @@ const votedQuestions = new Set();   // question ids this student said "me too" t
 let stopped = false;
 let transcribe = false;
 
-function toast(text) {
+// kind: 'info' (something happened as asked) or 'error' (refused / not sent), kept on the element so a
+// reader of the page (a screen reader's live region, the attendance harness) can tell them apart.
+function toast(text, kind = 'info') {
+  $('feedback').dataset.kind = kind;
   $('feedback').textContent = text;
   if (text) setTimeout(() => { if ($('feedback').textContent === text) $('feedback').textContent = ''; }, 4000);
 }
 function send(message) {
   if (connection?.send(message)) return true;
-  toast('接続していません。入力はそのまま残しています。');
+  toast('接続していません。入力はそのまま残しています。', 'error');
   return false;
 }
 function speak(text) {
@@ -260,7 +263,7 @@ function progressRejected(message) {
   const boxes = $('assignment-steps').querySelectorAll('input');
   const done = message.assignment && assignment && message.assignment.id === assignment.id ? message.assignment.done : [];
   boxes.forEach((box, index) => { box.checked = Boolean(done[index]); });
-  toast(ERROR_TEXT[message.code] ?? '進み具合を受け付けられませんでした。');
+  toast(ERROR_TEXT[message.code] ?? '進み具合を受け付けられませんでした。', 'error');
   if (message.code === 'not_assigned' && assignmentActive) closeAssignment();
 }
 function updateProgress(progress) {
@@ -353,6 +356,7 @@ function questionReply(message) {
 }
 function voted(message) {
   votedQuestions.add(message.id);
+  toast('「私も知りたい」を受け付けました。');
   const item = sharedItem(message.id);
   if (item) { delete item.querySelector('button')?.dataset.pending; renderVote(item); }
 }
@@ -405,7 +409,10 @@ function renderOwnQuestions() {
     return item;
   }));
 }
+// Each action's confirmation says what the server did, and only once it did it.
 function questionStatus(question) {
+  const before = ownQuestions.get(question.id);
+  if (before && !before.unresolved && question.unresolved) toast('「まだ分からない」を先生に伝えました。この質問は先生の回答待ちに戻りました。');
   ownQuestions.set(question.id, question);
   if (question.relation === 'asker') myQuestions.add(question.id);
   renderOwnQuestions();
@@ -505,6 +512,9 @@ function applyWelcome(message) {
   showConduct(state.conduct);
 }
 
+// What the page says right after 「質問する」: the server decides whether it is a question, a report of
+// being stuck or a report of not being able to follow, so this says only that it was sent.
+const SENT_TEXT = '送りました。返事は「先生からあなたへ」に届きます。';
 const REPLY_KIND = { teacher: '先生から', help: '返事', trouble: '先生に知らせました', questions_unanswered: '答えられなかった質問',
   report: '先生から', reports_unacknowledged: '確認されなかった知らせ' };
 const handlers = {
@@ -545,7 +555,7 @@ const handlers = {
     // A refused vote: let the button be pressed again only if a vote is still possible.
     for (const button of $('shared').querySelectorAll('button[data-pending="true"]')) { delete button.dataset.pending; renderVote(button.closest('li')); }
     if ($('stage').hidden) { $('entry-status').textContent = text; if (['ejected', 'entry_locked', 'invalid_name', 'capacity'].includes(m.code)) { stopped = true; connection?.stop(); } }
-    else toast(text);
+    else toast(text, 'error');
   },
 };
 
@@ -588,12 +598,12 @@ $('activity-form').addEventListener('submit', (event) => {
   if (!activity) return;
   if (activity.kind === 'choice') {
     const choices = [...$('activity-choices').querySelectorAll('input:checked')].map((input) => Number(input.value));
-    if (choices.length === 0) { toast('選んでから答えてください。'); return; }
+    if (choices.length === 0) { toast('選んでから答えてください。', 'error'); return; }
     send({ type: 'answer', activity_id: activity.id, choices });
     return;
   }
   const text = $('activity-text').value.trim();
-  if (!text) { toast('答えを書いてから送ってください。'); return; }
+  if (!text) { toast('答えを書いてから送ってください。', 'error'); return; }
   send({ type: 'answer', activity_id: activity.id, text });
 });
 $('tool-link').addEventListener('click', () => send({ type: 'tool.link' }));
@@ -611,7 +621,7 @@ $('say-form').addEventListener('submit', (event) => {
 $('question-form').addEventListener('submit', (event) => {
   event.preventDefault();
   const text = $('question').value.trim();
-  if (text && send({ type: 'question', text, show_name: $('show-name').checked })) { $('question').value = ''; toast('質問を送りました。答えは「先生からあなたへ」に届きます。'); }
+  if (text && send({ type: 'question', text, show_name: $('show-name').checked })) { $('question').value = ''; toast(SENT_TEXT); }
 });
 $('mic').addEventListener('click', async () => {
   const on = await microphone.toggle();

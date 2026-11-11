@@ -115,7 +115,7 @@ node native/lesson/tools/attend/seat.cjs stop
   変わったらすぐ、変わらなければ `--timeout` 秒で返る。`changed` が付く。自分の入力中の文字は変化に数えない。
 - `say` の返事は `taken_as` (上と同じ) と `page_message` (「先生に話す」の下に出た文)。
 - 操作は返事に `ok` と、ページが出した文 (`page_message`) とエラー (`error.source` が `page` ならページの表示そのもの、例:
-  「この質問は締め切られました。」「いまは発言できません。課題は続けられます。」) と、操作後の `observe` を付ける。
+  「この問いは締め切られました。」「いまは発言できません。課題は続けられます。」) と、操作後の `observe` を付ける。
   締め切り後に答えようとすると `{"ok": false, "error": {"source": "harness", "code": "activity_closed", "text": "締め切りました。"}}`
   (ボタンが押せない状態の画面の文)。
 
