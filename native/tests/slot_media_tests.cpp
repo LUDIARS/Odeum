@@ -1,4 +1,5 @@
 #include "check.hpp"
+#include "rtc_exit.hpp"
 #include "media.hpp"
 #include <algorithm>
 #include <chrono>
@@ -76,7 +77,7 @@ void settle(boost::asio::io_context& io) {
 }
 }
 
-int main() { return run([] {
+int main() { return finish_rtc(run([] {
     rtc::InitLogger(rtc::LogLevel::None);
     boost::asio::io_context io;
     Config config; config.rtc.disableAutoNegotiation = true;
@@ -144,4 +145,4 @@ int main() { return run([] {
     rejects([&] { room->signal(10, first_offer); }, "invalid_sdp");
     rejects([&] { room->signal(2, first_offer); }, "invalid_sdp");
     room->leave(3); room->leave(2); room->leave(10);
-}); }
+})); }

@@ -1,10 +1,11 @@
 #include "check.hpp"
+#include "rtc_exit.hpp"
 #include "admission.hpp"
 #include "hub.hpp"
 using namespace odeum;
 using namespace odeum::relay;
 
-int main() { return run([] {
+int main() { return finish_rtc(run([] {
     boost::asio::io_context io;
     Config config;
     Hub hub(io, config);
@@ -55,4 +56,4 @@ int main() { return run([] {
     // Presenter leaving releases the invitation.
     hub.leave(1, "room");
     rejects([&] { hub.invitations().resolve_join("ABCDEFGH12", 7000); }, "session_not_live");
-}); }
+})); }

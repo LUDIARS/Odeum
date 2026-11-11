@@ -9,10 +9,14 @@
 #include "../app/rtc_service.hpp"
 #include "../app/settings.hpp"
 #include <boost/asio/io_context.hpp>
+#include <chrono>
 
 namespace odeum::runner {
 std::unique_ptr<RtcService> make_webrtc_broker(boost::asio::io_context& io, IceServerProvider& ice, MediaTools& media, const RunnerSettings& settings,
     std::function<std::optional<long long>(const std::string&)> run_pid);
+// Joins libdatachannel's worker threads once every broker and peer connection is gone; call it
+// before main returns so OpenSSL's atexit cleanup cannot run under a worker. False on timeout.
+bool finish_webrtc(std::chrono::milliseconds timeout);
 
 // Offer inspection (pure; tested without a peer connection).
 struct OfferCodec {

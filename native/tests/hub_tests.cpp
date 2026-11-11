@@ -1,9 +1,10 @@
 #include "check.hpp"
+#include "rtc_exit.hpp"
 #include "hub.hpp"
 using namespace odeum;
 using namespace odeum::relay;
 
-int main() { return run([] {
+int main() { return finish_rtc(run([] {
     boost::asio::io_context io;
     Config config;
     Hub hub(io, config);
@@ -38,4 +39,4 @@ int main() { return run([] {
     hub.join(2, viewer, [&](const Json& j) { own.push_back(j); }, [] {}, 10000, 11);
     check(own.back().at("reaction_version") == 0, "New room needs a fresh capability announcement");
     rejects([&] { hub.message(2, viewer, post, 10000, 11); }, "reaction_unavailable");
-}); }
+})); }

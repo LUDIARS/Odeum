@@ -61,7 +61,7 @@ log::Level level_of(const std::string& name) {
 }
 }
 
-int main() {
+int serve() {
     try {
         const auto env = process_environment();
         std::error_code error;
@@ -152,4 +152,16 @@ int main() {
         log::error("main", "fatal during startup", {{"err", failure.what()}});
         return 1;
     }
+}
+
+int main() {
+    const int status = serve();
+#ifdef ODEUM_RUNNER_HAS_WEBRTC
+    // Every broker and peer connection is gone; join libdatachannel's workers before exit().
+    if (!finish_webrtc(std::chrono::seconds(10))) {
+        log::error("main", "WebRTC cleanup did not finish", {});
+        return 1;
+    }
+#endif
+    return status;
 }

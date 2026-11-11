@@ -453,4 +453,8 @@ std::unique_ptr<RtcService> make_webrtc_broker(asio::io_context& io, IceServerPr
     rtc::InitLogger(rtc::LogLevel::None);
     return std::make_unique<Broker>(io, ice, media, settings, std::move(run_pid));
 }
+
+bool finish_webrtc(std::chrono::milliseconds timeout) {
+    return rtc::Cleanup().wait_for(timeout) == std::future_status::ready;
+}
 }

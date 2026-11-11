@@ -1,4 +1,5 @@
 #include "check.hpp"
+#include "rtc_exit.hpp"
 #include "hub.hpp"
 using namespace odeum;
 using namespace odeum::relay;
@@ -10,7 +11,7 @@ Ticket sender(std::string sub, Role role, std::string slot = {}) {
 Send into(std::vector<Json>& box) { return [&box](const Json& j) { box.push_back(j); }; }
 }
 
-int main() { return run([] {
+int main() { return finish_rtc(run([] {
     boost::asio::io_context io;
     Config config;
     Hub hub(io, config);
@@ -92,4 +93,4 @@ int main() { return run([] {
     small.join(2, sender("d", Role::presenter, "input2"), into(c_box), [] {}, 0, 1);
     check(c_box.back().at("slots").size() == 3 && c_box.back().at("slots").at("input2") == true, "Configured input range");
     check(small.sessions().size() == 1, "Rejected slot leaves no empty room");
-}); }
+})); }
