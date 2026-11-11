@@ -38,6 +38,13 @@
   応答 (HTTP 64KiB は既存) の JSON に {64KiB, 値 2048, 深さ 6} と 16 件 × 16 URL の上限を入れ、境界テストを
   `odeum.relay.limits` に足した。秘密値 (TURN の資格情報、API token) はエラー文・ログに出ない (テストで確認)。
 
+- 追加 (COMMON-4 作業 B): `odeum.lorica_applied.{baseline,extended,compile_commands}` と
+  `odeum.lorica_applied.binary.{odeum-relay,odeum-runner,odeum-unityctl}` の 6 本。ctest 54/54 通過。
+  わざと壊して落ちること: `-fcf-protection=none -U_GLIBCXX_ASSERTIONS` → `.baseline` と `.compile_commands`、
+  odeum_relay_state に `-fno-stack-protector` と juice に `-D_FORTIFY_SOURCE=0` → `.compile_commands` (自前・第三者を分けて列挙)、
+  odeum-relay に `-ftrivial-auto-var-init=uninitialized` → `.compile_commands`、unsafe API の拒否を外す → `.baseline` / `.extended`
+  (configure の網羅確認は通ってしまう構成)、odeum_harden を 1 本外す → configure の FATAL_ERROR。MSVC と macOS の枝は未実行。
+
 ## (b) 確かめていないこと
 
 - Windows (MSVC) と macOS の configure / build。presenter / sender / program のアプリ部分 (`settings_file.cpp`、

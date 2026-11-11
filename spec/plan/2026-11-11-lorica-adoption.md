@@ -78,6 +78,11 @@ sanitizer のビルド設定と fuzz の入口は repo 全体で未整備 (runne
 - macOS: Lorica の hardening は macOS を拒否するので、`-DODEUM_LORICA_MACOS_UNHARDENED=ON` を明示したときだけ
   hardening を飛ばして configure を通す (飛ばしたターゲットごとに WARNING)。boundary は入る。
 - MSVC: `lorica_deprecate_unsafe_apis` は `/we4996` で CRT の `getenv` なども拒否するので入れていない (本社で確認)。
+- ビルドの結果を見るテスト `odeum.lorica_applied.*` (`native/tests/lorica_applied_tests.cmake`、configure の網羅確認は残す):
+  `.baseline` / `.extended` (odeum_harden を通した翻訳単位が、強制 include・SSP・CET・PIE・`_GLIBCXX_ASSERTIONS`・FORTIFY を
+  中から確かめ、boundary の `checked_add` / `input_budget` を実行)、`.compile_commands` (`cmake -P` で compile_commands.json の
+  全エントリ。自前は全部、第三者は baseline のみを見る。打ち消すフラグは最後の出現で判定)、`.binary.<exe>` (python3 があるとき
+  verify_binary.py)。macOS の unhardened・Visual Studio・EXTENDED 不可の環境では理由を出して skip。
 
 ### 5.2 入力経路の上限
 

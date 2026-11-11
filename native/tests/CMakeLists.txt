@@ -19,6 +19,8 @@ add_executable(odeum_protocol_limits_tests protocol_limits_tests.cpp)
 target_link_libraries(odeum_protocol_limits_tests PRIVATE odeum_protocol OpenSSL::Crypto)
 odeum_harden(odeum_protocol_limits_tests)
 add_test(NAME odeum.protocol.limits COMMAND odeum_protocol_limits_tests)
+# Lorica is really applied in the build output (odeum.lorica_applied.*).
+include(${CMAKE_CURRENT_SOURCE_DIR}/lorica_applied_tests.cmake)
 if(TARGET odeum_runner_core)
   include(${CMAKE_CURRENT_SOURCE_DIR}/runner_tests.cmake)
 endif()

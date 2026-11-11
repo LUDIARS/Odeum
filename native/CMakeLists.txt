@@ -5,6 +5,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 include(FetchContent)
 include(CTest)
+# compile_commands.json is read by odeum.lorica_applied.compile_commands (tests/).
+if(PROJECT_IS_TOP_LEVEL)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
 # Sanitizer builds for ctest: ODEUM_SANITIZE=address,undefined or thread (GCC or Clang). The flags
 # are added before any dependency is configured, so libdatachannel and its threads are
 # instrumented too (TSan needs every thread's accesses). Undefined behaviour stops the test.
@@ -152,3 +156,4 @@ endif()
 add_subdirectory(fuzz)
 # Every compiled target in Odeum's own directories must have gone through odeum_harden.
 odeum_lorica_require_coverage()
+odeum_lorica_write_expectations()

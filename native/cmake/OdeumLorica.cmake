@@ -12,6 +12,9 @@
 #   odeum_lorica_require_coverage()
 #     FATAL_ERROR when a compiled target defined in Odeum's own directories did not go through
 #     odeum_harden: a new target cannot be added without Lorica by accident.
+#   odeum_lorica_write_expectations()
+#     Writes what the build output must show (<build>/lorica_applied/expect.cmake) for the
+#     odeum.lorica_applied.compile_commands test (tests/lorica_compile_commands.cmake).
 #
 # macOS: Lorica's hardening supports Windows and Linux only and refuses other platforms with a
 # FATAL_ERROR. odeum-program, odeum_sender and the presenter are also built for macOS, so there
@@ -79,6 +82,10 @@ function(odeum_harden target)
     target_link_libraries(${target} PRIVATE Lorica::boundary)
   endif()
   set_property(TARGET ${target} PROPERTY ODEUM_LORICA_BOUNDARY TRUE)
+  if(arg_EXTENDED)
+    # Read by odeum.lorica_applied.compile_commands (odeum_lorica_write_expectations).
+    set_property(GLOBAL APPEND PROPERTY ODEUM_LORICA_EXTENDED_TARGETS ${target})
+  endif()
   if(NOT ODEUM_LORICA_HARDEN)
     _odeum_lorica_note_skipped(${target})
     return()
@@ -148,4 +155,49 @@ function(odeum_lorica_require_coverage)
   endif()
   message(STATUS "Odeum: Lorica covers ${count} native targets (EXTENDED: ${ODEUM_LORICA_EXTENDED_OK}, "
     "unsafe API rejection: ${ODEUM_LORICA_UNSAFE_API})")
+endfunction()
+
+# What every compile command must carry, for tests/lorica_compile_commands.cmake. Called last, so
+# the EXTENDED list holds every target. The FORTIFY level follows Lorica's own rule
+# (LoricaHardening.cmake): 3 from compiler version 12, else 2, only in Release, RelWithDebInfo and
+# MinSizeRel, and not on Windows.
+function(odeum_lorica_write_expectations)
+  get_property(header GLOBAL PROPERTY LORICA_UNSAFE_API_HEADER)
+  get_property(extended_targets GLOBAL PROPERTY ODEUM_LORICA_EXTENDED_TARGETS)
+  get_property(multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+  cmake_path(GET header PARENT_PATH include_dir)
+  cmake_path(GET include_dir PARENT_PATH include_dir)
+  set(fortify_c "")
+  set(fortify_cxx "")
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" config)
+  if(NOT WIN32 AND config MATCHES "^(RELEASE|RELWITHDEBINFO|MINSIZEREL)$")
+    foreach(lang C CXX)
+      set(level 2)
+      if(CMAKE_${lang}_COMPILER_VERSION VERSION_GREATER_EQUAL 12)
+        set(level 3)
+      endif()
+      string(TOLOWER "${lang}" key)
+      set(fortify_${key} ${level})
+    endforeach()
+  endif()
+  if(MSVC)
+    set(frontend MSVC)
+  else()
+    set(frontend GNU)
+  endif()
+  file(CONFIGURE OUTPUT ${CMAKE_BINARY_DIR}/lorica_applied/expect.cmake CONTENT [=[
+set(HARDENED "@ODEUM_LORICA_HARDEN@")
+set(MULTI_CONFIG "@multi@")
+set(FRONTEND "@frontend@")
+set(PROCESSOR "@CMAKE_SYSTEM_PROCESSOR@")
+set(SOURCE_DIR "@PROJECT_SOURCE_DIR@")
+set(BINARY_DIR "@CMAKE_BINARY_DIR@")
+set(LORICA_INCLUDE_DIR "@include_dir@")
+set(LORICA_HEADER "@header@")
+set(UNSAFE_API "@ODEUM_LORICA_UNSAFE_API@")
+set(EXTENDED_OK "@ODEUM_LORICA_EXTENDED_OK@")
+set(EXTENDED_TARGETS "@extended_targets@")
+set(FORTIFY_C "@fortify_c@")
+set(FORTIFY_CXX "@fortify_cxx@")
+]=] @ONLY)
 endfunction()
