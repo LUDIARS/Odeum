@@ -28,6 +28,7 @@ function createWatcher({ page, observation, log, onError }) {
     lesson_state: raw.lesson_state, section: raw.section, slide: raw.slide, narration: raw.narration, demo: raw.demo,
     activity: raw.activity && { ...raw.activity, text_value: undefined }, assignment: raw.assignment,
     private: raw.private, shared: raw.shared, conduct: raw.conduct.standing, said: raw.said, my_questions: raw.my_questions,
+    my_reports: raw.my_reports,
   });
 
   async function poll() {
