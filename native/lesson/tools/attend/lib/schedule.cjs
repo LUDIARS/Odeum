@@ -21,7 +21,7 @@ const DEFAULTS = {
   revealSeconds: 12,       // results and personal feedback on screen
   assignmentSeconds: 240,  // assignment window
   shareAfterSeconds: 20,   // in a 良い質問の共有 section, narration before sharing
-  shareHoldSeconds: 20,    // shared questions on screen (votes) before the end
+  shareHoldSeconds: 45,    // after sharing: time to read the shared questions and press 私も知りたい before the end
   actionSeconds: 2,        // allowance per console click (click + verification) for the estimate
   marginSeconds: 5,        // kept free before the timeline's own close
 };
@@ -63,6 +63,7 @@ function limitsOf(timeline, marginSeconds = DEFAULTS.marginSeconds) {
 function describeLimits(limits) {
   const rows = [...Object.entries(limits.activities).map(([id, seconds]) => `  question ${id}: up to ${seconds}s`),
     ...Object.entries(limits.assignments).map(([id, seconds]) => `  assignment ${id}: up to ${seconds}s`)];
+  if (limits.share) rows.push(`  sharing in ${limits.share.section}: --share-hold up to ${limits.share.seconds}s (with the default narration and --share-after)`);
   return rows.join('\n');
 }
 // The windows a schedule uses, for --help: per question, with the defaults that had to be clamped.
@@ -70,6 +71,7 @@ function describeWindows(schedule) {
   const rows = Object.entries(schedule.windows).map(([id, seconds]) => `  question ${id}: ${seconds}s`);
   for (const cut of schedule.clamped) rows.push(`  (default ${cut.default_seconds}s for ${cut.id} clamped to ${cut.used_seconds}s: ${cut.reason})`);
   rows.push(`  assignment: ${schedule.settings.assignmentSeconds}s`);
+  rows.push(`  wrap-up: shared questions stay on screen ${schedule.settings.shareHoldSeconds}s (--share-hold) before the end cue`);
   return rows.join('\n');
 }
 
@@ -135,9 +137,14 @@ function buildSchedule(timeline, settings = {}, windows = {}) {
         hold(5, '課題の締め', 'pause');
         acted = true;
       } else if (cue.kind === 'questions.share') {
+        // Shared by hand partway through the section; the timeline's own share and end come at its end.
+        const room = Math.floor((cue.at_ms - section.start) / 1000) - s.marginSeconds;
+        const used = s.narrationSeconds + s.shareAfterSeconds + s.shareHoldSeconds;
+        if (used > room) throw new Error(`section "${section.id}": narration ${s.narrationSeconds}s + --share-after ${s.shareAfterSeconds}s + --share-hold ${s.shareHoldSeconds}s is longer than the lesson allows before its own sharing (${room}s)`);
+        limits.share = { section: section.id, seconds: room - s.narrationSeconds - s.shareAfterSeconds };
         hold(s.shareAfterSeconds, `語り: ${section.title}`, 'narration');
         action('questions.share', '良い質問を共有する');
-        hold(s.shareHoldSeconds, '共有された質問', 'share');
+        hold(s.shareHoldSeconds, '共有された質問 (読んで「私も知りたい」を押す時間)', 'share');
         acted = true;
       }
     }

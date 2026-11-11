@@ -68,7 +68,7 @@ function options() {
       demoSeconds: numberOption(o, 'demo-seconds', 8, { min: 2 }),
       revealSeconds: numberOption(o, 'reveal-seconds', 12, { min: 3 }),
       shareAfterSeconds: numberOption(o, 'share-after', 20, { min: 2 }),
-      shareHoldSeconds: numberOption(o, 'share-hold', 20, { min: 2 }),
+      shareHoldSeconds: numberOption(o, 'share-hold', DEFAULTS.shareHoldSeconds, { min: 2 }),
     },
   };
 }

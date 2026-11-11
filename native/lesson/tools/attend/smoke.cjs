@@ -242,6 +242,7 @@ async function main() {
       const cut = report.clamped.find((item) => item.id === id);
       return report.windows_used[id] === (cut ? cut.used_seconds : text ? 90 : 60);
     }),
+    wrapup_dwell_after_sharing: report.share_dwell_seconds !== null && report.share_dwell_seconds >= 45,
     no_classmate_failure: !events.some((event) => event.kind === 'error'),
     video_written: Boolean(session.video?.seconds > 0 && session.video.width > 0),
     classroom_exit_0: code === 0,
