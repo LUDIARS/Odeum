@@ -8,13 +8,16 @@
 //
 // Because the timeline opens each question and assignment itself, the only limit on a window is the
 // lesson's own: the time from the cue to the timeline's close (the question's `seconds`, the
-// assignment's minutes). limitsOf() computes them; a window longer than its limit is refused up front.
+// assignment's minutes). limitsOf() computes them. A window asked for (--windows, --choice-seconds, ...) that
+// is longer than its limit is refused up front; a built-in default that is longer is clamped to the limit,
+// and the schedule records it (`clamped`, shown by seat.cjs status).
 
 const DEFAULTS = {
   narrationSeconds: 8,     // narration and slide on screen before anything else in a section
   sectionSeconds: 15,      // a section with nothing to answer (e.g. the introduction), after its demos
   demoSeconds: 8,          // a demo line on screen before moving on
-  activitySeconds: 60,     // answer window per question
+  choiceSeconds: 60,       // answer window for a choice question
+  textSeconds: 90,         // answer window for a text / missing / open question (2-4 sentences take longer to write)
   revealSeconds: 12,       // results and personal feedback on screen
   assignmentSeconds: 240,  // assignment window
   shareAfterSeconds: 20,   // in a 良い質問の共有 section, narration before sharing
@@ -62,9 +65,22 @@ function describeLimits(limits) {
     ...Object.entries(limits.assignments).map(([id, seconds]) => `  assignment ${id}: up to ${seconds}s`)];
   return rows.join('\n');
 }
+// The windows a schedule uses, for --help: per question, with the defaults that had to be clamped.
+function describeWindows(schedule) {
+  const rows = Object.entries(schedule.windows).map(([id, seconds]) => `  question ${id}: ${seconds}s`);
+  for (const cut of schedule.clamped) rows.push(`  (default ${cut.default_seconds}s for ${cut.id} clamped to ${cut.used_seconds}s: ${cut.reason})`);
+  rows.push(`  assignment: ${schedule.settings.assignmentSeconds}s`);
+  return rows.join('\n');
+}
 
+const textKinds = new Set(['text', 'missing', 'open']);
+
+// settings: values the user gave (undefined = the default). windows: per-activity seconds the user gave.
 function buildSchedule(timeline, settings = {}, windows = {}) {
-  const s = { ...DEFAULTS, ...settings };
+  const given = Object.fromEntries(Object.entries(settings).filter(([, value]) => value !== undefined));
+  const s = { ...DEFAULTS, ...given };
+  const chosen = {};      // activity id -> window used
+  const clamped = [];     // defaults cut to the lesson's limit
   const sections = sectionsOf(timeline);
   if (sections.length === 0) throw new Error('timeline has no sections');
   const limits = limitsOf(timeline, s.marginSeconds);
@@ -93,9 +109,15 @@ function buildSchedule(timeline, settings = {}, windows = {}) {
         hold(s.demoSeconds, `実演: ${cue.detail.note || cue.detail.feature}`, 'demo');
       } else if (cue.kind === 'activity.open') {
         const id = cue.detail.id;
-        const seconds = windows[id] ?? s.activitySeconds;
-        if (seconds > limits.activities[id])
-          throw new Error(`question "${id}": a ${seconds}s window is longer than the lesson allows (${limits.activities[id]}s: its own ${cue.detail.seconds}s minus a ${s.marginSeconds}s margin)`);
+        const key = textKinds.has(cue.detail.kind) ? 'textSeconds' : 'choiceSeconds';
+        const asked = windows[id] !== undefined || given[key] !== undefined;
+        let seconds = windows[id] ?? s[key];
+        if (seconds > limits.activities[id]) {
+          if (asked) throw new Error(`question "${id}": a ${seconds}s window is longer than the lesson allows (${limits.activities[id]}s: its own ${cue.detail.seconds}s minus a ${s.marginSeconds}s margin)`);
+          clamped.push({ id, default_seconds: seconds, used_seconds: limits.activities[id], reason: `the lesson closes "${id}" by itself after ${cue.detail.seconds}s` });
+          seconds = limits.activities[id];
+        }
+        chosen[id] = seconds;
         cueAction(cue, `問いの合図まで進める: ${id}`, 'activity');
         hold(seconds, `回答受付: ${id}`, 'answer');
         action('activity.close', `締め切る: ${id}`, { id, deadline_ms: cue.at_ms + (seconds + s.marginSeconds) * 1000 });
@@ -126,7 +148,7 @@ function buildSchedule(timeline, settings = {}, windows = {}) {
     }
     steps.push(...local);
   });
-  return { settings: s, sections, steps, limits };
+  return { settings: s, sections, steps, limits, windows: chosen, clamped };
 }
 
 // Rough wall-clock of the whole schedule, for the start-up banner and `status`.
@@ -134,4 +156,4 @@ function estimateSeconds(schedule) {
   return schedule.steps.reduce((sum, step) => sum + (step.kind === 'hold' ? step.seconds : step.kind === 'action' ? schedule.settings.actionSeconds : 1), 0);
 }
 
-module.exports = { buildSchedule, estimateSeconds, activitiesOf, sectionsOf, limitsOf, describeLimits, DEFAULTS };
+module.exports = { buildSchedule, estimateSeconds, activitiesOf, sectionsOf, limitsOf, describeLimits, describeWindows, DEFAULTS };

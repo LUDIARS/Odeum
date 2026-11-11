@@ -63,7 +63,8 @@ function createRunner({ page, schedule, log, seat }) {
     state: () => state,
     revealed: () => revealed,
     status() {
-      const out = { state, failure: failure?.message ?? null };
+      // windows: the answer window each question gets; clamped: defaults cut to the lesson's own limit.
+      const out = { state, failure: failure?.message ?? null, windows: schedule.windows, clamped: schedule.clamped };
       if (index < 0 || index >= schedule.steps.length) return { ...out, limits: schedule.limits, upcoming: index < 0 ? schedule.steps.slice(0, 5).map(describe) : [] };
       const step = schedule.steps[index];
       const elapsed = (Date.now() - stepStarted) / 1000;

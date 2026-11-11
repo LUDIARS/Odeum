@@ -130,9 +130,10 @@ node native/lesson/tools/attend/seat.cjs stop
 ```json
 { "ok": true, "schedule": { "state": "running",
     "step": { "n": 14, "of": 60, "kind": "hold", "label": "回答受付: hitstop-design", "elapsed_seconds": 21, "left_seconds": 39 },
-    "upcoming": [ { "op": "activity.close", "label": "締め切る: hitstop-design", "in_seconds": 39 },
-                  { "op": "activity.reveal", "label": "結果を見せる: hitstop-design", "in_seconds": 41 } ] },
-  "estimate_seconds": 805, "lesson_clock": "28:21 / 90:00", "waiting_for_attendee": false }
+    "upcoming": [ { "op": "activity.close", "label": "締め切る: hitstop-design", "in_seconds": 69 },
+                  { "op": "activity.reveal", "label": "結果を見せる: hitstop-design", "in_seconds": 71 } ],
+    "windows": { "missing-feel": 90, "weapon-power": 60, "hitstop-design": 90, "…": "…" }, "clamped": [] },
+  "estimate_seconds": 1035, "lesson_clock": "28:21 / 90:00", "waiting_for_attendee": false }
 ```
 
 ## 縮めた台本の作り方
@@ -146,7 +147,8 @@ node native/lesson/tools/attend/seat.cjs stop
 3. セクションの中のタイムラインの合図を時刻の順に、操作卓の「合図」から選んで「この合図まで進める」で呼ぶ (操作卓がその時刻へ
    移り、合図はタイムライン自身が出す):
    - 実演 → 出席者のページに「先生の画面…で実演中: …」が出るのを待ち (10 秒まで。出なければ止まる)、`--demo-seconds 8` 秒見せる。
-   - 問い → タイムラインが問いを出す → `--activity-seconds 60` 秒 (問いごとに `--windows hitstop-design=150,camera-open=150`) →
+   - 問い → タイムラインが問いを出す → 選択式は `--choice-seconds 60` 秒、記述 (`text` / `missing` / `open`) は `--text-seconds 90` 秒
+     (`--activity-seconds N` は両方、問いごとは `--windows hitstop-design=150,camera-open=150`) →
      「締め切る」→ 2 秒 →「結果を見せる」→ `--reveal-seconds 12` 秒。
    - 課題 → タイムラインが課題を出す → `--assignment-seconds 240` 秒 →「終える」(60 秒ごとの進み具合の確認と、
      150 秒止まった人への自動ヒントはこの間にタイムライン自身が出す)。
@@ -155,9 +157,11 @@ node native/lesson/tools/attend/seat.cjs stop
 
 問いと課題はタイムライン自身が出すので、窓の長さの上限は授業自身の長さ (合図から、タイムラインが自分で締め切るまで) から
 余裕 5 秒を引いたもの。上限は `classroom.cjs --help` の最後と `seat.cjs status` の `schedule.limits` に出る。サンプルでは
-問いが 70〜175 秒、課題が 619 秒 (授業の 12 分から語りの分を引いた残り)。上限を超える指定は起動時に断る (どれの上限かを出す)。
+問いが 70〜175 秒、課題が 619 秒 (授業の 12 分から語りの分を引いた残り)。上限を超える指定は
+起動時に断る (どれの上限かを出す)。既定値 (90 秒 / 60 秒) が上限を超える問いは上限まで縮め、`seat.cjs status` の `schedule.clamped` に
+その問いと理由を出す (サンプルでは縮む問いは無い)。`--help` は既定値で各問いに使う窓も出す。
 実行中も「締め切る」「終える」の前に操作卓の時計で、窓が上限の中にあることを確かめる。
-既定値でのサンプルの所要はおよそ 15〜16 分 (6 問 × 約 90 秒 + 課題 4 分 + 実演 3 回 + 共有)。
+既定値でのサンプルの所要はおよそ 17 分 (記述 4 問 × 約 120 秒 + 選択 2 問 × 約 90 秒 + 課題 4 分 + 実演 3 回 + 共有)。
 セクションに入った直後は最初の語りだけが出る (2 行目以降は実時間で数分後のため、縮めた台本では多くの場合出ない)。スライドには要点が全部出る。
 
 ## 出力 (作業フォルダ)

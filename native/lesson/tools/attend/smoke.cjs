@@ -34,6 +34,8 @@ const UNRESOLVED_QUESTION = 'ダメージと威力を分けておくと、具体
 // Neither the course nor the scripted teacher answers this one: it is still waiting at the end.
 const LEFT_QUESTION = 'ノックバックの強さは敵ごとに変えるべきですか';
 const TROUBLE = '先生、すみません、デモの画面が小さくて world= の数字がどう縮んだのかよく見えませんでした。';
+// The sample's questions: true for text / missing / open ones (90 s by default), false for choice ones (60 s).
+const TEXT_KIND = { 'missing-feel': true, 'weapon-power': false, 'hitstop-design': true, 'knockback-effects': true, 'enemy-placement': false, 'camera-open': true };
 const TEXT = 'ヒットストップで一瞬止める、ノックバックで押し返す、カメラを揺らす。威力で止める長さを変え、UI は止めない。壁際や連続ヒットの扱いも決める。';
 
 async function attend(report) {
@@ -204,6 +206,13 @@ async function main() {
   const returned = report.private.map((message) => message.seq);
   const state = (text) => report.mine.find((item) => item.question === text)?.state ?? null;
   const events = fs.readFileSync(path.join(work, 'attendee.jsonl'), 'utf8').trim().split('\n').map((line) => JSON.parse(line));
+  const started = events.find((event) => event.kind === 'session' && event.event === 'start');
+  const shareAt = events.find((event) => event.kind === 'operator' && event.event === 'questions.share')?.v;
+  const endAt = events.find((event) => event.kind === 'operator' && event.event === 'cue' && event.label === '授業の終わりまで進める')?.v;
+  report.share_dwell_seconds = shareAt !== undefined && endAt !== undefined ? Math.round(endAt - shareAt) : null;
+  report.windows_used = started?.windows_used ?? null;
+  report.clamped = started?.clamped ?? null;
+  report.classmate_skipped = events.filter((event) => event.kind === 'classmate' && event.skipped).map((event) => ({ seat: event.seat, what: event.what, reason: event.reason }));
   report.teacher_acknowledged = events.filter((event) => event.kind === 'operator' && event.event === 'teacher.ack_report').map((event) => event.report_id);
   report.teacher_answers = events.filter((event) => event.kind === 'operator' && event.event === 'teacher.answer').map((event) => event.entry);
   report.checks = {
@@ -228,6 +237,12 @@ async function main() {
     unanswered_told_at_end: state(LEFT_QUESTION) === '先生の回答待ち' && report.private.some((message) => message.kind === '答えられなかった質問'),
     every_private_message_returned_once: all.length > 0 && returned.length === all.length && new Set(returned).size === all.length && all.every((seq) => returned.includes(seq)),
     lesson_ended: finalView?.lesson_state === 'ended',
+    // Default windows: 90 s for text / missing / open questions, 60 s for choice ones (or the lesson's limit, recorded as clamped).
+    windows_by_kind: Boolean(report.windows_used) && Object.entries(TEXT_KIND).every(([id, text]) => {
+      const cut = report.clamped.find((item) => item.id === id);
+      return report.windows_used[id] === (cut ? cut.used_seconds : text ? 90 : 60);
+    }),
+    no_classmate_failure: !events.some((event) => event.kind === 'error'),
     video_written: Boolean(session.video?.seconds > 0 && session.video.width > 0),
     classroom_exit_0: code === 0,
   };

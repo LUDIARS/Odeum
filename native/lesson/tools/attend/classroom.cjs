@@ -10,7 +10,7 @@ const path = require('path');
 const { chromium } = require('playwright');
 const { parseArgs, numberOption } = require('./lib/args.cjs');
 const { startService, loadTimeline, DEFAULT_BIN } = require('./lib/service.cjs');
-const { buildSchedule, estimateSeconds, activitiesOf, sectionsOf, limitsOf, describeLimits, DEFAULTS } = require('./lib/schedule.cjs');
+const { buildSchedule, estimateSeconds, activitiesOf, sectionsOf, describeLimits, describeWindows, DEFAULTS } = require('./lib/schedule.cjs');
 const { loadAnswers, createTeacher } = require('./lib/teacher.cjs');
 const { openConsole } = require('./lib/operator.cjs');
 const { createRunner } = require('./lib/runner.cjs');
@@ -29,7 +29,7 @@ const CONSOLE_VIEW = { width: 1360, height: 900 };   // the console page is up t
 function options() {
   const { options: o } = parseArgs(process.argv.slice(2), {
     flags: ['no-wait-attendee', 'help'],
-    allow: ['work', 'course', 'students', 'bin', 'plot', 'activity-seconds', 'windows', 'assignment-seconds', 'narration-seconds',
+    allow: ['work', 'course', 'students', 'bin', 'plot', 'activity-seconds', 'choice-seconds', 'text-seconds', 'windows', 'assignment-seconds', 'narration-seconds',
       'section-seconds', 'demo-seconds', 'reveal-seconds', 'share-after', 'share-hold', 'linger', 'attendee-timeout', 'teacher-answers', 'teacher-delay'],
   });
   if (o.help) {
@@ -37,7 +37,9 @@ function options() {
     // The longest windows this course's own timeline allows (the lesson closes each one by itself after that).
     try {
       const timeline = loadTimeline({ bin: o.bin ? path.resolve(o.bin) : DEFAULT_BIN, course: o.course ?? 'action-game', plot: o.plot });
-      console.log(`Window limits for ${o.plot ?? o.course ?? 'action-game'} (the lesson's own time minus ${DEFAULTS.marginSeconds}s):\n${describeLimits(limitsOf(timeline))}`);
+      const schedule = buildSchedule(timeline);
+      console.log(`Window limits for ${o.plot ?? o.course ?? 'action-game'} (the lesson's own time minus ${DEFAULTS.marginSeconds}s):\n${describeLimits(schedule.limits)}`);
+      console.log(`Default windows (choice ${DEFAULTS.choiceSeconds}s, text / missing / open ${DEFAULTS.textSeconds}s), about ${Math.round(estimateSeconds(schedule) / 60)} min in all:\n${describeWindows(schedule)}`);
     } catch (error) { console.log(`(window limits unavailable: ${error.message})`); }
     process.exit(0);
   }
@@ -56,8 +58,10 @@ function options() {
     work: path.resolve(work), course: o.course ?? 'action-game', students, bin: o.bin ? path.resolve(o.bin) : DEFAULT_BIN, plot: o.plot,
     windows, linger: numberOption(o, 'linger', 20),
     teacherAnswers: o['teacher-answers'] ? path.resolve(o['teacher-answers']) : null, teacherDelay: numberOption(o, 'teacher-delay', 12), waitAttendee: !o['no-wait-attendee'], attendeeTimeout: numberOption(o, 'attendee-timeout', 600, { min: 1 }),
+    // Undefined = the schedule's default (clamped to the lesson's limit if need be); a value given is used as is or refused.
     settings: {
-      activitySeconds: numberOption(o, 'activity-seconds', 60, { min: 5 }),
+      choiceSeconds: numberOption(o, 'choice-seconds', numberOption(o, 'activity-seconds', undefined, { min: 5 }), { min: 5 }),
+      textSeconds: numberOption(o, 'text-seconds', numberOption(o, 'activity-seconds', undefined, { min: 5 }), { min: 5 }),
       assignmentSeconds: numberOption(o, 'assignment-seconds', DEFAULTS.assignmentSeconds, { min: 10 }),
       narrationSeconds: numberOption(o, 'narration-seconds', 8, { min: 2 }),
       sectionSeconds: numberOption(o, 'section-seconds', 15, { min: 2 }),
@@ -98,6 +102,7 @@ async function main() {
   const videoDir = path.join(opt.work, 'video');
   fs.rmSync(videoDir, { recursive: true, force: true });
   log.write('session', { event: 'start', course: opt.course, students: opt.students, settings: schedule.settings, windows: opt.windows, limits: schedule.limits,
+    windows_used: schedule.windows, clamped: schedule.clamped,
     teacher: answers ? { file: opt.teacherAnswers, entries: answers.map((entry) => entry.id), delay_seconds: opt.teacherDelay } : null, estimate_seconds: estimate });
   console.log(`[classroom] course ${opt.course}: ${schedule.steps.length} schedule steps, about ${Math.round(estimate / 60)} min`);
 
