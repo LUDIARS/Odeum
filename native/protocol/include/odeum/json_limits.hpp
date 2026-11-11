@@ -18,6 +18,8 @@ inline constexpr JsonLimits ws_message_limits{max_message_bytes, 1024, 8};
 inline constexpr JsonLimits ticket_part_limits{8192, 256, 4};
 // Operator-written files and environment values (keys, ICE servers, app settings).
 inline constexpr JsonLimits config_limits{1024 * 1024, 16384, 16};
+// Largest operator file read whole (public keys, settings).
+inline constexpr std::size_t max_config_file_bytes = 1024 * 1024;
 
 // Throws ProtocolError("invalid_message") when a limit is exceeded and Json::parse_error when the
 // text is malformed.

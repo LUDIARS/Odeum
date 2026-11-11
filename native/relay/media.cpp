@@ -1,5 +1,6 @@
 #include "media.hpp"
 #include "slots.hpp"
+#include <odeum/rtcp.hpp>
 #include <boost/asio/post.hpp>
 
 namespace odeum::relay {
@@ -104,7 +105,7 @@ void MediaRoom::request_keyframe(const std::string& slot) {
 void MediaRoom::attach(std::uint64_t id, bool upstream, const std::string& mid, const std::shared_ptr<rtc::Track>& track) {
     auto weak = weak_from_this();
     track->onMessage([weak, id, upstream, mid](rtc::message_variant data) {
-        auto packet = std::get_if<rtc::binary>(&data); if (!packet) return;
+        auto packet = std::get_if<rtc::binary>(&data); if (!packet || packet->size() > max_rtp_packet_bytes) return;
         if (auto room = weak.lock()) {
             if (room->queued_packets_.fetch_add(1) >= 512) { --room->queued_packets_; return; }
             boost::asio::post(room->io_, [weak, id, upstream, mid, packet = std::move(*packet)] {

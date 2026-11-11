@@ -1,17 +1,15 @@
 #include "settings_file.hpp"
+#include <odeum/bounded_file.hpp>
 #include <fstream>
-#include <sstream>
 #include <stdexcept>
 
 namespace odeum::presenter {
 PresenterSettings load_settings(const std::filesystem::path& path) {
-    std::ifstream input(path, std::ios::binary);
-    if (!input) return {};
-    std::stringstream text;
-    text << input.rdbuf();
-    const auto json = Json::parse(text.str(), nullptr, false);
-    if (json.is_discarded()) throw std::invalid_argument("Settings file is not JSON: " + path.string());
-    try { return settings_from_json(json); }
+    std::optional<std::string> text;
+    try { text = read_file_within(path, max_settings_file_bytes); }
+    catch (const FileTooLarge&) { throw std::invalid_argument("Settings file is too large: " + path.string()); }
+    if (!text) return {};
+    try { return settings_from_text(*text); }
     catch (const std::invalid_argument& error) { throw std::invalid_argument(std::string(error.what()) + " (" + path.string() + ")"); }
 }
 

@@ -32,10 +32,16 @@ private:
     std::uint32_t chunk_size_ = 128;
 };
 
+// Most chunk streams the server may open (ids 2..65599 are legal; servers use a handful).
+inline constexpr std::size_t max_rtmp_chunk_streams = 64;
+// Most bytes the reader holds at once: unparsed input plus every partly received message.
+inline constexpr std::size_t max_rtmp_pending_bytes = 32u << 20;
+
 // Reassembles the server's chunk stream (all four header types, 1- to 3-byte basic headers,
 // extended timestamps). Set Chunk Size and Abort are applied here and also returned.
 // Throws RtmpError("invalid_chunk") for a header that refers to an unknown chunk stream, a
-// zero/oversized chunk size or a message over 16 MiB.
+// zero/oversized chunk size, a message over 16 MiB, more than max_rtmp_chunk_streams chunk
+// streams or more than max_rtmp_pending_bytes held.
 class ChunkReader {
 public:
     std::vector<RtmpMessage> feed(std::span<const std::byte> data);

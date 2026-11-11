@@ -1,4 +1,5 @@
 #include <odeum/message.hpp>
+#include <odeum/json_limits.hpp>
 #include <odeum/slot.hpp>
 #include <array>
 #include <algorithm>
@@ -53,7 +54,7 @@ Message parse_message(std::string_view wire) {
     if (wire.size() > max_message_bytes) throw ProtocolError("message_too_large", "Message exceeds 16 KiB");
     try {
         utf8_length(wire);
-        auto j = Json::parse(wire); require(j.is_object()); require_text(j, "type", 32);
+        auto j = parse_json_within(wire, ws_message_limits); require(j.is_object()); require_text(j, "type", 32);
         const auto name = j.at("type").get<std::string>();
         auto it = std::find(names.begin(), names.end(), name);
         if (it == names.end()) throw ProtocolError("unknown_type", "Unknown message type");

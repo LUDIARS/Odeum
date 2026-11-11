@@ -40,7 +40,10 @@ struct Amf0Error : std::invalid_argument { using invalid_argument::invalid_argum
 
 void amf0_encode(std::vector<std::byte>& out, const Amf0Value& value);
 std::vector<std::byte> amf0_encode(const std::vector<Amf0Value>& values);
+// Most values (including object and ECMA array property values) one payload may hold. RTMP
+// command replies and onMetaData carry a few dozen.
+inline constexpr std::size_t max_amf0_values = 4096;
 // Every value in the buffer, in order. Throws Amf0Error for a truncated buffer, an unknown
-// marker or nesting deeper than 16 levels.
+// marker, nesting deeper than 16 levels or more than max_amf0_values values.
 std::vector<Amf0Value> amf0_decode(std::span<const std::byte> data);
 }

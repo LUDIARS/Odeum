@@ -1,4 +1,5 @@
 #include "presenter_settings.hpp"
+#include <odeum/json_limits.hpp>
 #include <cmath>
 #include <stdexcept>
 
@@ -13,6 +14,15 @@ template<class T> void read(const Json& object, const char* key, T& target) {
 
 bool is_corner_name(std::string_view name) {
     return name == "top-left" || name == "top-right" || name == "bottom-left" || name == "bottom-right";
+}
+
+PresenterSettings settings_from_text(std::string_view text) {
+    if (text.size() > max_settings_file_bytes) throw std::invalid_argument("Settings file is too large");
+    Json json;
+    try { json = parse_json_within(text, config_limits); }
+    catch (const ProtocolError&) { throw std::invalid_argument("Settings file exceeds its limits"); }
+    catch (const Json::exception&) { throw std::invalid_argument("Settings file is not JSON"); }
+    return settings_from_json(json);
 }
 
 PresenterSettings settings_from_json(const Json& json) {

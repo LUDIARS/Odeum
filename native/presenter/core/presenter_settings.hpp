@@ -27,5 +27,10 @@ bool is_corner_name(std::string_view);
 // Reads the settings file's JSON. Missing keys keep their defaults; a wrong type or an invalid
 // value throws std::invalid_argument naming the key.
 PresenterSettings settings_from_json(const Json&);
+// The settings file's text, parsed within config_limits (bytes, values, depth). Malformed or
+// oversized text throws std::invalid_argument too.
+PresenterSettings settings_from_text(std::string_view text);
+// Largest settings file read (the file holds a handful of short values).
+inline constexpr std::size_t max_settings_file_bytes = 64 * 1024;
 Json settings_to_json(const PresenterSettings&);
 }

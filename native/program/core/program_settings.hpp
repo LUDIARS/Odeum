@@ -33,6 +33,11 @@ struct ProgramSettings {
 // Throws std::invalid_argument naming the field when a value is outside its range.
 void validate(const ProgramSettings&);
 ProgramSettings settings_from_json(const Json&);
+// The settings file's text, parsed within config_limits; malformed or oversized text throws
+// std::invalid_argument too.
+ProgramSettings settings_from_text(std::string_view text);
+// Largest program.json read (a handful of short values).
+inline constexpr std::size_t max_settings_file_bytes = 64 * 1024;
 Json settings_to_json(const ProgramSettings&);
 
 struct RtmpEndpoint {
