@@ -25,7 +25,7 @@ std::string random_token() {
 }
 
 School::School(std::vector<Plot> catalog, std::shared_ptr<const LessonModel> model, std::size_t max_students)
-    : catalog_(std::move(catalog)), model_(std::move(model)), max_students_(max_students) {}
+    : catalog_(std::move(catalog)), model_(std::move(model)), max_students_(max_students), tools_(random_join_code, random_token) {}
 
 const Plot* School::plot(std::string_view id) const {
     for (const auto& plot : catalog_) if (plot.id == id) return &plot;
@@ -47,6 +47,7 @@ void School::close(const std::string& class_id) {
     if (found == classes_.end()) throw ProtocolError("unknown_class", "Unknown class");
     codes_.erase(found->second.code);
     classes_.erase(found);
+    tools_.revoke_class(class_id);
 }
 Classroom& School::classroom(const std::string& class_id) {
     const auto found = classes_.find(class_id);

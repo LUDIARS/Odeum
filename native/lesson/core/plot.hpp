@@ -1,5 +1,6 @@
 #pragma once
 #include "types.hpp"
+#include <map>
 #include <optional>
 
 namespace odeum::lesson {
@@ -24,7 +25,10 @@ struct ActivityPlan {
     std::size_t min_points = 1;    // text / missing: points needed to count as "got it"
     int seconds = 120;
 };
-struct StepPlan { std::string id, label; std::vector<std::string> hints; };
+// Lets a tool on the student's machine (Ergo Studio) tick the step: it is done once the variable
+// the running game publishes satisfies the comparison. Steps without a check are ticked by hand.
+struct StepCheck { std::string variable, op; Json value; };
+struct StepPlan { std::string id, label; std::vector<std::string> hints; std::optional<StepCheck> check; };
 struct AssignmentPlan {
     std::string id, title, brief, extra;  // extra: a stretch goal offered to students who finish
     std::vector<StepPlan> steps;
@@ -54,6 +58,9 @@ struct Plot {
     std::vector<Term> vocabulary;
     std::vector<Section> sections;
     std::vector<Faq> faq;
+    // Demo feature -> the bool variable that switches it in the running game. With this map a
+    // tool on the presenter's machine can flip demos itself; without it demos are only announced.
+    std::map<std::string, std::string> tool_features;
 };
 // Throws ProtocolError("invalid_plot") naming the offending field.
 Plot parse_plot(const Json& document);
@@ -61,4 +68,6 @@ std::string_view activity_kind_name(ActivityKind kind);
 const Section* find_section(const Plot& plot, std::string_view id);
 const ActivityPlan* find_activity(const Plot& plot, std::string_view id);
 const AssignmentPlan* find_assignment(const Plot& plot, std::string_view id);
+// True when some assignment step can be ticked by a tool watching the student's game.
+bool has_checked_steps(const Plot& plot);
 }

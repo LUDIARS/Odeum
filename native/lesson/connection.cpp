@@ -16,10 +16,21 @@ constexpr std::size_t max_queued_messages = 256, max_queued_bytes = 512 * 1024;
 // Snapshots and timelines for a full class exceed the 16 KiB cap that applies to what clients send.
 constexpr std::size_t max_outgoing_bytes = 256 * 1024;
 
+// Tools post one small JSON object; nothing else on this service takes a request body.
+constexpr std::uint64_t max_request_body = 4096;
+
 unsigned http_status(const std::string& code) {
-    if (code == "class_not_found" || code == "unknown_plot") return 404;
+    if (code == "tool_unlinked") return 401;
+    if (code == "forbidden_role" || code == "ejected") return 403;
+    if (code == "class_not_found" || code == "unknown_plot" || code == "link_not_found") return 404;
+    if (code == "not_assigned") return 409;
     if (code == "rate_limited") return 429;
     return 400;
+}
+std::string_view bearer(std::string_view authorization) {
+    constexpr std::string_view scheme = "Bearer ";
+    return authorization.size() > scheme.size() && beast::iequals(authorization.substr(0, scheme.size()), scheme)
+        ? authorization.substr(scheme.size()) : std::string_view();
 }
 bool student_page(std::string_view path) { return path == "/lesson" || path.starts_with("/web/"); }
 bool console_page(std::string_view path) { return path == "/console" || path.starts_with("/web/"); }
@@ -45,7 +56,7 @@ Connection::Connection(boost::asio::ip::tcp::socket socket, Server& server, bool
 }
 Connection::~Connection() { --*connections_; }
 void Connection::start() {
-    parser_.body_limit(0); parser_.header_limit(16384);
+    parser_.body_limit(max_request_body); parser_.header_limit(16384);
     beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(10));
     http::async_read(ws_.next_layer(), buffer_, parser_, [self = shared_from_this()](beast::error_code error, std::size_t) {
         if (error) { self->close(); return; }
@@ -91,7 +102,9 @@ bool Connection::serve_shared(const Request&, const std::string& path, const std
 void Connection::route() {
     try {
         const auto& request = parser_.get();
-        if (request.method() != http::verb::get) { respond(405, {{"error", "method_not_allowed"}}); return; }
+        // POST exists only for tools, and only on the students' listener (see route_tool).
+        const bool tool_post = !console_ && request.method() == http::verb::post && request.target().starts_with("/v1/tool/");
+        if (request.method() != http::verb::get && !tool_post) { respond(405, {{"error", "method_not_allowed"}}); return; }
         if (console_) route_console(request); else route_students(request);
     } catch (const ProtocolError& error) { respond(http_status(error.code), {{"error", error.code}}); }
     catch (const std::exception&) { respond(400, {{"error", "invalid_request"}}); }
@@ -102,6 +115,7 @@ void Connection::route_students(const Request& request) {
     if (!server_.config().web_access.allows_same_origin(authority, origin)) { respond(403, {{"error", "web_access_denied"}}); return; }
     const auto target = relay::parse_target(std::string(request.target()));
     if (!target) { respond(400, {{"error", "invalid_request"}}); return; }
+    if (target->path.starts_with("/v1/tool/")) { route_tool(request, target->path); return; }
     if (serve_shared(request, target->path, target->query)) return;
     if (student_page(target->path)) {
         if (const auto asset = find_asset(target->path)) { respond_bytes(std::string(asset->body), std::string(asset->content_type) + "; charset=utf-8", {}, true); return; }
@@ -124,6 +138,19 @@ void Connection::route_students(const Request& request) {
         welcome.front().body["stt"] = server_.config().browser_stt ? "browser" : "none";
         server_.deliver(class_, welcome);
     });
+}
+// A tool on a participant's machine: plain request/response, so that a client with nothing but an
+// HTTP stack can take part. The link code and the token are the credentials; neither is logged.
+void Connection::route_tool(const Request& request, const std::string& path) {
+    const bool post = request.method() == http::verb::post;
+    const auto token = bearer(request[http::field::authorization]);
+    if (path == "/v1/tool/state" && !post) { respond(200, server_.tool_state(token)); return; }
+    if (!post || (path != "/v1/tool/pair" && path != "/v1/tool/progress")) { respond(404, {{"error", "not_found"}}); return; }
+    // A JSON content type cannot be sent cross-site without a preflight this service never grants.
+    if (!beast::iequals(request[http::field::content_type].substr(0, 16), "application/json")) throw ProtocolError("invalid_request", "JSON required");
+    utf8_length(request.body());
+    const auto body = Json::parse(request.body());
+    respond(200, path == "/v1/tool/pair" ? server_.tool_pair(body) : server_.tool_progress(token, body));
 }
 void Connection::route_console(const Request& request) {
     ConsoleRequest guard;

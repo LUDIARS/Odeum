@@ -90,6 +90,8 @@ label { display: grid; gap: 4px; font-size: 0.95rem; }
 .ls-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; counter-reset: step; }
 .ls-steps label { display: flex; align-items: start; gap: 10px; padding: 10px 12px; border: 1px solid var(--ls-line); border-radius: 10px; cursor: pointer; font-size: 1rem; }
 .ls-steps input { margin-top: 5px; }
+.ls-auto { margin-left: auto; flex: none; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem; background: var(--ls-accent-soft); color: var(--ls-accent); text-decoration: none; }
+#tool-string { font: 0.9rem ui-monospace, Menlo, Consolas, monospace; }
 .ls-steps label:has(input:checked) { color: var(--ls-muted); text-decoration: line-through; }
 .ls-feed { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
 .ls-feed li { padding: 10px 12px; border-radius: 10px; background: var(--ls-bg); overflow-wrap: anywhere; }

@@ -58,6 +58,27 @@ std::vector<std::string> strings(const Json& object, const char* key, std::size_
     return out;
 }
 void object(const Json& value, const std::string& where) { if (!value.is_object()) invalid(where); }
+// Names a variable in the running game, as the game binds it (for example "feel.hit_stop").
+std::string variable_name(const Json& source, const char* key, const std::string& where) {
+    auto value = text(source, key, 96, where);
+    const bool ok = std::all_of(value.begin(), value.end(), [](unsigned char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-'; });
+    if (!ok) invalid(where + "." + key);
+    return value;
+}
+StepCheck step_check(const Json& source, const std::string& where) {
+    object(source, where);
+    static constexpr std::array ordering{"gt", "ge", "lt", "le"};
+    StepCheck check{variable_name(source, "variable", where), text(source, "op", 2, where), {}};
+    const bool ordered = std::find(ordering.begin(), ordering.end(), check.op) != ordering.end();
+    if (!ordered && check.op != "eq" && check.op != "ne") invalid(where + ".op");
+    const auto value = source.find("value");
+    if (value == source.end()) invalid(where + ".value");
+    const bool comparable = value->is_number() || (!ordered && (value->is_boolean() || (value->is_string() && value->get_ref<const std::string&>().size() <= 120)));
+    if (!comparable) invalid(where + ".value");
+    check.value = *value;
+    return check;
+}
 
 std::vector<RubricPoint> rubric(const Json& source, const std::string& where) {
     std::vector<RubricPoint> out; std::set<std::string> seen;
@@ -116,8 +137,10 @@ AssignmentPlan assignment(const Json& source, const std::string& where, std::set
     std::set<std::string> seen;
     for (const auto& item : list(source, "steps", max_steps, where)) {
         object(item, where + ".steps");
-        plan.steps.push_back({identifier(item, where + ".steps", seen), text(item, "label", 200, where + ".steps"),
-            strings(item, "hints", 5, 400, where + ".steps")});
+        StepPlan step{identifier(item, where + ".steps", seen), text(item, "label", 200, where + ".steps"),
+            strings(item, "hints", 5, 400, where + ".steps"), std::nullopt};
+        if (const auto found = item.find("check"); found != item.end()) step.check = step_check(*found, where + ".steps[" + step.id + "].check");
+        plan.steps.push_back(std::move(step));
     }
     if (plan.steps.empty()) invalid(where + ".steps");
     return plan;
@@ -147,6 +170,17 @@ Plot parse_plot(const Json& document) {
         if (faq.keywords.empty()) invalid("plot.faq.keywords");
         plot.faq.push_back(std::move(faq));
     }
+    if (const auto tool = document.find("tool"); tool != document.end()) {
+        object(*tool, "plot.tool");
+        const auto features = tool->find("features");
+        if (features == tool->end() || !features->is_object() || features->empty() || features->size() > max_list) invalid("plot.tool.features");
+        std::set<std::string> names;
+        for (const auto& [feature, unused] : features->items()) {
+            // "all" is how a demo addresses every feature at once, so it cannot name one.
+            if (identifier(Json{{"id", feature}}, "plot.tool.features", names) == "all") invalid("plot.tool.features.all");
+            plot.tool_features.emplace(feature, variable_name(*features, feature.c_str(), "plot.tool.features"));
+        }
+    }
     for (const auto& item : list(document, "sections", max_sections, "plot")) {
         object(item, "plot.sections");
         Section section;
@@ -162,6 +196,9 @@ Plot parse_plot(const Json& document) {
             section.demos.push_back({text(demo, "feature", 64, where + ".demos"), text(demo, "note", 300, where + ".demos", false),
                 flag(demo, "enabled", true, where + ".demos"),
                 static_cast<std::size_t>(integer(demo, "after", 0, static_cast<int>(max_points), 0, where + ".demos"))});
+            // Once the plot says which variables the demos switch, a demo nothing can switch is a typo.
+            const auto& feature = section.demos.back().feature;
+            if (!plot.tool_features.empty() && feature != "all" && !plot.tool_features.contains(feature)) invalid(where + ".demos.feature");
         }
         if (const auto found = item.find("activity"); found != item.end()) section.activity = activity(*found, where + ".activity", activity_ids);
         if (const auto found = item.find("assignment"); found != item.end()) section.assignment = assignment(*found, where + ".assignment", assignment_ids);
@@ -186,5 +223,10 @@ const ActivityPlan* find_activity(const Plot& plot, std::string_view id) {
 const AssignmentPlan* find_assignment(const Plot& plot, std::string_view id) {
     for (const auto& section : plot.sections) if (section.assignment && section.assignment->id == id) return &*section.assignment;
     return nullptr;
+}
+bool has_checked_steps(const Plot& plot) {
+    for (const auto& section : plot.sections)
+        if (section.assignment && std::any_of(section.assignment->steps.begin(), section.assignment->steps.end(), [](const StepPlan& step) { return step.check.has_value(); })) return true;
+    return false;
 }
 }

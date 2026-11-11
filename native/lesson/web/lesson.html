@@ -77,6 +77,19 @@
       </div>
     </section>
 
+    <section id="tool" class="ls-card" hidden aria-labelledby="tool-heading">
+      <h2 id="tool-heading"><span id="tool-engine"></span> をつなぐ</h2>
+      <p class="ls-note">つなぐと、課題の「自動」と付いた手順は、あなたのゲームの動きを見てチェックが入ります。つながなくても自分でチェックできます。</p>
+      <div class="ls-row">
+        <button type="button" id="tool-link" class="ls-secondary">接続文字列を出す</button>
+        <span id="tool-state" class="ls-note"></span>
+      </div>
+      <div id="tool-box" class="ls-row" hidden>
+        <input id="tool-string" readonly aria-label="接続文字列">
+        <button type="button" id="tool-copy" class="ls-secondary">コピー</button>
+      </div>
+    </section>
+
     <section class="ls-card" aria-labelledby="private-heading">
       <h2 id="private-heading">先生からあなたへ</h2>
       <ul id="private" class="ls-feed"><li class="ls-note">ここには、あなただけに向けたヒントや質問の答えが届きます。</li></ul>

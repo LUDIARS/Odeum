@@ -30,6 +30,10 @@ public:
     // Returns the class the console is now attached to (commands can open or switch classes).
     std::string from_console(Connection* connection, const std::string& class_id, const Json& message);
     void deliver(const std::string& class_id, const Outbox& messages);
+    // server_tools.cpp: tools on participants' machines (HTTP, one request at a time).
+    Json tool_pair(const Json& body);
+    Json tool_state(std::string_view token);
+    Json tool_progress(std::string_view token, const Json& body);
 private:
     boost::asio::io_context& io_;
     const Config& config_;
@@ -43,5 +47,6 @@ private:
     void accept(boost::asio::ip::tcp::acceptor& acceptor, bool console);
     void tick();
     void close_class(const std::string& class_id);
+    Json tool_link(const ToolDesk::Holder& holder);
 };
 }

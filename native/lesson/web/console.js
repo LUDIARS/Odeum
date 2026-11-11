@@ -102,6 +102,7 @@ function renderRoster(snapshot) {
 
     const mood = el('td');
     if (student.speaking) mood.append(el('span', 'co-speaking', '話し中 '));
+    if (student.tool) mood.append(el('span', 'co-tag', '道具 '));
     const [label, tone] = STANDING[student.standing];
     if (label) {
       const tag = el('span', 'co-tag', student.standing === 'locked' ? `${label} あと${Math.ceil(student.remaining_ms / 1000)}秒` : label);
@@ -187,13 +188,29 @@ function renderSnapshot(snapshot) {
   $('skip').disabled = player.state === 'idle';
   for (const node of $('sections').children) node.setAttribute('aria-current', String(node.dataset.section === player.section));
   $('entry-lock').checked = snapshot.class.entry_locked;
+  $('demo-tool').hidden = !snapshot.class.demo_tool;
+  if (!toolTimer && 'presenter_tool' in snapshot)
+    $('tool-state').textContent = snapshot.presenter_tool ? '実演用の道具: 接続済み (実演の切替は自動)' : '実演用の道具: 未接続 (実演の切替は手動)';
   renderRoster(snapshot);
   renderActivity(snapshot.activity, snapshot.students.filter((student) => student.connected && student.standing !== 'ejected').length);
   $('assignment-state').textContent = snapshot.assignment ? `${snapshot.assignment.title}: ${snapshot.assignment.active ? '実施中' : '終了'}` : '';
   renderQuestions(snapshot.questions);
 }
 
+// The presenter's tool (the Studio on the machine that shows the demo) is linked with a
+// single-use code, the same way a student's is.
+let toolTimer = 0;
+function showToolLink(message) {
+  clearTimeout(toolTimer);
+  $('tool-string').value = `http://127.0.0.1:${message.port}/v1/tool#${message.code}`;
+  $('tool-string').hidden = false;
+  $('tool-string').select();
+  $('tool-state').textContent = `実演を映す機械の「授業」タブに貼り付けてください (${message.seconds} 秒有効、1 回だけ)。別の機械なら 127.0.0.1 を、その機械から見えるこの授業のアドレスに置き換えます。`;
+  toolTimer = setTimeout(() => { toolTimer = 0; $('tool-string').hidden = true; $('tool-string').value = ''; }, message.seconds * 1000);
+}
+
 const handlers = {
+  'tool.link': showToolLink,
   catalog: renderCatalog,
   'console.welcome': renderWelcome,
   snapshot: renderSnapshot,
@@ -207,6 +224,7 @@ $('open').addEventListener('click', () => { selected = ''; send({ type: 'class.o
 $('plots').addEventListener('change', () => { $('prep').href = `/v1/prep.pptx?plot=${encodeURIComponent($('plots').value)}`; });
 $('classes').addEventListener('change', () => { selected = $('classes').value; if (selected) send({ type: 'class.select', class: selected }); else send({ type: 'catalog' }); });
 $('close').addEventListener('click', () => { if (confirm('授業を閉じます。参加中の全員が切断されます。')) { selected = ''; send({ type: 'class.close' }); } });
+$('tool-link').addEventListener('click', () => send({ type: 'tool.link' }));
 $('entry-lock').addEventListener('change', () => send({ type: 'entry.lock', locked: $('entry-lock').checked }));
 for (const [id, type] of [['start', 'lesson.start'], ['pause', 'lesson.pause'], ['resume', 'lesson.resume'], ['skip', 'lesson.skip'],
   ['activity-close', 'activity.close'], ['activity-reveal', 'activity.reveal'], ['assignment-close', 'assignment.close'], ['share-best', 'questions.share']])

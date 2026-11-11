@@ -95,7 +95,8 @@ std::vector<AssignmentBoard::Intervention> AssignmentBoard::monitor(Millis now) 
 }
 Json AssignmentBoard::brief() const {
     Json steps = Json::array();
-    for (const auto& step : plan_->steps) steps.push_back({{"id", step.id}, {"label", step.label}});
+    // `auto`: a linked tool ticks this step by watching the student's game.
+    for (const auto& step : plan_->steps) steps.push_back({{"id", step.id}, {"label", step.label}, {"auto", step.check.has_value()}});
     return {{"id", plan_->id}, {"title", plan_->title}, {"brief", plan_->brief}, {"minutes", plan_->minutes}, {"steps", std::move(steps)}};
 }
 Json AssignmentBoard::progress(const std::string& student) const {

@@ -94,10 +94,10 @@ NO_PROXY=127.0.0.1,localhost node native/lesson/tools/e2e.cjs /tmp   # Playwrigh
    教室は同期で呼ぶので、応答の遅いモデルは結果を非同期で返す形に `Classroom` 側を直す必要がある
    (`hear` / `ask` / `Activity::answer` の採点が呼び出し箇所)。LLM を入れるときは AIFormat `RULE_AI_SECURITY.md` §2.7
    (生徒の入力とシステム指示の分離、出力の検証、回数・時間の上限、個人データを外へ送らない) を受入条件にする。
-2. **Ergo Studio 連携。** 課題の進み具合の自動報告 (受け口は操作卓接続の `progress.report`) と、実演の切替
-   (`demo` cue。いまは操作者と生徒への表示だけ)。Ergo は今回のセッションの書き込み対象外だった。
-   サンプル教材の Ergo Studio 手順 (サンプルを開く、演出を OFF にする) は実機で確かめていない。
-   Ergo 側で確認済みなのは `ergo_world_time` の `hit_stop(秒)` / `hit_slow` があることだけ。
+2. **Ergo Studio 連携の残り。** 授業側の経路 (`/v1/tool/*`、`native/lesson/tool_desk.*` / `server_tools.cpp`) と
+   Ergo Studio の「授業」プラグイン (Ergo `tools/studio/plugins/lesson/`、ブランチ `claude/ai-lesson-odeum-j57vy6`) は実装済み。
+   残りは (a) Windows で両者をつないだ確認、(b) `feel.*` の変数を公開する Ergo 版サンプルゲーム (ActionGameSample の移植) の作成、
+   (c) サンプル教材の Ergo Studio 手順の実機確認。
 3. **映像の統合。** 生徒ページに relay の視聴を埋め込むか、GLab の視聴ページに授業の操作を載せるかを決める。
    いまは別ページ。ゲスト参加 (参加コード) は relay では映像を受けられない。
 4. **本人確認。** いまは参加コード + 表示名。GLab / Cernere のチケットで入るようにすれば退出が人に結び付く。

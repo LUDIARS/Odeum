@@ -34,6 +34,10 @@ public:
     Outbox disconnect(const std::string& student, Millis now);
     Outbox from_student(const std::string& student, const Json& message, Millis now);
     Outbox from_console(const Json& message, Millis now);
+    // A tool on a participant's machine (Ergo Studio) reads what it should act on and reports
+    // assignment progress it observed. An empty `student` is the presenter's tool.
+    Json tool_state(const std::string& student) const;
+    Outbox from_tool(const std::string& student, const Json& message, Millis now);
     Outbox tick(Millis now);
     Json console_welcome(Millis now) const;   // timeline + first snapshot for a console that just connected
     Json console_snapshot(Millis now) const;
@@ -56,6 +60,8 @@ private:
     std::optional<Activity> activity_;
     std::optional<AssignmentBoard> assignment_;
     bool assignment_active_ = false;
+    std::map<std::string, bool> demo_states_;      // what the demos have switched so far
+    std::uint64_t demo_seq_ = 0;                   // grows with every demo cue, so a tool can tell old from new
     QuestionBoard questions_;
     Conduct conduct_;
     VoiceDesk voice_;
@@ -68,6 +74,7 @@ private:
 
     // classroom.cpp: what students send
     void answer(Outbox& out, const Student& from, const Json& message, Millis now);
+    void report_progress(Outbox& out, const std::string& student, const Json& message, Millis now);
     void ask(Outbox& out, const Student& from, const std::string& text, bool show_name, Millis now);
     void hear(Outbox& out, const Student& from, const std::string& text, Millis now);
     void ask_for_help(Outbox& out, const Student& from, Millis now);
@@ -83,6 +90,8 @@ private:
     void close_assignment(Outbox& out);
     void share_questions(Outbox& out, const std::vector<std::string>& ids);
     void supervise(Outbox& out, Millis now);
+    void switch_demo(const std::string& feature, bool enabled);
+    void resync_demos(Millis now);
 
     // classroom_views.cpp
     Json welcome(const Student& to, Millis now) const;

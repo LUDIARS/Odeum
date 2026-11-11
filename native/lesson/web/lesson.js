@@ -158,6 +158,7 @@ function renderAssignment(data) {
       if (!send({ type: 'progress', assignment_id: data.id, step: index, done: input.checked })) input.checked = !input.checked;
     });
     row.append(input, document.createTextNode(step.label));
+    if (step.auto) row.append(el('span', 'ls-auto', '自動'));
     item.append(row);
     return item;
   }));
@@ -167,6 +168,24 @@ function renderAssignment(data) {
 function updateProgress(progress) {
   const boxes = $('assignment-steps').querySelectorAll('input');
   progress.done.forEach((value, index) => { if (boxes[index]) boxes[index].checked = value; });
+}
+
+// ---- tool on this machine ----
+// The code is single-use and short-lived; it is shown here and nowhere else. The tool trades it
+// for its own access, so this page never sees what the tool holds.
+let toolTimer = 0;
+function showToolLink(message) {
+  clearInterval(toolTimer);
+  let left = message.seconds;
+  $('tool-string').value = `${location.origin}/v1/tool#${message.code}`;
+  $('tool-box').hidden = false;
+  const tick = () => {
+    if (left <= 0) { clearInterval(toolTimer); $('tool-box').hidden = true; $('tool-string').value = ''; $('tool-state').textContent = '期限が切れました。もう一度出してください。'; return; }
+    $('tool-state').textContent = `「授業」タブに貼り付けてください。あと ${left} 秒、1 回だけ使えます。`;
+    left -= 1;
+  };
+  tick();
+  toolTimer = setInterval(tick, 1000);
 }
 
 // ---- shared questions ----
@@ -230,6 +249,8 @@ function applyWelcome(message) {
   if (state.activity_results) renderResults(state.activity_results);
   if (state.activity_personal) renderPersonal(state.activity_personal);
   if (state.assignment) renderAssignment(state.assignment); else $('assignment').hidden = true;
+  $('tool').hidden = !message.lesson.tool;
+  $('tool-engine').textContent = message.lesson.engine || '道具';
   $('shared').replaceChildren(el('li', 'ls-note', 'まだありません。'));
   $('shared').firstElementChild.id = 'shared-empty';
   for (const question of state.questions) addShared(question);
@@ -251,6 +272,7 @@ const handlers = {
   'assignment.closed': () => { $('assignment-status').textContent = '課題の時間は終わりました。'; $('help').disabled = true; },
   'assignment.status': (m) => { $('assignment-status').textContent = `${m.total} 人中 ${m.done} 人が終わりました。`; },
   progress: (m) => updateProgress(m.assignment),
+  'tool.link': showToolLink,
   hint: (m) => addPrivate(m.kind === 'class_hint' ? '全員へ' : m.kind === 'praise' ? 'できました' : 'ヒント', m.text),
   reply: (m) => addPrivate(m.about === 'question' ? '質問の答え' : m.about === 'teacher' ? '先生から' : '返事', m.text),
   'question.shared': (m) => addShared(m.question),
@@ -313,6 +335,11 @@ $('activity-form').addEventListener('submit', (event) => {
   const text = $('activity-text').value.trim();
   if (!text) { toast('答えを書いてから送ってください。'); return; }
   send({ type: 'answer', activity_id: activity.id, text });
+});
+$('tool-link').addEventListener('click', () => send({ type: 'tool.link' }));
+$('tool-copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('tool-string').value); toast('コピーしました'); }
+  catch { $('tool-string').select(); toast('選択しました。コピーしてください'); }
 });
 $('help').addEventListener('click', () => { if (assignment) send({ type: 'help', assignment_id: assignment.id }); });
 $('say-form').addEventListener('submit', (event) => {

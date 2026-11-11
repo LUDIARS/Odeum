@@ -73,7 +73,13 @@ void Server::deliver(const std::string& class_id, const Outbox& messages) {
     const auto room = seats_.find(class_id);
     for (const auto& message : messages) {
         if (message.audience == Audience::consoles) {
-            for (const auto& [console, attached] : consoles_) if (attached == class_id) console->send(message.body);
+            // Who has a tool linked is known here, not in the classroom: add it to what the operator sees.
+            auto body = message.body;
+            if (body.value("type", Json()) == "snapshot") {
+                for (auto& student : body["students"]) student["tool"] = school_.tools().linked(class_id, student.at("id").get<std::string>());
+                body["presenter_tool"] = school_.tools().linked(class_id, {});
+            }
+            for (const auto& [console, attached] : consoles_) if (attached == class_id) console->send(body);
             continue;
         }
         if (room == seats_.end()) continue;
@@ -88,9 +94,17 @@ void Server::deliver(const std::string& class_id, const Outbox& messages) {
             socket->send(message.body);
             if (message.close) socket->finish();
         }
+        // A student removed from the class takes their tool with them.
+        if (message.close) school_.tools().revoke_student(class_id, message.student);
     }
 }
 void Server::from_student(const std::string& class_id, const std::string& student, const Json& message) {
+    // Link codes are the transport's business: the classroom neither issues nor checks credentials.
+    if (message.value("type", Json()) == "tool.link") {
+        if (!school_.classroom(class_id).has_student(student)) throw ProtocolError("unknown_student", "Unknown student");
+        deliver(class_id, {to_student(student, tool_link({class_id, student, ToolDesk::Role::student}))});
+        return;
+    }
     deliver(class_id, school_.classroom(class_id).from_student(student, message, monotonic_ms()));
 }
 void Server::close_class(const std::string& class_id) {
@@ -127,6 +141,14 @@ std::string Server::from_console(Connection* connection, const std::string& curr
             if (current.empty()) throw ProtocolError("unknown_class", "No class selected");
             close_class(current); attached.clear();
             for (const auto& [console, unused] : consoles_) console->send(school_.catalog());
+        }
+        else if (type == "tool.link") {
+            if (current.empty()) throw ProtocolError("unknown_class", "No class selected");
+            school_.classroom(current);
+            // Only to the console that asked. Tools talk to the students' listener, so its port goes along.
+            auto link = tool_link({current, {}, ToolDesk::Role::presenter});
+            link["port"] = config_.port;
+            connection->send(std::move(link));
         }
         else {
             if (current.empty()) throw ProtocolError("unknown_class", "No class selected");

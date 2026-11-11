@@ -74,6 +74,20 @@ void Classroom::supervise(Outbox& out, Millis now) {
     }
 }
 
+void Classroom::switch_demo(const std::string& feature, bool enabled) {
+    if (feature == "all" && !plot_.tool_features.empty()) for (const auto& [name, unused] : plot_.tool_features) demo_states_[name] = enabled;
+    else demo_states_[feature] = enabled;
+}
+// A seek jumps over cues without running them. What the class hears can simply resume from the
+// new position, but the game on the presenter's screen must end up as the skipped demos left it.
+void Classroom::resync_demos(Millis now) {
+    demo_states_.clear();
+    const auto here = player_.position(now);
+    for (const auto& cue : player_.timeline().cues)
+        if (cue.kind == CueKind::demo && cue.at < here) switch_demo(cue.detail.at("feature"), cue.detail.at("enabled"));
+    ++demo_seq_;
+}
+
 void Classroom::run(Outbox& out, const Cue& cue, Millis now) {
     dirty_ = true;
     switch (cue.kind) {
@@ -95,9 +109,14 @@ void Classroom::run(Outbox& out, const Cue& cue, Millis now) {
             narration_ = {{"type", "narration"}, {"text", cue.detail.at("text")}, {"seconds", cue.detail.at("seconds")}};
             out.push_back(to_all(narration_));
             return;
-        case CueKind::demo:
+        case CueKind::demo: {
+            // Kept as state, not only announced: the presenter's tool polls and must be able to
+            // catch up after a reconnect or a seek.
+            switch_demo(cue.detail.at("feature"), cue.detail.at("enabled"));
+            ++demo_seq_;
             out.push_back(to_all({{"type", "demo"}, {"feature", cue.detail.at("feature")}, {"enabled", cue.detail.at("enabled")}, {"note", cue.detail.at("note")}}));
             return;
+        }
         case CueKind::activity_open: open_activity(out, cue.detail.at("id")); return;
         case CueKind::activity_close: if (activity_ && cue.detail.at("id") == activity_->plan().id) close_activity(out); return;
         case CueKind::activity_reveal: if (activity_ && cue.detail.at("id") == activity_->plan().id) reveal_activity(out); return;

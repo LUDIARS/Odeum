@@ -1,5 +1,6 @@
 #pragma once
 #include "classroom.hpp"
+#include "tool_desk.hpp"
 #include <deque>
 
 namespace odeum::lesson {
@@ -16,6 +17,7 @@ public:
     // so the code cannot be guessed by trying; throws class_not_found / rate_limited.
     std::string resolve(std::string_view code, Millis now);
     const Plot* plot(std::string_view id) const;
+    ToolDesk& tools() { return tools_; }      // closing a class takes its tools' access with it
     Json catalog() const;   // console: available plots and running classes with their join codes
     std::vector<std::pair<std::string, Outbox>> tick(Millis now);
 private:
@@ -27,6 +29,7 @@ private:
     std::map<std::string, std::string> codes_;  // normalised join code -> class id
     std::deque<Millis> failures_;
     std::size_t next_ = 0;
+    ToolDesk tools_;
 };
 // 10 Crockford base32 symbols (50 bits), the same shape as the relay's guest join codes.
 std::string random_join_code();

@@ -6,6 +6,13 @@
   "reference": "https://github.com/vtn-team/ActionGameSample",
   "audience": "ゲームを一本でも遊んだことがあり、これから作る人",
   "minutes": 90,
+  "tool": {
+    "features": {
+      "hit_stop": "feel.hit_stop",
+      "knockback": "feel.knockback",
+      "camera_shake": "feel.camera_shake"
+    }
+  },
   "goals": [
     "攻撃が「当たった」と感じさせている実装を、名前を付けて挙げられる",
     "ヒットストップで決めるべきこと (長さ・何を止めるか・止めないもの) を説明できる",
@@ -244,14 +251,16 @@
           {"id": "find-hit", "label": "「攻撃が当たった瞬間」に呼ばれる処理を見つける", "hints": [
             "当たり判定が成立したときに呼ばれる関数を探します。体力を減らしている行が目印です。",
             "見つからないときは、体力を減らしている場所を検索し、そこから呼び出し元をたどります。"]},
-          {"id": "add-hitstop", "label": "当たった瞬間に、短く時間を止める", "hints": [
+          {"id": "add-hitstop", "label": "当たった瞬間に、短く時間を止める",
+            "check": {"variable": "feel.hit_stop_last_seconds", "op": "gt", "value": 0}, "hints": [
             "Ergo では ergo_world_time の hit_stop に秒数を渡します。まず 0.1 秒で試します。",
             "止まったままにならないかを確かめます。止める処理と戻す処理が対になっているかを見ます。",
             "ダメージの数字やエフェクトまで止まっていないかを確かめます。止めたくないものは実時間で動かします。"]},
           {"id": "scale-by-power", "label": "止める長さを、武器の威力で変える", "hints": [
             "長さを固定の数値ではなく「威力 × 係数」にします。サンプルは「威力 ÷ 24 秒」です。",
             "強い武器と弱い武器で撃ち比べ、違いが分かる係数を探します。"]},
-          {"id": "add-knockback", "label": "当たった相手を押し返す", "hints": [
+          {"id": "add-knockback", "label": "当たった相手を押し返す",
+            "check": {"variable": "feel.knockback_last_impulse", "op": "gt", "value": 0}, "hints": [
             "相手の剛体に、一瞬の力 (撃力) を与えます。",
             "どの向きに飛ばすかを決めます。攻撃が来た向きに押すのか、相手の後ろ向きに押すのかで結果が変わります。",
             "壁際や足場の端で試し、困ったことが起きないかを見ます。"]},

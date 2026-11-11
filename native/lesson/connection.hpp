@@ -32,6 +32,7 @@ private:
     void route();
     void route_students(const Request& request);
     void route_console(const Request& request);
+    void route_tool(const Request& request, const std::string& path);
     bool serve_shared(const Request& request, const std::string& path, const std::map<std::string, std::string>& query);
     void respond(unsigned status, const Json& body);
     void respond_bytes(std::string body, std::string_view content_type, std::string_view disposition, bool page);

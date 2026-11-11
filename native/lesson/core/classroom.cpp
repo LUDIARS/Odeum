@@ -158,6 +158,25 @@ void Classroom::hear(Outbox& out, const Student& from, const std::string& text, 
     }
 }
 
+// One step of the assignment changed, whoever saw it: the student's own tick, a tool watching
+// the student's game, or the operator. The student's page is told in every case.
+void Classroom::report_progress(Outbox& out, const std::string& id, const Json& message, Millis now) {
+    if (!assignment_ || !assignment_active_ || field(message, "assignment_id") != assignment_->plan().id)
+        throw ProtocolError("not_assigned", "No such assignment");
+    assignment_->enroll(id, now);
+    assignment_->report(id, static_cast<std::size_t>(integer_field(message, "step", 0, 1000)), flag_field(message, "done"), now);
+    dirty_ = true;
+    out.push_back(to_student(id, {{"type", "progress"}, {"assignment", assignment_->progress(id)}}));
+    supervise(out, now);
+}
+Outbox Classroom::from_tool(const std::string& id, const Json& message, Millis now) {
+    Outbox out;
+    student(id);
+    if (conduct_.ejected(id)) throw ProtocolError("ejected", "Removed from this class");
+    report_progress(out, id, message, now);
+    return out;
+}
+
 Outbox Classroom::from_student(const std::string& id, const Json& message, Millis now) {
     Outbox out;
     const auto& from = student(id);
@@ -168,16 +187,7 @@ Outbox Classroom::from_student(const std::string& id, const Json& message, Milli
         if (voice_.level(id, static_cast<int>(integer_field(message, "level", 0, 100)), now)) dirty_ = true;
         return out;
     }
-    if (type == "progress") {
-        if (!assignment_ || !assignment_active_ || field(message, "assignment_id") != assignment_->plan().id)
-            throw ProtocolError("not_assigned", "No such assignment");
-        assignment_->enroll(id, now);
-        assignment_->report(id, static_cast<std::size_t>(integer_field(message, "step", 0, 1000)), flag_field(message, "done"), now);
-        dirty_ = true;
-        out.push_back(to_student(id, {{"type", "progress"}, {"assignment", assignment_->progress(id)}}));
-        supervise(out, now);
-        return out;
-    }
+    if (type == "progress") { report_progress(out, id, message, now); return out; }
     // Working on the assignment and asking for a hint stay available during a lockout:
     // the lock silences a student in front of the class, it does not stop them learning.
     if (type == "help") { ask_for_help(out, from, now); return out; }
@@ -204,8 +214,8 @@ Outbox Classroom::from_console(const Json& message, Millis now) {
     if (type == "lesson.start") player_.start(now);
     else if (type == "lesson.pause") player_.pause(now);
     else if (type == "lesson.resume") player_.resume(now);
-    else if (type == "lesson.skip") { if (!player_.skip_section(now)) throw ProtocolError("invalid_state", "No later section"); }
-    else if (type == "lesson.seek") player_.seek(integer_field(message, "position_ms", 0, player_.timeline().duration), now);
+    else if (type == "lesson.skip") { if (!player_.skip_section(now)) throw ProtocolError("invalid_state", "No later section"); resync_demos(now); }
+    else if (type == "lesson.seek") { player_.seek(integer_field(message, "position_ms", 0, player_.timeline().duration), now); resync_demos(now); }
     else if (type == "activity.open") open_activity(out, text_field(message, "id", 64));
     else if (type == "activity.close") close_activity(out);
     else if (type == "activity.reveal") reveal_activity(out);
@@ -236,15 +246,7 @@ Outbox Classroom::from_console(const Json& message, Millis now) {
         else if (heard.enrolled_now) out.push_back(to_student(*heard.student, {{"type", "voice.enrolled"}}));
         else if (const auto& from = student(*heard.student); allowed_to_post(out, from, now)) hear(out, from, text, now);
     }
-    else if (type == "progress.report") {
-        // Progress observed by a tool on the student's machine rather than ticked by the student.
-        const auto id = target();
-        if (!assignment_ || !assignment_active_ || field(message, "assignment_id") != assignment_->plan().id)
-            throw ProtocolError("not_assigned", "No such assignment");
-        assignment_->enroll(id, now);
-        assignment_->report(id, static_cast<std::size_t>(integer_field(message, "step", 0, 1000)), flag_field(message, "done"), now);
-        out.push_back(to_student(id, {{"type", "progress"}, {"assignment", assignment_->progress(id)}}));
-    }
+    else if (type == "progress.report") report_progress(out, target(), message, now);  // the operator ticks a step for a student
     else throw ProtocolError("unknown_type", "Unknown console command");
     return out;
 }

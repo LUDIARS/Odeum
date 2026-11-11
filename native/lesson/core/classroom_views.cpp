@@ -28,8 +28,27 @@ Json Classroom::welcome(const Student& to, Millis now) const {
         state["assignment"]["done"] = assignment_->progress(to.id).at("done");
     }
     return {{"type", "welcome"}, {"student", to.id}, {"name", to.name}, {"resume", to.resume},
-        {"lesson", {{"id", plot_.id}, {"title", plot_.title}, {"subtitle", plot_.subtitle}, {"engine", plot_.engine}, {"sections", std::move(sections)}}},
+        {"lesson", {{"id", plot_.id}, {"title", plot_.title}, {"subtitle", plot_.subtitle}, {"engine", plot_.engine}, {"sections", std::move(sections)},
+            {"tool", has_checked_steps(plot_)}}},
         {"state", std::move(state)}};
+}
+Json Classroom::tool_state(const std::string& id) const {
+    const bool presenter = id.empty();
+    Json out{{"role", presenter ? "presenter" : "student"}, {"class", {{"title", plot_.title}}}, {"features", plot_.tool_features},
+        {"assignment", nullptr}};
+    if (out["features"].is_null()) out["features"] = Json::object();
+    if (presenter) { out["demo"] = {{"seq", demo_seq_}, {"states", demo_states_.empty() ? Json::object() : Json(demo_states_)}}; return out; }
+    if (!assignment_ || !assignment_active_) return out;
+    const auto done = assignment_->progress(id).at("done");
+    Json steps = Json::array();
+    for (std::size_t index = 0; index < assignment_->plan().steps.size(); ++index) {
+        const auto& step = assignment_->plan().steps[index];
+        Json entry{{"id", step.id}, {"label", step.label}, {"done", index < done.size() && done[index].get<bool>()}};
+        if (step.check) entry["check"] = {{"variable", step.check->variable}, {"op", step.check->op}, {"value", step.check->value}};
+        steps.push_back(std::move(entry));
+    }
+    out["assignment"] = {{"id", assignment_->plan().id}, {"title", assignment_->plan().title}, {"active", true}, {"steps", std::move(steps)}};
+    return out;
 }
 Json Classroom::console_snapshot(Millis now) const {
     const auto progress = assignment_ ? assignment_->overview(now) : Json(nullptr);
@@ -44,7 +63,8 @@ Json Classroom::console_snapshot(Millis now) const {
         students.push_back(std::move(entry));
     }
     Json out{{"type", "snapshot"},
-        {"class", {{"plot", plot_.id}, {"title", plot_.title}, {"entry_locked", entry_locked_}, {"model", model_->name()}}},
+        {"class", {{"plot", plot_.id}, {"title", plot_.title}, {"entry_locked", entry_locked_}, {"model", model_->name()},
+            {"demo_tool", !plot_.tool_features.empty()}}},
         {"player", {{"state", player_state_name(player_.state())}, {"position_ms", player_.position(now)},
             {"duration_ms", player_.timeline().duration}, {"section", section_ ? Json(section_->id) : Json(nullptr)}}},
         {"students", std::move(students)}, {"speakers", voice_.speakers(now)}, {"questions", questions_.console_list()}};
