@@ -23,6 +23,7 @@ function createObservation(activities) {
       private_count: raw.private.length,
       shared_questions: raw.shared,
       conduct: raw.conduct,
+      said: raw.said,
       toast: raw.toast || null,
       private_notice: raw.private_notice,
       tool: raw.tool,
@@ -51,7 +52,7 @@ function createObservation(activities) {
     return JSON.stringify({
       lesson_state: raw.lesson_state, section: raw.section, slide: raw.slide, narration: raw.narration, demo: raw.demo,
       activity, assignment: raw.assignment, private: raw.private.map((item) => item.seq),
-      shared: raw.shared.map((item) => [item.n, item.votes]), conduct: raw.conduct.standing,
+      shared: raw.shared.map((item) => [item.n, item.votes]), conduct: raw.conduct.standing, said: raw.said,
     });
   }
 

@@ -16,6 +16,16 @@ const std::vector<std::string> stuck_words{"進まない", "進めない", "う�
     "詰まり", "はまって", "ハマって", "手が止まっ", "手順", "ステップ", "反映されない", "変わらない", "チェックが入らない", "つながらない", "繋がらない"};
 const std::vector<std::string> question_words{"なぜ", "なんで", "どうして", "どうやって", "どうすれば", "ですか", "ますか", "とは", "違い", "ちがい",
     "どっち", "どちら", "何が", "なにが", "どう"};
+// "I could not see / hear / follow": a failure to perceive or keep up, said in the past or with よく,
+// about something the class showed. Both lists must match, so "敵が見えないカメラ" (an answer about
+// cameras) stays what it is.
+const std::vector<std::string> trouble_failures{"見えませんでした", "見えなかった", "よく見えな", "よく見えませ", "見えにくかった", "見えづらかった",
+    "聞こえませんでした", "聞こえなかった", "よく聞こえ", "聞こえにくかった", "聞き取れな", "聞き取れませ", "読めなかった", "読めませんでした",
+    "よく読めな", "ついていけな", "ついていけませ", "付いていけな", "追いつけな", "追いつけませ", "速すぎて", "早すぎて", "途切れ"};
+const std::vector<std::string> trouble_subjects{"デモ", "実演", "画面", "スライド", "先生", "声", "音", "文字", "説明", "配信", "映像", "ログ",
+    "数字", "数値", "さっき", "いまの", "今の", "話"};
+// A sentence that still ends as a question is a question, even if it mentions not seeing.
+const std::vector<std::string> question_endings{"ですか", "ますか", "でしょうか"};
 const std::vector<std::string> depth_words{"なぜ", "なんで", "どうして", "どうやって", "違い", "ちがい", "もし", "場合", "逆に", "トレードオフ",
     "どちらが", "代わり", "理由", "比べ"};
 
@@ -24,10 +34,14 @@ constexpr std::size_t noise_run = 6;     // "wwwwww", "ああああああ"
 constexpr std::size_t faq_min_hits = 2;
 constexpr int share_bonus_depth = 25, share_bonus_topic = 25, share_bonus_length = 10, share_base = 30;
 
-bool asks(std::string_view raw, std::u32string_view folded) {
+bool question_mark(std::string_view raw) {
     const auto text = decode_utf8(raw);
-    const bool mark = !text.empty() && (text.back() == U'?' || text.back() == U'？');
-    return mark || mentions_any(folded, question_words);
+    return !text.empty() && (text.back() == U'?' || text.back() == U'？');
+}
+bool asks(std::string_view raw, std::u32string_view folded) { return question_mark(raw) || mentions_any(folded, question_words); }
+bool reports_trouble(std::string_view raw, std::u32string_view folded) {
+    if (question_mark(raw) || mentions_any(folded, question_endings)) return false;
+    return mentions_any(folded, trouble_failures) && mentions_any(folded, trouble_subjects);
 }
 // On topic means "about this lesson", not "about the section running right now": a camera question
 // asked during the knockback section is early, not off-topic.
@@ -83,6 +97,7 @@ public:
         if (mentions_any(folded, abuse)) { reading.intent = Intent::disruption; reading.severity = 2; return reading; }
         // Punctuation-only or one repeated character carries no content for the class.
         if (folded.empty() || longest_run(folded) >= noise_run) { reading.intent = Intent::disruption; reading.severity = 1; return reading; }
+        if (reports_trouble(utterance, folded)) { reading.intent = Intent::trouble; return reading; }
         if (mentions_any(folded, help_words) || (context.assignment_active && mentions_any(folded, stuck_words))) { reading.intent = Intent::help; return reading; }
         if (asks(utterance, folded)) { reading.intent = Intent::question; return reading; }
         if (context.text_activity_open) { reading.intent = Intent::answer; return reading; }

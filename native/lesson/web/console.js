@@ -13,8 +13,9 @@ const el = (tag, className, text) => {
 const LOG_KEEP = 80;
 const STANDING = { good: ['', ''], warned: ['注意', 'warn'], locked: ['発言停止', 'danger'], ejected: ['退出', 'danger'] };
 const PROGRESS = { not_started: '未着手', working: '作業中', stuck: '止まっている', needs_teacher: '直接見る', done: '完了' };
-const INTENT = { question: '質問', answer: '回答', remark: '回答済みの人の発言', help: '助けて', chatter: '発言', disruption: 'ふざけ', unattributed: '話者不明' };
-const REASON = { question_needs_teacher: '答えを用意できない質問です (「生徒の質問」で答えるか見送ってください)', asked_for_help: '助けを求めています', hints_exhausted: 'ヒントを出し切りました' };
+const INTENT = { question: '質問', answer: '回答', remark: '回答済みの人の発言', trouble: '見えない・聞こえない', help: '助けて', chatter: '発言', disruption: 'ふざけ', unattributed: '話者不明' };
+const REASON = { question_needs_teacher: '答えを用意できない質問です (「生徒の質問」で答えるか見送ってください)', asked_for_help: '助けを求めています', hints_exhausted: 'ヒントを出し切りました',
+  cannot_follow: '授業が見えない・聞こえない・ついていけないと言っています (対応してください)' };
 const ERRORS = {
   console_token_required: 'トークンが違います。トークンファイルの値を付けて開き直してください。',
   invalid_state: 'いまはその操作ができません。', unknown_class: '授業を選んでください。', capacity: '上限に達しています。',

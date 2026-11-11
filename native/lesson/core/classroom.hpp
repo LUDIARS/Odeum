@@ -78,6 +78,7 @@ private:
     void ask(Outbox& out, const Student& from, const std::string& text, bool show_name, Millis now);
     void report_stuck(Outbox& out, const Student& from, const std::string& text, Millis now);
     void hear(Outbox& out, const Student& from, const std::string& text, Millis now);
+    void report_trouble(Outbox& out, const Student& from, const std::string& text);
     void ask_for_help(Outbox& out, const Student& from, Millis now);
     void apply(Outbox& out, const std::string& student, const Conduct::Verdict& verdict, Millis now);
     bool allowed_to_post(Outbox& out, const Student& from, Millis now);

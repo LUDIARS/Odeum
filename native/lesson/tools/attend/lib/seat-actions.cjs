@@ -131,18 +131,21 @@ async function say(page, { text }) {
   await type(page, '#say', text);
   const before = await counters(page);
   await page.click('#say-form button[type=submit]');
-  const hits = await reaction(page, before, [{ id: 'feedback', nonEmpty: true }, { id: 'activity-state', includes: '受け取りました' },
-    { id: 'private' }, { id: 'conduct' }], REACT_MS);
+  // The page answers every utterance with how it was taken (the line under the form); a refusal
+  // (locked, not connected) shows only as a toast.
+  const hits = await reaction(page, before, [{ id: 'say-state', nonEmpty: true }, { id: 'feedback', nonEmpty: true }, { id: 'conduct' }], REACT_MS);
   if (!hits.length) return fail('no_response', '送りましたが、画面に反応が出ませんでした。');
-  if (hits.includes('private')) await focus(page, '#private');
-  const state = (await page.textContent('#activity-state')).trim();
-  const result = await outcome(page, hits, (message) => SAY_OK.some((ok) => message.startsWith(ok)));
-  // Said while a text question was open and before answering: the page now shows it as the answer.
-  if (result.ok && hits.includes('activity-state') && state.includes('回答として受け取りました')) result.taken_as_answer = true;
-  return result;
+  if (!hits.includes('say-state')) {
+    // The acknowledgement can follow a moment after a toast; give it a little more time.
+    const late = await reaction(page, before, [{ id: 'say-state', nonEmpty: true }], QUIET_MS);
+    if (!late.length) return outcome(page, hits, () => false);
+    hits.push(...late);
+  }
+  const said = await page.evaluate(() => ({ text: document.getElementById('say-state').textContent.trim(), taken_as: document.getElementById('say-state').dataset.takenAs || null }));
+  // taken_as: answer (the open question's answer) / remark (already answered; the answer is kept) / question / help /
+  // trouble (could not see / hear / follow) / chatter / disruption.
+  return { ok: true, reacted: hits, page_message: said.text, taken_as: said.taken_as, taken_as_answer: said.taken_as === 'answer' };
 }
-const SAY_OK = ['聞こえました', '話した言葉を回答として受け取りました', '先生に伝えました'];
-
 async function vote(page, { n }) {
   const seat = await view(page);
   const item = seat.shared.find((question) => question.n === n);

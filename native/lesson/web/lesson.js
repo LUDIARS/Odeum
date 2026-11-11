@@ -334,6 +334,18 @@ function votesChanged(message) {
   if (item) item.querySelector('.ls-votes').textContent = `知りたい ${message.votes}`;
 }
 
+// ---- what was said to the teacher ----
+// Every utterance comes back with how it was taken; the line under the form keeps it (with the
+// start of what was said) until the next one, so it is not lost when the toast fades.
+let lastSaid = '';
+function heardBack(message) {
+  const note = message.note ?? '聞こえました';
+  const said = lastSaid ? `「${lastSaid.slice(0, 30)}${lastSaid.length > 30 ? '…' : ''}」→ ` : '';
+  $('say-state').textContent = `${said}${note}`;
+  $('say-state').dataset.takenAs = message.taken_as ?? '';
+  toast(note);
+}
+
 // ---- conduct ----
 function showConduct(message) {
   const banner = $('conduct');
@@ -389,6 +401,7 @@ function applyWelcome(message) {
   showConduct(state.conduct);
 }
 
+const REPLY_KIND = { teacher: '先生から', help: '返事', trouble: '先生に知らせました' };
 const handlers = {
   welcome: applyWelcome,
   section: enterSection,
@@ -407,12 +420,12 @@ const handlers = {
   'progress.rejected': progressRejected,
   'tool.link': showToolLink,
   hint: (m) => addPrivate(m.kind === 'class_hint' ? '全員へ' : m.kind === 'praise' ? 'できました' : 'ヒント', m.text),
-  reply: (m) => (m.about === 'question' ? questionReply(m) : addPrivate(m.about === 'teacher' ? '先生から' : '返事', m.text)),
+  reply: (m) => (m.about === 'question' ? questionReply(m) : addPrivate(REPLY_KIND[m.about] ?? '返事', m.text)),
   'question.shared': (m) => addShared(m.question),
   'question.voted': voted,
   'question.votes': votesChanged,
   conduct: showConduct,
-  'utterance.ack': (m) => toast(m.note ?? '聞こえました'),
+  'utterance.ack': heardBack,
   'voice.enroll': (m) => { $('enroll-code').textContent = m.code; },
   'voice.enrolled': () => { $('enroll-code').textContent = '登録できました'; },
   'lesson.end': () => { $('section-title').textContent = '授業は終わりました'; showNarration({ text: 'おつかれさまでした。' }, false); },
@@ -447,7 +460,7 @@ function join() {
 
 const microphone = createMicrophone({
   onLevel: (level) => { $('meter').style.width = `${level}%`; connection?.send({ type: 'voice.level', level }); },
-  onUtterance: (text) => send({ type: 'utterance', text: text.slice(0, 280) }),
+  onUtterance: (text) => { if (send({ type: 'utterance', text: text.slice(0, 280) })) lastSaid = text; },
   onState: (text) => { $('mic-state').textContent = text; },
   get transcribe() { return transcribe; },
 });
@@ -482,7 +495,7 @@ $('help').addEventListener('click', () => { if (assignment) send({ type: 'help',
 $('say-form').addEventListener('submit', (event) => {
   event.preventDefault();
   const text = $('say').value.trim();
-  if (text && send({ type: 'utterance', text })) $('say').value = '';
+  if (text && send({ type: 'utterance', text })) { lastSaid = text; $('say').value = ''; }
 });
 $('question-form').addEventListener('submit', (event) => {
   event.preventDefault();

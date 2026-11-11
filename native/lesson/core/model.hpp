@@ -13,7 +13,9 @@ struct Grade {
     bool has_verdict = false;          // false for open activities
     bool correct = false;
 };
-enum class Intent { question, answer, help, chatter, disruption };
+// trouble: the student reports they cannot follow the class itself (cannot see the demo, hear the
+// teacher, read the slide). Not a question about the content: the operator has to act on it.
+enum class Intent { question, answer, help, chatter, disruption, trouble };
 struct Reading {
     Intent intent = Intent::chatter;
     int severity = 0;      // disruption only: 1 = noise, 2 = abuse

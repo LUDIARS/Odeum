@@ -5,7 +5,7 @@
 // report the outcome of an action (toast, answer state, private feed, ...), so an action can wait
 // for "the page reacted" even when the new text equals the old one. Purely observational.
 function installHooks() {
-  const watched = ['feedback', 'activity-state', 'activity-mine', 'private', 'private-notice', 'shared', 'conduct', 'enroll-code', 'assignment-status', 'tool-state', 'tool-string'];
+  const watched = ['feedback', 'activity-state', 'activity-mine', 'private', 'private-notice', 'shared', 'conduct', 'enroll-code', 'assignment-status', 'tool-state', 'tool-string', 'say-state'];
   window.__attend = { mutations: Object.fromEntries(watched.map((id) => [id, 0])), seq: {} };
   const attach = () => {
     for (const id of watched) {
@@ -25,7 +25,7 @@ function readSeat() {
     'slide-points', 'activity', 'activity-prompt', 'activity-code', 'activity-choices', 'activity-text', 'activity-send', 'activity-state',
     'activity-results', 'activity-bars', 'activity-answer', 'activity-explanation', 'activity-highlights', 'activity-personal', 'activity-mine', 'assignment', 'assignment-title',
     'assignment-brief', 'assignment-steps', 'help', 'assignment-status', 'private', 'private-notice', 'say', 'question', 'show-name', 'shared', 'feedback',
-    'tool', 'tool-link', 'tool-string', 'tool-state'];
+    'tool', 'tool-link', 'tool-string', 'tool-state', 'say-state'];
   const missing = required.filter((id) => !document.getElementById(id));
   if (missing.length) return { missing };
   const $ = (id) => document.getElementById(id);
@@ -117,6 +117,8 @@ function readSeat() {
   const conduct = $('conduct');
   view.conduct = { standing: conduct.dataset.standing || 'good', text: shown(conduct) ? text(conduct) : null };
   view.toast = text($('feedback'));
+  // How the page said the last thing said to the teacher was taken ("先生に話す").
+  view.said = text($('say-state')) ? { taken_as: $('say-state').dataset.takenAs || null, text: text($('say-state')) } : null;
   // The note at the bottom of the screen that announces new private messages (null when not shown).
   view.private_notice = shown($('private-notice')) ? text($('private-notice')) : null;
   view.tool = shown($('tool')) ? { state: text($('tool-state')), link: shown($('tool-string')) ? $('tool-string').value : null } : null;

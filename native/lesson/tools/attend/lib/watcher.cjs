@@ -27,7 +27,7 @@ function createWatcher({ page, observation, log, onError }) {
   const parts = (raw) => ({
     lesson_state: raw.lesson_state, section: raw.section, slide: raw.slide, narration: raw.narration, demo: raw.demo,
     activity: raw.activity && { ...raw.activity, text_value: undefined }, assignment: raw.assignment,
-    private: raw.private, shared: raw.shared, conduct: raw.conduct.standing,
+    private: raw.private, shared: raw.shared, conduct: raw.conduct.standing, said: raw.said,
   });
 
   async function poll() {
