@@ -45,7 +45,7 @@ AssignmentBoard::Intervention AssignmentBoard::next_hint(const std::string& stud
     if (level >= available) {
         // Every prepared hint has been used: a person should look at this student's screen.
         entry.escalated = true;
-        return {Kind::escalate, student, step, level, "用意したヒントを出し切りました。先生が直接見に行きます。少しだけ待っていてください。"};
+        return {Kind::escalate, student, step, level, "用意したヒントを出し切りました。人間の先生に知らせたので、先生から直接声がかかることがあります。"};
     }
     ++entry.hints[step];
     return {Kind::hint, student, step, level, model_->hint(*plan_, step, level)};
@@ -95,8 +95,13 @@ std::vector<AssignmentBoard::Intervention> AssignmentBoard::monitor(Millis now) 
 }
 Json AssignmentBoard::brief() const {
     Json steps = Json::array();
-    // `auto`: a linked tool ticks this step by watching the student's game.
-    for (const auto& step : plan_->steps) steps.push_back({{"id", step.id}, {"label", step.label}, {"auto", step.check.has_value()}});
+    // `auto`: a linked tool ticks this step by watching the student's game; `check` says which variable
+    // and what it must reach, so the page can say exactly what "自動" looks at.
+    for (const auto& step : plan_->steps) {
+        Json entry{{"id", step.id}, {"label", step.label}, {"auto", step.check.has_value()}};
+        if (step.check) entry["check"] = {{"variable", step.check->variable}, {"op", step.check->op}, {"value", step.check->value}};
+        steps.push_back(std::move(entry));
+    }
     return {{"id", plan_->id}, {"title", plan_->title}, {"brief", plan_->brief}, {"minutes", plan_->minutes}, {"steps", std::move(steps)}};
 }
 Json AssignmentBoard::progress(const std::string& student) const {

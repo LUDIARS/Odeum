@@ -14,6 +14,9 @@ int main() { return run([] {
     for (const auto* id : {"a", "b", "c", "d", "e"}) board.enroll(id, 0);
     check(board.monitor(1000).empty(), "Nothing to say right after assigning");
     check(board.brief().at("steps").size() == 6 && !board.brief().at("steps")[0].contains("hints"), "Hints are not sent with the brief");
+    const auto auto_step = board.brief().at("steps")[2];
+    check(auto_step.at("auto") == true && auto_step.at("check").at("variable") == "feel.hit_stop_last_seconds" && auto_step.at("check").at("op") == "gt"
+        && !board.brief().at("steps")[0].contains("check"), "The brief says which variable an automatic step watches");
 
     // a works steadily, b never starts, c asks for help, d stalls, e finishes.
     board.report("a", 0, true, 10'000);

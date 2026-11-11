@@ -32,7 +32,10 @@ int main() { return run([] {
 
     // Before the lesson: nothing is open.
     rejects([&] { room.say(aoi, {{"type", "answer"}, {"activity_id", "missing-feel"}, {"text", "x"}}); }, "activity_closed");
-    rejects([&] { room.say(aoi, {{"type", "progress"}, {"assignment_id", "restore-feel"}, {"step", 0}, {"done", true}}); }, "not_assigned");
+    // A refused tick is answered with the server's checklist (none yet), so the page can undo the box.
+    auto refused = room.say(aoi, {{"type", "progress"}, {"assignment_id", "restore-feel"}, {"step", 0}, {"done", true}});
+    check(refused.size() == 1 && refused[0].body.at("type") == "progress.rejected" && refused[0].body.at("code") == "not_assigned"
+        && refused[0].body.at("assignment").is_null(), "Progress without an assignment is refused with the server state");
     rejects([&] { room.say(aoi, {{"type", "dance"}}); }, "unknown_type");
     rejects([&] { room.say("s99", {{"type", "help"}}); }, "unknown_student");
 
@@ -42,8 +45,9 @@ int main() { return run([] {
     check(find_type(out, "section") && find_type(out, "slide") && find_type(out, "narration"), "Opening cues are broadcast");
     check(find_type(out, "section")->audience == Audience::everyone && find_type(out, "section")->body.at("id") == "intro", "First section");
     check(find_type(out, "snapshot") && find_type(out, "snapshot")->audience == Audience::consoles, "Console gets a snapshot");
-    out = room.advance(4 * 60'000);
-    check(find_type(out, "demo") && find_type(out, "demo")->body.at("feature") == "all", "Demo switch is announced");
+    bool demoed = false;
+    for (int i = 0; i < 6 * 60 && !demoed; ++i) { out = room.advance(1000); demoed = find_type(out, "demo") && find_type(out, "demo")->body.at("feature") == "all"; }
+    check(demoed, "Demo switch is announced");
 
     // Operator opens the "what is missing" question by hand.
     out = room.console({{"type", "activity.open"}, {"id", "missing-feel"}});
@@ -53,6 +57,14 @@ int main() { return run([] {
     // A spoken answer while a text question is open is taken as that student's answer.
     out = room.say(haruto, {{"type", "utterance"}, {"text", "カメラが揺れてない気がする"}});
     check(find_type(out, "answer.ack", haruto) && find_type(out, "heard")->body.at("intent") == "answer", "Speech is routed to the open question");
+    const auto& spoken = find_type(out, "answer.ack", haruto)->body;
+    check(spoken.at("via") == "utterance" && spoken.at("answer").at("text") == "カメラが揺れてない気がする", "The student is told the speech became their answer, with its text");
+    // Said to the teacher after answering: a remark, never a replacement of the submitted answer.
+    out = room.say(aoi, {{"type", "utterance"}, {"text", "デモが文字だけだと分かりにくかったです"}});
+    check(!find_type(out, "answer.ack") && find_type(out, "utterance.ack", aoi) && find_type(out, "utterance.ack", aoi)->body.at("kept_answer") == "missing-feel"
+        && find_type(out, "heard")->body.at("intent") == "remark", "An utterance does not overwrite a submitted answer");
+    check(room.classroom.connect(aoi, room.now)[0].body.at("state").at("activity").at("answer").at("text") == "一瞬止まらないし、吹っ飛ばない", "The page is told the answer it holds");
+    room.classroom.disconnect(aoi, room.now);
     check(room.student(aoi).at("answered") == true && room.student(riku).at("answered") == false, "Console sees who has answered");
     out = room.console({{"type", "activity.reveal"}});
     check(find_type(out, "activity.closed") && find_type(out, "activity.reveal") && count_type(out, "activity.personal") == 3, "Reveal: class result plus one personal result each");
@@ -60,6 +72,8 @@ int main() { return run([] {
     check(find_type(out, "activity.personal", haruto)->body.at("result").at("correct") == false, "One point is not enough");
     check(find_type(out, "activity.personal", riku)->body.at("result").at("answered") == false, "No answer is said gently");
     check(!find_type(out, "activity.reveal")->body.dump().empty() && find_type(out, "activity.reveal")->body.dump().find("あおい") == std::string::npos, "Class results carry no names");
+    check(find_type(out, "activity.personal", aoi)->body.at("result").at("text") == "一瞬止まらないし、吹っ飛ばない"
+        && find_type(out, "activity.reveal")->body.dump().find("分かりにくかった") == std::string::npos, "The remark is neither graded nor shown to the class");
     rejects([&] { room.say(riku, {{"type", "answer"}, {"activity_id", "missing-feel"}, {"text", "遅刻"}}); }, "activity_closed");
 
     // Questions: private answer for the asker, shared with the class on request, anonymously.
@@ -71,8 +85,19 @@ int main() { return run([] {
     const auto shared = find_type(out, "question.shared");
     check(shared && shared->audience == Audience::everyone && !shared->body.at("question").contains("name") && shared->body.at("question").at("votes") == 1, "Shared with everyone, without a name");
     check(find_type(out, "reply", aoi), "The asker is thanked");
+    rejects([&] { room.say(aoi, {{"type", "question.vote"}, {"id", "q1"}}); }, "own_question");
+    out = room.say(riku, {{"type", "question.vote"}, {"id", "q1"}});
+    check(find_type(out, "question.voted", riku) && find_type(out, "question.votes")->audience == Audience::everyone
+        && find_type(out, "question.votes")->body.at("votes") == 2, "A vote is confirmed and the class gets the server's count");
     out = room.say(riku, {{"type", "question"}, {"text", "入力バッファはヒットストップ中にどう扱うのが理由として正しいですか"}});
     check(find_type(out, "attention") && find_type(out, "attention")->body.at("reason") == "question_needs_teacher", "Unanswerable questions go to the operator");
+    const auto pending = find_type(out, "attention")->body.at("question_id").get<std::string>();
+    check(find_type(out, "reply", riku)->body.at("text").get<std::string>().find("人間の先生に回しました") != std::string::npos, "The asker is told who has the question");
+    out = room.console({{"type", "questions.answer"}, {"id", pending}, {"text", "入力は覚えておき、止まり終わってから処理します"}});
+    const auto teacher = find_type(out, "reply", riku);
+    check(teacher && teacher->body.at("question_id") == pending && teacher->body.at("from") == "teacher"
+        && teacher->body.at("text").get<std::string>().find("止まり終わってから") != std::string::npos, "The operator's answer reaches the asker as the answer to that question");
+    rejects([&] { room.console({{"type", "questions.answer"}, {"id", "q999"}, {"text", "x"}}); }, "unknown_question");
 
     // Assignment: progress, help, and individual hints.
     out = room.console({{"type", "assignment.assign"}, {"id", "restore-feel"}});
@@ -86,6 +111,12 @@ int main() { return run([] {
     check(find_type(out, "hint", riku) && find_type(out, "hint", riku)->body.at("kind") == "start_nudge", "The one who has not started is nudged");
     room.console({{"type", "progress.report"}, {"student", riku}, {"assignment_id", "restore-feel"}, {"step", 0}, {"done", true}});
     check(room.student(riku).at("progress").at("state") == "working", "Progress reported by a tool counts");
+    // During the assignment a "stuck" report sent as a question goes to the help path, not the board.
+    room.advance(AssignmentBoard::help_cooldown_ms);
+    const auto board_before = room.classroom.console_snapshot(room.now).at("questions").size();
+    out = room.say(aoi, {{"type", "question"}, {"text", "手順2で進みません。hit_stop を呼んでいる行が見つからないです"}});
+    check(find_type(out, "hint", aoi) && find_type(out, "reply", aoi)->body.at("about") == "help"
+        && room.classroom.console_snapshot(room.now).at("questions").size() == board_before, "Stuck on the assignment: a hint, not a question for the board");
 
     // Voice: who is speaking shows on the console.
     room.say(aoi, {{"type", "voice.level"}, {"level", 70}});
@@ -136,6 +167,13 @@ int main() { return run([] {
     check(find_type(out, "voice.enrolled", aoi), "Number spoken -> label bound");
     out = room.console({{"type", "voice.diarized"}, {"speaker", "spk_2"}, {"text", "ノックバックの向きはどうして後ろ向きなんですか"}});
     check(find_type(out, "reply", aoi) && find_type(out, "heard")->body.at("student") == aoi, "Room-microphone speech reaches the right student");
+    // The room microphone follows the same rule: speech becomes an answer only while none is submitted.
+    room.console({{"type", "activity.open"}, {"id", "hitstop-design"}});
+    out = room.console({{"type", "voice.diarized"}, {"speaker", "spk_2"}, {"text", "威力に比例して長さを変える"}});
+    check(find_type(out, "answer.ack", aoi) && find_type(out, "answer.ack", aoi)->body.at("via") == "utterance", "Diarized speech is taken as the answer, and the student is told");
+    out = room.console({{"type", "voice.diarized"}, {"speaker", "spk_2"}, {"text", "さっきの実演が見えにくかった"}});
+    check(!find_type(out, "answer.ack") && find_type(out, "utterance.ack", aoi), "Diarized speech never replaces a submitted answer");
+    room.console({{"type", "activity.reveal"}});
     out = room.console({{"type", "voice.diarized"}, {"speaker", "spk_5"}, {"text", "だれでしょう"}});
     check(find_type(out, "heard")->body.at("intent") == "unattributed" && out.size() == 1, "Unknown voices are shown to the operator only");
 
@@ -145,6 +183,33 @@ int main() { return run([] {
     const auto& state = find_type(out, "welcome", late.student)->body.at("state");
     check(state.contains("slide") && state.contains("assignment") && state.at("questions").size() == 1 && state.at("conduct").at("standing") == "good", "Welcome replays the lesson state");
     check(find_type(out, "welcome")->body.at("lesson").at("sections").size() == 9 && find_type(out, "welcome")->body.at("resume") == late.resume, "Welcome carries the outline and the resume token");
+
+    // The assignment ends: a late tick is refused and answered with the server's checklist.
+    room.console({{"type", "assignment.close"}});
+    out = room.say(aoi, {{"type", "progress"}, {"assignment_id", "restore-feel"}, {"step", 3}, {"done", true}});
+    const auto late_tick = find_type(out, "progress.rejected", aoi);
+    check(late_tick && late_tick->body.at("code") == "not_assigned" && late_tick->body.at("assignment").at("done")[3] == false
+        && late_tick->body.at("assignment").at("done")[0] == true, "The page gets the state to put the box back to");
+
+    // A new section leaves the previous one's question, slide and line behind.
+    Room moving;
+    const auto mover = moving.join("うごく");
+    moving.console({{"type", "lesson.start"}});
+    moving.advance(0);
+    moving.console({{"type", "lesson.skip"}});
+    out = moving.advance(0);
+    const auto demo = find_type(out, "demo");
+    check(demo && demo->body.at("watch").get<std::string>().find("enemy_offset") != std::string::npos, "Demos say what to watch");
+    moving.console({{"type", "activity.open"}, {"id", "missing-feel"}});
+    moving.say(mover, {{"type", "answer"}, {"activity_id", "missing-feel"}, {"text", "止まらない"}});
+    moving.console({{"type", "activity.reveal"}});
+    moving.console({{"type", "lesson.skip"}});
+    out = moving.advance(0);
+    check(find_type(out, "section") && find_type(out, "section")->body.at("id") == "weapon", "Next section");
+    const auto replay = moving.classroom.connect(mover, moving.now);
+    const auto& now_state = replay[0].body.at("state");
+    check(!now_state.contains("activity") && !now_state.contains("activity_results") && now_state.at("slide").at("section") == "weapon",
+        "A joiner in the new section sees none of the previous section's results");
 
     // Run the whole timeline to the end: every scheduled question opens and closes.
     Room full;

@@ -102,6 +102,7 @@ ActivityPlan activity(const Json& source, const std::string& where, std::set<std
     plan.prompt = text(source, "prompt", 400, where);
     plan.code = text(source, "code", 4000, where, false);
     plan.model_answer = text(source, "model_answer", 1000, where, false);
+    plan.explanation = text(source, "explanation", 600, where, false);
     plan.seconds = integer(source, "seconds", 15, 1800, 120, where);
     if (plan.kind == ActivityKind::choice) {
         plan.choices = strings(source, "choices", max_choices, 60, where);
@@ -123,6 +124,7 @@ ActivityPlan activity(const Json& source, const std::string& where, std::set<std
     plan.min_points = static_cast<std::size_t>(integer(source, "min_points", 1, static_cast<int>(plan.points.size()), 1, where));
     // An open activity has no right answer by definition; a model answer would contradict that.
     if (plan.kind == ActivityKind::open && !plan.model_answer.empty()) invalid(where + ".model_answer");
+    if (plan.kind == ActivityKind::open && !plan.explanation.empty()) invalid(where + ".explanation");
     return plan;
 }
 AssignmentPlan assignment(const Json& source, const std::string& where, std::set<std::string>& ids) {
@@ -194,7 +196,7 @@ Plot parse_plot(const Json& document) {
         for (const auto& demo : list(item, "demos", 8, where)) {
             object(demo, where + ".demos");
             section.demos.push_back({text(demo, "feature", 64, where + ".demos"), text(demo, "note", 300, where + ".demos", false),
-                flag(demo, "enabled", true, where + ".demos"),
+                text(demo, "watch", 200, where + ".demos", false), flag(demo, "enabled", true, where + ".demos"),
                 static_cast<std::size_t>(integer(demo, "after", 0, static_cast<int>(max_points), 0, where + ".demos"))});
             // Once the plot says which variables the demos switch, a demo nothing can switch is a typo.
             const auto& feature = section.demos.back().feature;

@@ -12,21 +12,30 @@ public:
     static constexpr std::size_t max_scalars = 280, max_questions = 500, max_per_share = 2;
     static constexpr int share_score = 70;          // model score at which a question is shared without the operator
     static constexpr double duplicate_similarity = 0.6;
-    struct Submitted { std::string id; bool duplicate = false; QuestionReview review; };
+    // own: a duplicate of the same student's earlier question (not counted as a "me too").
+    struct Submitted { std::string id; bool duplicate = false, own = false; QuestionReview review; };
 
     explicit QuestionBoard(const LessonModel& model) : model_(&model) {}
     // A near-identical earlier question absorbs this one as a "me too" instead of creating a new entry.
     Submitted submit(const std::string& student, const std::string& name, bool show_name, std::string_view text,
         const Context& context, Millis now);
-    void vote(const std::string& student, const std::string& id);
+    // A "me too" from someone other than the asker; the asker's own vote is refused (own_question).
+    // Returns the question's vote count afterwards.
+    std::size_t vote(const std::string& student, const std::string& id);
     // Marks up to max_per_share of the best pending questions as shared and returns their ids, best first.
     std::vector<std::string> share_best();
     void share(const std::string& id);
     void dismiss(const std::string& id);
+    // The human teacher answers a question. It stops needing the teacher and may now be shared.
+    // Returns who should hear the answer: the asker first, then everyone who said "me too".
+    std::vector<std::string> answer(const std::string& id, const std::string& text);
     // Removes a student's pending questions (used when the student is ejected).
     void withdraw(const std::string& student);
     Json shared_view(const std::string& id) const;  // what the class sees
-    Json shared_list() const;
+    // `viewer` marks the viewer's own questions (`mine`) and the ones they already said "me too" to (`voted`).
+    Json shared_list(const std::string& viewer) const;
+    bool shared(const std::string& id) const { return questions_.at(id).status == Status::shared; }
+    std::size_t votes(const std::string& id) const { return questions_.at(id).votes.size(); }
     Json console_list() const;                      // console: all, with asker ids and scores
     bool knows(const std::string& id) const { return questions_.contains(id); }
     const std::string& asker(const std::string& id) const { return questions_.at(id).student; }
@@ -39,7 +48,7 @@ private:
         int score = 0;
         Millis at = 0;
         Status status = Status::pending;
-        bool show_name = false, needs_teacher = false;
+        bool show_name = false, needs_teacher = false, answered_by_teacher = false;
     };
     const LessonModel* model_;
     std::map<std::string, Question> questions_;

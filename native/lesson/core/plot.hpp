@@ -16,7 +16,9 @@ struct RubricPoint { std::string id, label; std::vector<std::string> keywords; }
 // open: no right answer; points are perspectives used only to group what the class said.
 enum class ActivityKind { choice, text, missing, open };
 struct ActivityPlan {
-    std::string id, prompt, code, model_answer;
+    // explanation: why the answer is what it is, written by the author and shown to everyone at the
+    // reveal (never on the prep sheet). Not allowed on open activities, which have no answer to explain.
+    std::string id, prompt, code, model_answer, explanation;
     ActivityKind kind = ActivityKind::text;
     std::vector<std::string> choices;
     std::vector<int> correct;      // choice only; empty means a survey without a right answer
@@ -36,7 +38,8 @@ struct AssignmentPlan {
     int stall_seconds = 180;              // no progress for this long counts as stalled
 };
 // A switch the presenter flips in the running game (for example "hit_stop" off, then on).
-struct DemoPlan { std::string feature, note; bool enabled = true; std::size_t after = 0; };
+// note: what the presenter does; watch: what the students should look for while it is shown.
+struct DemoPlan { std::string feature, note, watch; bool enabled = true; std::size_t after = 0; };
 struct PrepQuestion { std::string question, hint; };
 struct Faq { std::vector<std::string> keywords; std::string answer; };
 struct Term { std::string term, meaning; };

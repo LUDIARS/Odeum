@@ -12,12 +12,13 @@ Json Classroom::welcome(const Student& to, Millis now) const {
     Json sections = Json::array();
     for (const auto& section : plot_.sections) sections.push_back({{"id", section.id}, {"title", section.title}});
     Json state{{"player", player_state_name(player_.state())}, {"section", section_ ? Json(section_->id) : Json(nullptr)},
-        {"questions", questions_.shared_list()}, {"conduct", standing_json(to.id, now)}};
+        {"questions", questions_.shared_list(to.id)}, {"conduct", standing_json(to.id, now)}};
     if (!slide_.is_null()) state["slide"] = slide_;
     if (!narration_.is_null()) state["narration"] = narration_;
     if (activity_) {
         state["activity"] = activity_->prompt();
         state["activity"]["answered"] = activity_->answered(to.id);
+        if (activity_->answered(to.id)) state["activity"]["answer"] = activity_->submitted(to.id);
         if (activity_->state() == Activity::State::revealed) {
             state["activity_results"] = activity_->results();
             state["activity_personal"] = activity_->personal(to.id);

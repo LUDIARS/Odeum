@@ -38,8 +38,10 @@ public:
     // line, so a model can elaborate to fill it; the returned text is spoken and shown as a caption.
     virtual std::string narrate(const Plot& plot, const Section& section, const std::string& point, double seconds) const = 0;
     virtual Grade grade(const ActivityPlan& activity, std::string_view answer) const = 0;
-    // What to tell one student once the activity is revealed.
-    virtual std::string feedback(const ActivityPlan& activity, const Grade& grade) const = 0;
+    // What to tell one student once the activity is revealed. `others` holds the rubric point ids that
+    // at least one other student's answer mentions (each id once), so feedback can refer to what the
+    // class really said and nothing else. Feedback states only what the grade establishes.
+    virtual std::string feedback(const ActivityPlan& activity, const Grade& grade, const std::vector<std::string>& others) const = 0;
     virtual Reading read(std::string_view utterance, const Context& context) const = 0;
     virtual QuestionReview review_question(std::string_view question, const Context& context) const = 0;
     // level counts from 0; implementations clamp to the last available hint.

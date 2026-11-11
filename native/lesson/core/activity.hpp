@@ -23,6 +23,7 @@ public:
     Json tally() const;                                // counts only; safe to show before the reveal
     Json results() const;                              // tally + answer key + highlighted answers (anonymous)
     Json personal(const std::string& student) const;   // one student's own result and feedback
+    Json submitted(const std::string& student) const;  // what that student's current answer is: {"text"} or {"choices"}
 private:
     struct Answer { std::vector<int> choices; std::string text; Grade grade; };
     const ActivityPlan* plan_;

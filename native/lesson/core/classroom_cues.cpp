@@ -56,10 +56,20 @@ void Classroom::close_assignment(Outbox& out) {
 void Classroom::share_questions(Outbox& out, const std::vector<std::string>& ids) {
     for (const auto& id : ids) {
         out.push_back(to_all({{"type", "question.shared"}, {"question", questions_.shared_view(id)}}));
-        out.push_back(to_student(questions_.asker(id), {{"type", "reply"}, {"about", "question"}, {"question_id", id},
+        out.push_back(to_student(questions_.asker(id), {{"type", "reply"}, {"about", "question"}, {"question_id", id}, {"relation", "asker"},
             {"text", "あなたの質問をクラス全体に共有しました。いい質問をありがとう。"}}));
     }
     if (!ids.empty()) dirty_ = true;
+}
+// The operator answers a question the model could not. The answer reaches the asker and everyone who
+// said "me too", as the answer to that question; a shared question is updated for the whole class.
+void Classroom::answer_question(Outbox& out, const std::string& id, const std::string& text) {
+    const auto recipients = questions_.answer(id, text);
+    dirty_ = true;
+    for (std::size_t i = 0; i < recipients.size(); ++i)
+        out.push_back(to_student(recipients[i], {{"type", "reply"}, {"about", "question"}, {"question_id", id}, {"relation", i == 0 ? "asker" : "me_too"},
+            {"from", "teacher"}, {"text", "先生からの答え: " + text}}));
+    if (questions_.shared(id)) out.push_back(to_all({{"type", "question.shared"}, {"question", questions_.shared_view(id)}}));
 }
 void Classroom::supervise(Outbox& out, Millis now) {
     if (!assignment_ || !assignment_active_) return;
@@ -92,8 +102,11 @@ void Classroom::run(Outbox& out, const Cue& cue, Millis now) {
     dirty_ = true;
     switch (cue.kind) {
         case CueKind::section_start: {
-            // A seek can land here with the previous section's question still open.
+            // A seek can land here with the previous section's question still open. The previous
+            // section's question, slide and line are over: late joiners must not be shown them.
             close_activity(out);
+            activity_.reset();
+            slide_ = nullptr; narration_ = nullptr;
             section_ = find_section(plot_, cue.section);
             std::size_t index = 0;
             while (index < plot_.sections.size() && &plot_.sections[index] != section_) ++index;
@@ -114,7 +127,8 @@ void Classroom::run(Outbox& out, const Cue& cue, Millis now) {
             // catch up after a reconnect or a seek.
             switch_demo(cue.detail.at("feature"), cue.detail.at("enabled"));
             ++demo_seq_;
-            out.push_back(to_all({{"type", "demo"}, {"feature", cue.detail.at("feature")}, {"enabled", cue.detail.at("enabled")}, {"note", cue.detail.at("note")}}));
+            out.push_back(to_all({{"type", "demo"}, {"feature", cue.detail.at("feature")}, {"enabled", cue.detail.at("enabled")}, {"note", cue.detail.at("note")},
+                {"watch", cue.detail.at("watch")}}));
             return;
         }
         case CueKind::activity_open: open_activity(out, cue.detail.at("id")); return;

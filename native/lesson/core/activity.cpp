@@ -69,10 +69,12 @@ Json Activity::results() const {
         out["choices"] = plan_->choices;
         out["correct"] = plan_->correct;
         out["has_answer"] = !plan_->correct.empty();
+        if (!plan_->explanation.empty()) out["explanation"] = plan_->explanation;
         return out;
     }
     out["has_answer"] = plan_->kind != ActivityKind::open;
     if (!plan_->model_answer.empty()) out["model_answer"] = plan_->model_answer;
+    if (!plan_->explanation.empty()) out["explanation"] = plan_->explanation;
     out["correct_count"] = std::count_if(answers_.begin(), answers_.end(), [](const auto& entry) { return entry.second.grade.correct; });
     // Show the answers that cover the most points, without names: the point is the idea, not who said it.
     std::vector<const Answer*> ranked;
@@ -96,14 +98,32 @@ Json Activity::personal(const std::string& student) const {
     if (plan_->kind == ActivityKind::choice) {
         out["choices"] = answer.choices;
         if (plan_->correct.empty()) out["feedback"] = "これは正解のない質問です。みんなの選び方と比べてみましょう。";
-        else { out["correct"] = choice_correct(answer); out["feedback"] = choice_correct(answer) ? "正解です。" : "惜しい。正解と見比べて、なぜそうなるかを確かめましょう。"; }
+        else {
+            out["correct"] = choice_correct(answer);
+            const std::string why = plan_->explanation.empty() ? "" : "理由はクラスの結果の解説を見てください。";
+            out["feedback"] = (choice_correct(answer) ? "正解です。" : "正解とは違いました。") + why;
+        }
         return out;
     }
     out["text"] = answer.text;
     out["matched"] = answer.grade.matched;
     if (answer.grade.has_verdict) out["correct"] = answer.grade.correct;
-    out["feedback"] = model_->feedback(*plan_, answer.grade);
+    // Only perspectives some other student really gave may be mentioned to this one.
+    std::vector<std::string> others;
+    for (const auto& point : plan_->points)
+        for (const auto& [id, theirs] : answers_)
+            if (id != student && std::find(theirs.grade.matched.begin(), theirs.grade.matched.end(), point.id) != theirs.grade.matched.end()) {
+                others.push_back(point.id);
+                break;
+            }
+    out["feedback"] = model_->feedback(*plan_, answer.grade, others);
     return out;
+}
+Json Activity::submitted(const std::string& student) const {
+    const auto found = answers_.find(student);
+    if (found == answers_.end()) return nullptr;
+    if (plan_->kind == ActivityKind::choice) return {{"choices", found->second.choices}};
+    return {{"text", found->second.text}};
 }
 std::string_view activity_state_name(Activity::State state) {
     constexpr std::array names{"open", "closed", "revealed"};

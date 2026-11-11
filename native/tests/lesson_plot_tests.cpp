@@ -27,6 +27,17 @@ int main() { return run([] {
     const auto assignment = find_assignment(plot, "restore-feel");
     check(assignment && assignment->steps.size() == 6 && assignment->stall_seconds == 150, "Assignment steps");
     check(find_section(plot, "camera") && !find_section(plot, "nope") && !find_activity(plot, "nope"), "Lookups");
+    // Every choice question explains its answer; every demo says what to watch on the teacher's screen.
+    for (const auto& section : plot.sections) {
+        if (section.activity && section.activity->kind == ActivityKind::choice) check(!section.activity->explanation.empty(), "Choice questions carry an explanation");
+        for (const auto& demo : section.demos) check(!demo.note.empty() && !demo.watch.empty(), "Demos carry what to watch");
+    }
+    // Automatic steps watch what the headless Ergo sample publishes.
+    for (const auto& step : assignment->steps) if (step.check)
+        check(step.check->variable == "feel.hit_stop_last_seconds" || step.check->variable == "feel.knockback_last_impulse", "Checks watch the sample's observed values");
+    // The rubric credits only what the reference sample removes (its six Setting switches).
+    for (const auto& point : missing->points) check(point.id != "sound", "Sound is not one of the removed effects");
+    check(missing->points.size() == 6, "Six removed effects, as the model answer says");
 
     const auto small = parse_plot(minimal());
     check(small.minutes == 60 && small.sections[0].minutes == 5 && !small.sections[0].activity, "Defaults");
@@ -44,6 +55,15 @@ int main() { return run([] {
     broken([](Json& d) { d["sections"][0]["activity"] = {{"id", "a"}, {"kind", "text"}, {"prompt", "?"}}; });                         // no rubric
     broken([](Json& d) { d["sections"][0]["activity"] = {{"id", "a"}, {"kind", "open"}, {"prompt", "?"}, {"model_answer", "x"},
         {"points", {{{"id", "p"}, {"label", "L"}, {"keywords", {"k"}}}}}}; });                                                         // open cannot have an answer
+    broken([](Json& d) { d["sections"][0]["activity"] = {{"id", "a"}, {"kind", "open"}, {"prompt", "?"}, {"explanation", "x"},
+        {"points", {{{"id", "p"}, {"label", "L"}, {"keywords", {"k"}}}}}}; });                                                         // nor an explanation
+    broken([](Json& d) { d["sections"][0]["activity"] = {{"id", "a"}, {"kind", "choice"}, {"prompt", "?"}, {"choices", {"x", "y"}},
+        {"explanation", std::string(601, 'x')}}; });
+    broken([](Json& d) { d["sections"][0]["activity"] = {{"id", "a"}, {"kind", "choice"}, {"prompt", "?"}, {"choices", {"x", "y"}}, {"explanation", 3}}; });
+    broken([](Json& d) { d["sections"][0]["demos"] = {{{"feature", "f"}, {"watch", std::string(201, 'x')}}}; });
+    const auto explained = [] { auto doc = minimal(); doc["sections"][0]["activity"] = {{"id", "a"}, {"kind", "choice"}, {"prompt", "?"},
+        {"choices", {"x", "y"}}, {"correct", {0}}, {"explanation", " x だから "}}; doc["sections"][0]["demos"] = {{{"feature", "f"}, {"watch", "w"}}}; return parse_plot(doc); }();
+    check(explained.sections[0].activity->explanation == "x だから" && explained.sections[0].demos[0].watch == "w", "Explanation and watch are read");
     broken([](Json& d) { d["sections"][0]["assignment"] = {{"id", "w"}, {"title", "W"}, {"steps", Json::array()}}; });
     broken([](Json& d) { d["sections"][0]["title"] = std::string(121, 'x'); });
     broken([](Json& d) { d["sections"][0]["points"] = {1}; });

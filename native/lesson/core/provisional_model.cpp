@@ -10,6 +10,10 @@ namespace {
 const std::vector<std::string> abuse{"死ね", "しね", "殺す", "ころす", "うざい", "きもい", "くそ", "ばか", "あほ", "うんこ", "fuck", "shit"};
 const std::vector<std::string> help_words{"わからない", "分からない", "わかりません", "分かりません", "教えて", "助けて", "詰まった", "つまった",
     "動かない", "うごかない", "できない", "できません", "エラー", "ヒント"};
+// While an assignment runs, these mark a report of being stuck on the work ("手順 3 で進まない") rather
+// than a question for the class. Outside an assignment they stay ordinary words.
+const std::vector<std::string> stuck_words{"進まない", "進めない", "うまくいかない", "うまく行かない", "動きません", "できなく", "詰まって", "つまって",
+    "詰まり", "はまって", "ハマって", "手が止まっ", "手順", "ステップ", "反映されない", "変わらない", "チェックが入らない", "つながらない", "繋がらない"};
 const std::vector<std::string> question_words{"なぜ", "なんで", "どうして", "どうやって", "どうすれば", "ですか", "ますか", "とは", "違い", "ちがい",
     "どっち", "どちら", "何が", "なにが", "どう"};
 const std::vector<std::string> depth_words{"なぜ", "なんで", "どうして", "どうやって", "違い", "ちがい", "もし", "場合", "逆に", "トレードオフ",
@@ -46,23 +50,31 @@ public:
         grade.correct = grade.has_verdict && grade.matched.size() >= activity.min_points;
         return grade;
     }
-    std::string feedback(const ActivityPlan& activity, const Grade& grade) const override {
-        const auto labels = [&](bool matched) {
+    // Says only what keyword matching establishes: which prepared points the answer names, which ones
+    // other students named, and whether that reaches min_points. It cannot tell whether a reason given
+    // is good, so it never says so.
+    std::string feedback(const ActivityPlan& activity, const Grade& grade, const std::vector<std::string>& others) const override {
+        const auto has = [](const std::vector<std::string>& ids, const std::string& id) { return std::find(ids.begin(), ids.end(), id) != ids.end(); };
+        const auto labels = [&](auto keep) {
             std::string out;
-            for (const auto& point : activity.points) {
-                const bool hit = std::find(grade.matched.begin(), grade.matched.end(), point.id) != grade.matched.end();
-                if (hit == matched) out += (out.empty() ? "" : "、") + point.label;
-            }
-            return out;
+            for (const auto& point : activity.points) if (keep(point.id)) out += (out.empty() ? "「" : "」「") + point.label;
+            return out.empty() ? out : out + "」";
         };
-        const auto hit = labels(true), missed = labels(false);
+        const auto mine = labels([&](const std::string& id) { return has(grade.matched, id); });
         if (activity.kind == ActivityKind::open) {
-            if (hit.empty()) return "答えは一つではありません。ほかの人の観点と比べて、自分ならどうするかを一言で言えるようにしておきましょう。";
-            return "あなたの観点: " + hit + "。" + (missed.empty() ? "" : "ほかに「" + missed + "」という見方も出ています。") + "正解はありません。理由を言えることが大事です。";
+            const auto theirs = labels([&](const std::string& id) { return has(others, id) && !has(grade.matched, id); });
+            std::string out = mine.empty() ? "あなたの回答は、用意した観点のどれにも分類されませんでした (キーワードで分類しています)。"
+                                           : "あなたの回答に出てきた観点: " + mine + "。";
+            if (!theirs.empty()) out += "ほかの人からは " + theirs + " という観点も出ています。";
+            return out + "この問いに正解はありません。";
         }
-        if (hit.empty()) return "今回は当たりませんでした。見落としやすいのは「" + missed + "」です。動かして確かめてみましょう。";
-        if (missed.empty()) return "全部押さえています: " + hit + "。";
-        return "押さえた点: " + hit + "。あと一歩: " + missed + "。";
+        const auto rest = labels([&](const std::string& id) { return !has(grade.matched, id); });
+        const auto needed = std::to_string(activity.min_points);
+        if (mine.empty()) return "用意した観点のどれにも当てはまる言葉が見つかりませんでした (キーワードで判定しています)。用意した観点は " + rest + " です。";
+        std::string out = "あなたの回答に出てきた観点: " + mine + "。";
+        out += grade.correct ? "観点が " + needed + " つ以上あるので、正解の扱いです。" : "正解の扱いには観点が " + needed + " つ要ります。";
+        if (!rest.empty()) out += "ほかに用意した観点: " + rest + "。";
+        return out;
     }
     Reading read(std::string_view utterance, const Context& context) const override {
         const auto folded = fold(utterance);
@@ -71,7 +83,7 @@ public:
         if (mentions_any(folded, abuse)) { reading.intent = Intent::disruption; reading.severity = 2; return reading; }
         // Punctuation-only or one repeated character carries no content for the class.
         if (folded.empty() || longest_run(folded) >= noise_run) { reading.intent = Intent::disruption; reading.severity = 1; return reading; }
-        if (mentions_any(folded, help_words)) { reading.intent = Intent::help; return reading; }
+        if (mentions_any(folded, help_words) || (context.assignment_active && mentions_any(folded, stuck_words))) { reading.intent = Intent::help; return reading; }
         if (asks(utterance, folded)) { reading.intent = Intent::question; return reading; }
         if (context.text_activity_open) { reading.intent = Intent::answer; return reading; }
         reading.intent = Intent::chatter;
@@ -93,7 +105,7 @@ public:
         }
         if (review.answer.empty()) {
             review.needs_teacher = true;
-            review.answer = "いい質問です。いまは手元に確かな答えがないので、授業の中で取り上げます。";
+            review.answer = "この質問には、用意した答えがありません。人間の先生に回しました。先生から直接答えが届くことがあり、届いたらここに出ます。";
         }
         return review;
     }

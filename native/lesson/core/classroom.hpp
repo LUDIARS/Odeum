@@ -76,6 +76,7 @@ private:
     void answer(Outbox& out, const Student& from, const Json& message, Millis now);
     void report_progress(Outbox& out, const std::string& student, const Json& message, Millis now);
     void ask(Outbox& out, const Student& from, const std::string& text, bool show_name, Millis now);
+    void report_stuck(Outbox& out, const Student& from, const std::string& text, Millis now);
     void hear(Outbox& out, const Student& from, const std::string& text, Millis now);
     void ask_for_help(Outbox& out, const Student& from, Millis now);
     void apply(Outbox& out, const std::string& student, const Conduct::Verdict& verdict, Millis now);
@@ -89,6 +90,7 @@ private:
     void assign(Outbox& out, const std::string& id, Millis now);
     void close_assignment(Outbox& out);
     void share_questions(Outbox& out, const std::vector<std::string>& ids);
+    void answer_question(Outbox& out, const std::string& id, const std::string& text);
     void supervise(Outbox& out, Millis now);
     void switch_demo(const std::string& feature, bool enabled);
     void resync_demos(Millis now);

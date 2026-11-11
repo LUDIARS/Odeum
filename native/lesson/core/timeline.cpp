@@ -65,7 +65,7 @@ Timeline build_timeline(const Plot& plot, const LessonModel& model) {
             for (const auto& demo : section.demos) {
                 if (std::min(demo.after, section.points.size()) != i) continue;
                 add(i < starts.size() ? starts[i] : begin + talk, CueKind::demo, section,
-                    {{"feature", demo.feature}, {"enabled", demo.enabled}, {"note", demo.note}});
+                    {{"feature", demo.feature}, {"enabled", demo.enabled}, {"note", demo.note}, {"watch", demo.watch}});
             }
             if (i < section.points.size()) {
                 const auto seconds = static_cast<double>((i + 1 < starts.size() ? starts[i + 1] : begin + talk) - starts[i]) / 1000.0;

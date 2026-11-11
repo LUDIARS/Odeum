@@ -1,5 +1,6 @@
 #include "classroom.hpp"
 #include "text.hpp"
+#include <algorithm>
 
 namespace odeum::lesson {
 namespace {
@@ -114,17 +115,32 @@ void Classroom::answer(Outbox& out, const Student& from, const Json& message, Mi
     if (!activity_ || field(message, "activity_id") != activity_->plan().id) throw ProtocolError("activity_closed", "No such open question");
     activity_->answer(from.id, message);
     dirty_ = true;
-    out.push_back(to_student(from.id, {{"type", "answer.ack"}, {"activity_id", activity_->plan().id}}));
+    out.push_back(to_student(from.id, {{"type", "answer.ack"}, {"activity_id", activity_->plan().id}, {"via", "form"},
+        {"answer", activity_->submitted(from.id)}}));
 }
 void Classroom::ask(Outbox& out, const Student& from, const std::string& text, bool show_name, Millis now) {
     const auto submitted = questions_.submit(from.id, from.name, show_name, text, context(), now);
     dirty_ = true;
     // The asker always gets an answer of their own, whether or not the class hears the question.
+    const auto prefix = !submitted.duplicate ? std::string() : submitted.own ? "この質問はすでに受け取っています。"
+        : "同じ質問がすでに出ています。あなたの分も「知りたい」に加えました。";
     out.push_back(to_student(from.id, {{"type", "reply"}, {"about", "question"}, {"question_id", submitted.id},
-        {"text", submitted.duplicate ? "同じ質問がすでに出ています。あなたの分も「知りたい」に加えました。" + submitted.review.answer : submitted.review.answer},
+        {"relation", submitted.duplicate && !submitted.own ? "me_too" : "asker"}, {"text", prefix + submitted.review.answer},
         {"pending_teacher", submitted.review.needs_teacher}}));
     if (submitted.review.needs_teacher && !submitted.duplicate)
         out.push_back(to_consoles({{"type", "attention"}, {"student", from.id}, {"reason", "question_needs_teacher"}, {"question_id", submitted.id}}));
+}
+// A message sent as a question that reads as "I am stuck on the assignment" goes where it can be
+// helped: the hint for the step the student is on, not the question board.
+void Classroom::report_stuck(Outbox& out, const Student& from, const std::string& text, Millis now) {
+    out.push_back(to_consoles({{"type", "heard"}, {"student", from.id}, {"intent", "help"}, {"text", text}}));
+    const auto before = out.size();
+    ask_for_help(out, from, now);
+    const bool hinted = std::any_of(out.begin() + static_cast<std::ptrdiff_t>(before), out.end(), [&](const Outbound& message) {
+        return message.body.value("type", std::string()) == "hint" && (message.audience == Audience::everyone || message.student == from.id); });
+    out.push_back(to_student(from.id, {{"type", "reply"}, {"about", "help"},
+        {"text", hinted ? "質問ではなく、課題で手が止まっているという知らせとして受け取りました。いまの手順のヒントを送りました。先生の画面にも出ています。"
+                        : "質問ではなく、課題で手が止まっているという知らせとして受け取りました。先生の画面に出ています。"}}));
 }
 void Classroom::ask_for_help(Outbox& out, const Student& from, Millis now) {
     dirty_ = true;
@@ -140,16 +156,27 @@ void Classroom::ask_for_help(Outbox& out, const Student& from, Millis now) {
 }
 void Classroom::hear(Outbox& out, const Student& from, const std::string& text, Millis now) {
     const auto reading = model_->read(text, context());
+    // Something said to the teacher never replaces an answer the student already submitted: it is a
+    // remark, kept for the operator. Before the student has answered, it is taken as the answer and the
+    // student is told so, with the text, so the page can show it as their answer.
+    const bool remark = reading.intent == Intent::answer && activity_->answered(from.id);
     // The operator sees what was said and how it was read, so a wrong reading can be corrected by hand.
-    out.push_back(to_consoles({{"type", "heard"}, {"student", from.id}, {"intent", intent_name(reading.intent)}, {"text", text}}));
+    out.push_back(to_consoles({{"type", "heard"}, {"student", from.id}, {"intent", remark ? "remark" : intent_name(reading.intent)}, {"text", text}}));
     switch (reading.intent) {
         case Intent::disruption: apply(out, from.id, conduct_.disruption(from.id, reading.severity, now), now); return;
         case Intent::help: ask_for_help(out, from, now); return;
         case Intent::question: ask(out, from, text, false, now); return;
         case Intent::answer:
+            if (remark) {
+                if (!reading.on_topic) apply(out, from.id, conduct_.off_topic(from.id, now), now);
+                out.push_back(to_student(from.id, {{"type", "utterance.ack"}, {"kept_answer", activity_->plan().id},
+                    {"note", "先生に伝えました。問いへの回答はすでに受け取っているので、いまの言葉で置き換えていません。"}}));
+                return;
+            }
             activity_->answer(from.id, {{"text", text}});
             dirty_ = true;
-            out.push_back(to_student(from.id, {{"type", "answer.ack"}, {"activity_id", activity_->plan().id}}));
+            out.push_back(to_student(from.id, {{"type", "answer.ack"}, {"activity_id", activity_->plan().id}, {"via", "utterance"},
+                {"answer", activity_->submitted(from.id)}}));
             return;
         case Intent::chatter:
             if (!reading.on_topic) apply(out, from.id, conduct_.off_topic(from.id, now), now);
@@ -187,7 +214,16 @@ Outbox Classroom::from_student(const std::string& id, const Json& message, Milli
         if (voice_.level(id, static_cast<int>(integer_field(message, "level", 0, 100)), now)) dirty_ = true;
         return out;
     }
-    if (type == "progress") { report_progress(out, id, message, now); return out; }
+    if (type == "progress") {
+        // A refused tick is answered with the server's own checklist, so the page can put the box back.
+        try { report_progress(out, id, message, now); }
+        catch (const ProtocolError& refused) {
+            Json reply{{"type", "progress.rejected"}, {"code", refused.code}, {"message", refused.what()}, {"assignment", nullptr}};
+            if (assignment_) reply["assignment"] = assignment_->progress(id);
+            out.push_back(to_student(id, std::move(reply)));
+        }
+        return out;
+    }
     // Working on the assignment and asking for a hint stay available during a lockout:
     // the lock silences a student in front of the class, it does not stop them learning.
     if (type == "help") { ask_for_help(out, from, now); return out; }
@@ -200,8 +236,19 @@ Outbox Classroom::from_student(const std::string& id, const Json& message, Milli
         throw ProtocolError("unknown_type", "Unknown message type");
     if (!allowed_to_post(out, from, now)) return out;
     if (type == "answer") answer(out, from, message, now);
-    else if (type == "question") ask(out, from, text_field(message, "text", QuestionBoard::max_scalars), message.value("show_name", false), now);
-    else if (type == "question.vote") { questions_.vote(id, text_field(message, "id", 32)); dirty_ = true; }
+    else if (type == "question") {
+        const auto text = text_field(message, "text", QuestionBoard::max_scalars);
+        if (assignment_ && assignment_active_ && model_->read(text, context()).intent == Intent::help) report_stuck(out, from, text, now);
+        else ask(out, from, text, message.value("show_name", false), now);
+    }
+    else if (type == "question.vote") {
+        const auto question = text_field(message, "id", 32);
+        const auto votes = questions_.vote(id, question);
+        dirty_ = true;
+        out.push_back(to_student(id, {{"type", "question.voted"}, {"id", question}}));
+        // Counts on the page come only from here, so nobody sees a number the server did not keep.
+        if (questions_.shared(question)) out.push_back(to_all({{"type", "question.votes"}, {"id", question}, {"votes", votes}}));
+    }
     else hear(out, from, text_field(message, "text", max_utterance_scalars), now);
     return out;
 }
@@ -226,6 +273,7 @@ Outbox Classroom::from_console(const Json& message, Millis now) {
         else share_questions(out, questions_.share_best());
     }
     else if (type == "questions.dismiss") questions_.dismiss(text_field(message, "id", 32));
+    else if (type == "questions.answer") answer_question(out, text_field(message, "id", 32), text_field(message, "text", max_tell_scalars));
     else if (type == "student.lock") {
         const auto id = target();
         apply(out, id, conduct_.lock(id, integer_field(message, "seconds", 1, 900) * 1000, now, "先生の判断で一時的に発言を止めています"), now);

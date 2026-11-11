@@ -70,6 +70,10 @@ int main() { return run([] {
     check(has(everything, "Ergo Studio") && has(everything, "https://github.com/vtn-team/ActionGameSample"), "Tools and reference are present");
     // The sheet must not give away what the class is asked to find.
     check(!has(everything, find_activity(plot, "hitstop-design")->model_answer) && !has(everything, "威力 ÷ 24 秒で、威力 3 なら"), "No answers on the prep sheet");
+    for (const auto* id : {"weapon-power", "enemy-placement"}) {
+        const auto& explanation = find_activity(plot, id)->explanation;
+        check(!explanation.empty() && !has(everything, explanation.substr(0, 60)), "Choice explanations are not on the prep sheet");
+    }
 
     // Text that needs escaping survives as text.
     PrepSheet tricky{"A & B <tag>", {{SheetSlide::Kind::bullets, "x < y & \"z\"", {}, {"1 > 0"}, {}}}};
