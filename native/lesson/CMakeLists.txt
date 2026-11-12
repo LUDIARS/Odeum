@@ -36,7 +36,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/assets.cpp
 add_library(odeum_lesson_assets ${CMAKE_CURRENT_BINARY_DIR}/assets.cpp)
 target_include_directories(odeum_lesson_assets PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_library(odeum_lesson_service catalog.cpp school.cpp tool_desk.cpp console_guard.cpp)
+add_library(odeum_lesson_service catalog.cpp input_limits.cpp school.cpp tool_desk.cpp console_guard.cpp)
 target_include_directories(odeum_lesson_service PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(odeum_lesson_service PUBLIC odeum_lesson_core odeum_lesson_assets odeum_relay_state PRIVATE OpenSSL::Crypto)
 

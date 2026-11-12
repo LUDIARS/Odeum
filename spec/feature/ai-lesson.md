@@ -144,7 +144,7 @@ pptx は OOXML を直接書き、ZIP は無圧縮。時刻を埋め込まない�
 | `GET /v1/tool/state` (`Authorization: Bearer`) | → `{role, class, features, assignment, demo}`。無効なトークンは `tool_unlinked` (401) |
 | `POST /v1/tool/progress` `{assignment_id, step, done: true}` | 生徒の道具だけ。`not_assigned` (409) / `forbidden_role` (403)。`done: false` は受け付けない |
 
-- POST は `Content-Type: application/json`、本文 4 KiB まで。Host / Origin の検査は他の経路と同じ (別サイトからは呼べない)。
+- POST は `Content-Type: application/json`、本文 4 KiB まで (JSON は値 64 個・入れ子 4 段まで。超えたら `invalid_request` (400))。Host / Origin の検査は他の経路と同じ (別サイトからは呼べない)。
 - `features`: 実演の名前 → ゲームの bool 変数名 (プロットの `tool.features`)。
 - `assignment` (生徒): 出ている課題の手順と、その生徒の済み・未済み。`check` (`{variable, op, value}`、`op` は
   `gt` `ge` `lt` `le` `eq` `ne`) の付いた手順は、道具がゲームの変数を見て満たしたときに `progress` を送る。一度付けたチェックを道具は外さない。
@@ -250,7 +250,7 @@ pptx は OOXML を直接書き、ZIP は無圧縮。時刻を埋め込まない�
 - `GET /console`, `GET /web/*`, `GET /v1/prep.pptx`, `GET /health`
 - `GET /v1/console?token=` — WebSocket
 
-メッセージは JSON、受信は 16 KiB まで、毎秒 120 件を超えたら切断。種類と項目は
+メッセージは JSON、受信は 16 KiB まで (値 1024 個・入れ子 8 段まで。relay と同じ。超えたら `invalid_message`)、毎秒 120 件を超えたら切断。種類と項目は
 `native/lesson/core/classroom.cpp` (受信) と `classroom_cues.cpp` / `classroom_views.cpp` (送信) が正本。
 
 ## 操作卓の保護
@@ -330,3 +330,17 @@ unresolved / status) で参加する。`--teacher-answers` で、作者が用意
 - GLab / Cernere のチケットによる本人確認 (いまは参加コード + 表示名。退出の強制力は入室締め切りに頼る)。
 - Windows / macOS でのビルド、PowerPoint 実機での表示、マイク入力の実機確認。
 - ポート 4410 / 4411 は仮の値 (Excubitor の割当と未照合)。
+
+## 外から入る入力の上限 {#SPEC-ODEUM-LESSON-INPUT-LIMITS}
+
+正本は `native/lesson/input_limits.hpp`。JSON は Lorica の `input_budget` (`odeum::parse_json_within`) で、バイト数・値の数・入れ子を
+読みながら数え、超えた時点で断る (job cpp-lorica-20261111)。
+
+| 入力 | 上限 | 断ったとき |
+| --- | --- | --- |
+| WebSocket のメッセージ (生徒・操作卓) | 16 KiB、値 1024、深さ 8 | `invalid_message` を返し、接続は続く |
+| HTTP の要求 | ヘッダ 16 KiB、本文 4 KiB (Beast のパーサ)、10 秒 | 接続を閉じる |
+| 道具の POST 本文 | 4 KiB、値 64、深さ 4 (正しい本文は値 7 個) | `invalid_request` (400) |
+| プロットのファイル (`ODEUM_LESSON_PLOT`、`timeline` / `prep-sheet` の引数) | 1 MiB (1 MiB + 1 バイトで読むのをやめる)、値 16384、深さ 16 | `invalid_plot` で起動・コマンドが止まる |
+
+組み込みの教材 (90 分) は値 1,223 個・深さ 7 で、プロットの上限の 10 分の 1 未満。

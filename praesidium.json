@@ -3834,6 +3834,27 @@
                                     ]
                    },
                    {
+                       "file":  "native/lesson/input_limits.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/lesson",
+                                        "native/lesson/core"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-openssl-3"
+                                    ]
+                   },
+                   {
                        "file":  "native/lesson/school.cpp",
                        "standard":  "c++20",
                        "includes":  [
@@ -4343,6 +4364,28 @@
                    },
                    {
                        "file":  "native/tests/lesson_service_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include",
+                                        "native/relay",
+                                        "native/lesson",
+                                        "native/lesson/core",
+                                        "native/tests"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-openssl-3"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/lesson_limits_tests.cpp",
                        "standard":  "c++20",
                        "includes":  [
                                         "native/protocol/include",

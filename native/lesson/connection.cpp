@@ -3,6 +3,7 @@
 #include "assets.hpp"
 #include "console_guard.hpp"
 #include "http_query.hpp"
+#include "input_limits.hpp"
 #include "prep_sheet.hpp"
 #include <boost/asio/post.hpp>
 
@@ -15,9 +16,6 @@ constexpr unsigned max_messages_per_second = 120;   // same ceiling as the relay
 constexpr std::size_t max_queued_messages = 256, max_queued_bytes = 512 * 1024;
 // Snapshots and timelines for a full class exceed the 16 KiB cap that applies to what clients send.
 constexpr std::size_t max_outgoing_bytes = 256 * 1024;
-
-// Tools post one small JSON object; nothing else on this service takes a request body.
-constexpr std::uint64_t max_request_body = 4096;
 
 unsigned http_status(const std::string& code) {
     if (code == "tool_unlinked") return 401;
@@ -56,7 +54,7 @@ Connection::Connection(boost::asio::ip::tcp::socket socket, Server& server, bool
 }
 Connection::~Connection() { --*connections_; }
 void Connection::start() {
-    parser_.body_limit(max_request_body); parser_.header_limit(16384);
+    parser_.body_limit(max_request_body_bytes); parser_.header_limit(max_request_header_bytes);
     beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(10));
     http::async_read(ws_.next_layer(), buffer_, parser_, [self = shared_from_this()](beast::error_code error, std::size_t) {
         if (error) { self->close(); return; }
@@ -150,8 +148,7 @@ void Connection::route_tool(const Request& request, const std::string& path) {
     if (!post || (path != "/v1/tool/pair" && path != "/v1/tool/progress")) { respond(404, {{"error", "not_found"}}); return; }
     // A JSON content type cannot be sent cross-site without a preflight this service never grants.
     if (!beast::iequals(request[http::field::content_type].substr(0, 16), "application/json")) throw ProtocolError("invalid_request", "JSON required");
-    utf8_length(request.body());
-    const auto body = Json::parse(request.body());
+    const auto body = parse_tool_body(request.body());
     respond(200, path == "/v1/tool/pair" ? server_.tool_pair(body) : server_.tool_progress(token, body));
 }
 void Connection::route_console(const Request& request) {
@@ -180,7 +177,7 @@ void Connection::upgrade(const Request& request, std::function<void()> admit) {
     beast::get_lowest_layer(ws_).expires_never();
     auto timeout = websocket::stream_base::timeout::suggested(beast::role_type::server);
     timeout.idle_timeout = std::chrono::seconds(60); timeout.keep_alive_pings = true;
-    ws_.set_option(timeout); ws_.read_message_max(max_message_bytes);
+    ws_.set_option(timeout); ws_.read_message_max(message_limits.bytes);
     ws_.async_accept(request, [self = shared_from_this(), admit = std::move(admit)](beast::error_code error) {
         if (error) { self->close(); return; }
         try { admit(); self->read(); }
@@ -198,10 +195,7 @@ void Connection::read() {
             const auto now = monotonic_ms();
             if (now - self->window_ >= 1000) { self->window_ = now; self->messages_ = 0; }
             if (++self->messages_ > max_messages_per_second) { self->close(); return; }
-            const auto wire = beast::buffers_to_string(self->buffer_.data());
-            utf8_length(wire);
-            const auto message = Json::parse(wire);
-            if (!message.is_object()) throw ProtocolError("invalid_message", "Object required");
+            const auto message = parse_client_message(beast::buffers_to_string(self->buffer_.data()));
             if (self->console_) self->class_ = self->server_.from_console(self.get(), self->class_, message);
             else self->server_.from_student(self->class_, self->student_, message);
         } catch (const ProtocolError& failure) { self->send(error_message(failure.code, failure.what())); }
