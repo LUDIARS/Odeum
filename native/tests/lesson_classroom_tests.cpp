@@ -46,7 +46,7 @@ int main() { return run([] {
     check(find_type(out, "section")->audience == Audience::everyone && find_type(out, "section")->body.at("id") == "intro", "First section");
     check(find_type(out, "snapshot") && find_type(out, "snapshot")->audience == Audience::consoles, "Console gets a snapshot");
     bool demoed = false;
-    for (int i = 0; i < 6 * 60 && !demoed; ++i) { out = room.advance(1000); demoed = find_type(out, "demo") && find_type(out, "demo")->body.at("feature") == "all"; }
+    for (int i = 0; i < 6 * 60 && !demoed; ++i) { out = room.advance(1000); demoed = find_type(out, "demo") && find_type(out, "demo")->body.at("feature") == "effects"; }
     check(demoed, "Demo switch is announced");
 
     // Operator opens the "what is missing" question by hand.
@@ -104,7 +104,7 @@ int main() { return run([] {
 
     // Assignment: progress, help, and individual hints.
     out = room.console({{"type", "assignment.assign"}, {"id", "restore-feel"}});
-    check(find_type(out, "assignment")->body.at("assignment").at("steps").size() == 6, "Assignment is handed out");
+    check(find_type(out, "assignment")->body.at("assignment").at("steps").size() == 7, "Assignment is handed out");
     out = room.say(aoi, {{"type", "progress"}, {"assignment_id", "restore-feel"}, {"step", 0}, {"done", true}});
     check(find_type(out, "progress", aoi)->body.at("assignment").at("done")[0] == true, "Checklist is echoed back");
     out = room.say(haruto, {{"type", "utterance"}, {"text", "先生、動かないです。助けて"}});
@@ -202,7 +202,7 @@ int main() { return run([] {
     moving.console({{"type", "lesson.skip"}});
     out = moving.advance(0);
     const auto demo = find_type(out, "demo");
-    check(demo && demo->body.at("watch").get<std::string>().find("enemy_offset") != std::string::npos, "Demos say what to watch");
+    check(demo && demo->body.at("watch").get<std::string>().find("world と time") != std::string::npos, "Demos say what to watch");
     moving.console({{"type", "activity.open"}, {"id", "missing-feel"}});
     moving.say(mover, {{"type", "answer"}, {"activity_id", "missing-feel"}, {"text", "止まらない"}});
     moving.console({{"type", "activity.reveal"}});

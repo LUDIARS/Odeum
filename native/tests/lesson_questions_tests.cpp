@@ -84,8 +84,8 @@ int main() { return run([] {
     check(!split.needs_teacher && split.answer.find("回数") != std::string::npos && split.answer.find("重く感じ") != std::string::npos, "Why damage and power are split");
     const auto sick = answer_to("カメラの揺れが強すぎると酔うのはなぜですか？");
     check(!sick.needs_teacher && sick.answer.find("食い違い") != std::string::npos, "Why shaking makes people sick");
-    const auto drift = answer_to("ヒットストップをONにしたら world= の進みが2秒ごとに約1.8秒になりました。0.08秒×当たった回数で考えるとずれるのはなぜですか？");
-    check(!drift.needs_teacher && drift.answer.find("3 回のときと 4 回のとき") != std::string::npos, "Why world= advances by 1.7 or 1.8");
+    const auto drift = answer_to("ヒットストップをONにしたら world= の進みが2秒ごとに約1.8秒になりました。0.083秒×当たった回数で考えるとずれるのはなぜですか？");
+    check(!drift.needs_teacher && drift.answer.find("1 回分しか止まりません") != std::string::npos, "Why world= falls behind real= by less than hits x stop");
     const auto combo = answer_to("ノックバックで次の攻撃が届かなくなる問題って、実際のゲームではどうやって解決しているんですか？");
     check(combo.needs_teacher, "A question the course cannot answer goes to the teacher instead of a loosely matching answer");
 
