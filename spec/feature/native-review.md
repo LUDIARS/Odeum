@@ -155,7 +155,8 @@ therefore ledger records (`runner: command`), one per CTest name, for example
   (libdatachannel threads touching OpenSSL during `atexit`, see
   `spec/tasks/2026-11-11-ai-lesson-handoff.md`). #6 fixed that; #8 checked 30 of 30 runs and promoted it to `active`.
 - `odeum.lorica_applied.unsafe_api.{baseline,extended}.{accepted_bounded,rejected_copy,rejected_format}`
-  (`live-relay`, the native build): each builds one probe target of
+  (`test-support`, the domain whose membership holds `native/tests/lorica_*`, so the bundle runs
+  whenever those files change): each builds one probe target of
   `native/tests/lorica_unsafe_api_probes.cmake` in `native/build` (nothing is run), so they need the
   configured tree, not only the default build. Where Odeum does not apply
   `lorica_deprecate_unsafe_apis` (or EXTENDED) CTest reports them skipped with the reason.
