@@ -151,10 +151,19 @@ therefore ledger records (`runner: command`), one per CTest name, for example
 
 - `odeum.lesson.*` (16): business domain `ai-lesson`.
 - `odeum.protocol`, `odeum.ticket`: `live-protocol`. The other default-build relay tests: `live-relay`.
-- `odeum.overlay` is registered as `candidate`, so domain bundles do not run it: it is a
-  pre-existing flaky test (see `spec/tasks/2026-11-11-ai-lesson-handoff.md`). Promote it once fixed.
+- `odeum.overlay` (`live-relay`) was registered as `candidate` while it crashed at process exit
+  (libdatachannel threads touching OpenSSL during `atexit`, see
+  `spec/tasks/2026-11-11-ai-lesson-handoff.md`). #6 fixed that; #8 checked 30 of 30 runs and promoted it to `active`.
+- `odeum.lorica_applied.unsafe_api.{baseline,extended}.{accepted_bounded,rejected_copy,rejected_format}`
+  (`live-relay`, the native build): each builds one probe target of
+  `native/tests/lorica_unsafe_api_probes.cmake` in `native/build` (nothing is run), so they need the
+  configured tree, not only the default build. Where Odeum does not apply
+  `lorica_deprecate_unsafe_apis` (or EXTENDED) CTest reports them skipped with the reason.
+  The other `odeum.lorica_applied.*` tests and the runner, fuzz and `*.limits` tests from #6 are not in the ledger yet.
 - Presenter and program tests are only built with their CMake options and are not registered here.
 
 The records expect `native/build` to be configured and built by the Revisor registration's
 preparation cases, in this order: `configure` (`cmake -S native -B native/build -G Ninja
--DCMAKE_BUILD_TYPE=Release`) and `setup-build` (`cmake --build native/build`).
+-DCMAKE_BUILD_TYPE=Release`) and `setup-build` (`cmake --build native/build`). Lorica is a
+private repository that `configure` fetches at the pinned commit; a review host without access to it
+passes a local checkout of that commit with `-DLORICA_SOURCE_DIR=<checkout>` in its registration.
