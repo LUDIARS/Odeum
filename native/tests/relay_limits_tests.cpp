@@ -9,11 +9,39 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <string>
+#ifdef _WIN32
+#include <process.h>
+#else
 #include <unistd.h>
+#endif
 using namespace odeum;
 using namespace odeum::relay;
 
 namespace {
+// The relay reads its configuration from the environment; both backends stay in this unit.
+void set_env(const char* name, const std::string& value) {
+#ifdef _WIN32
+    ::_putenv_s(name, value.c_str());
+#else
+    ::setenv(name, value.c_str(), 1);
+#endif
+}
+void unset_env(const char* name) {
+#ifdef _WIN32
+    ::_putenv_s(name, "");
+#else
+    ::unsetenv(name);
+#endif
+}
+int process_id() {
+#ifdef _WIN32
+    return ::_getpid();
+#else
+    return static_cast<int>(::getpid());
+#endif
+}
+
 std::string query(std::size_t parameters) {
     std::string target = "/v1/guest?";
     for (std::size_t i = 0; i < parameters; ++i) target += (i ? "&k" : "k") + std::to_string(i) + "=v";
@@ -79,9 +107,9 @@ int main() { return run([] {
     check(!parse_target("/v1/guest?" + std::string(16000, '&')), "Empty parameters are malformed");
     check(parse_target("/v1/guest?code=" + std::string(16000, 'a'))->query.at("code").size() == 16000, "Long value within the header limit");
 
-    const auto keys = std::filesystem::temp_directory_path() / ("odeum_relay_keys_" + std::to_string(::getpid()) + ".json");
-    ::setenv("ODEUM_RELAY_TICKET_PUBKEYS", keys.c_str(), 1);
-    ::unsetenv("ODEUM_RELAY_ICE_SERVERS");
+    const auto keys = std::filesystem::temp_directory_path() / ("odeum_relay_keys_" + std::to_string(process_id()) + ".json");
+    set_env("ODEUM_RELAY_TICKET_PUBKEYS", keys.string());
+    unset_env("ODEUM_RELAY_ICE_SERVERS");
     std::ofstream(keys, std::ios::binary | std::ios::trunc) << object_of(max_config_file_bytes);
     check(load_config().keys.at("k").get_ref<const std::string&>().size() == max_config_file_bytes - 8, "Key file at the limit");
     std::ofstream(keys, std::ios::binary | std::ios::trunc) << object_of(max_config_file_bytes + 1);
@@ -92,11 +120,11 @@ int main() { return run([] {
     check(fails([] { load_config(); }), "Broken key file");
 
     std::ofstream(keys, std::ios::binary | std::ios::trunc) << R"({"k":"pem"})";
-    ::setenv("ODEUM_RELAY_ICE_SERVERS", R"([{"urls":["stun:stun.example:3478"]}])", 1);
+    set_env("ODEUM_RELAY_ICE_SERVERS", R"([{"urls":["stun:stun.example:3478"]}])");
     check(load_config().ice->welcome().size() == 1, "ICE servers from the environment");
-    ::setenv("ODEUM_RELAY_ICE_SERVERS", (std::string(16, '[') + std::string(16, ']')).c_str(), 1);
+    set_env("ODEUM_RELAY_ICE_SERVERS", std::string(16, '[') + std::string(16, ']'));
     check(fails([] { load_config(); }), "ICE JSON within the depth limit but not servers");
-    ::setenv("ODEUM_RELAY_ICE_SERVERS", (std::string(17, '[') + std::string(17, ']')).c_str(), 1);
+    set_env("ODEUM_RELAY_ICE_SERVERS", std::string(17, '[') + std::string(17, ']'));
     bool limited = false;
     try { load_config(); } catch (const ProtocolError& error) { limited = error.code == "invalid_message"; }
     check(limited, "ICE JSON nested past the limit");
