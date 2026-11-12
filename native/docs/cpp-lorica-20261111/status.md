@@ -18,7 +18,12 @@
 | d7d47fa | 文書 | `.anatomia/layers.json` に native/ の層 (要確認) |
 | a44d382 | 文書 | この文書と plan の 5 章 |
 | 7e3338f | merge | origin/main `bb2775e` (Cloudflare TURN) を merge。衝突 3 か所を手で合わせた |
-| (このコミット) | 入力の上限 | Cloudflare TURN の応答に JSON の予算と件数の上限、境界テスト、fuzz 入口 cloudflare_turn |
+| b8f8490 | 入力の上限 | Cloudflare TURN の応答に JSON の予算と件数の上限、境界テスト、fuzz 入口 cloudflare_turn |
+| 62a206c | Lorica の確認 | `odeum.lorica_applied.*` (COMMON-4 作業 B) |
+| 7a029e0 | merge | origin/main `913f08d` (odeum-lesson #5、Revisor の登録 #7) を merge。衝突 3 か所、lesson の 5 ターゲットを EXTENDED |
+| 07e141c | Lorica の適用 | `odeum.lorica_applied.binary.odeum-lesson` |
+| 30077bf | 入力の上限 | odeum-lesson の WebSocket・道具の POST・プロットのファイルに上限、`odeum.lesson.limits`、fuzz 入口 lesson_message / lesson_plot |
+| (このコミット) | 文書 | この節 |
 
 ## (a) 確かめたこと (このコンテナ、GCC 13.3 / Clang 18.1.3)
 
@@ -44,6 +49,21 @@
   odeum_relay_state に `-fno-stack-protector` と juice に `-D_FORTIFY_SOURCE=0` → `.compile_commands` (自前・第三者を分けて列挙)、
   odeum-relay に `-ftrivial-auto-var-init=uninitialized` → `.compile_commands`、unsafe API の拒否を外す → `.baseline` / `.extended`
   (configure の網羅確認は通ってしまう構成)、odeum_harden を 1 本外す → configure の FATAL_ERROR。MSVC と macOS の枝は未実行。
+
+- main の odeum-lesson (merge `7a029e0` 以降): lesson の lib 4 本と odeum-lesson は EXTENDED (外から HTTP / WebSocket を
+  受け続けるサーバ。relay と同じ扱い)、lesson のテスト 17 本・fuzz の回帰 2 本は baseline。unsafe API の拒否で落ちる呼び出しは
+  無かった。Lorica の網羅 86 ターゲット通過、GCC Release ctest 74/74 (merge 前 54 + lesson 16 + binary.odeum-lesson +
+  lesson.limits + fuzz.lesson_message / lesson_plot)。
+- 上限 (`native/lesson/input_limits.hpp`、表は `spec/feature/ai-lesson.md` の「外から入る入力の上限」): WebSocket は値 1024・深さ 8、
+  道具の POST は値 64・深さ 4、プロットのファイルは 1 MiB を読みながら判定・値 16384・深さ 16。HTTP のヘッダ 16 KiB・本文 4 KiB・
+  16 KiB の受信・毎秒 120 件・接続 2048・操作卓 8 は main の既存値。
+- lesson まわり (lesson 17 本 + fuzz 回帰 2 本 + lorica_applied 2 本) を GCC の TSan と ASan + UBSan で実行し、各 22/22 通過・報告なし。
+  Clang 18 ODEUM_FUZZ で lesson_message を 30 秒 (342,608 回)、lesson_plot を 30 秒 (138,899 回)、クラッシュなし。
+  ctest に lesson のサーバ (connection.cpp / server.cpp) を立てるテストは無く、sanitizer でサーバの経路は通っていない。
+- `odeum.overlay`: merge 後に 20 回繰り返して失敗 0。
+- `.anatomia/layers.json`: main の語彙 (shared / domain-logic / ...) に合わせ、branch 側の native/fuzz と native/runner/* を足した。
+  native/ の未分類 0。Augur の台帳 (`.augur/tests.jsonl`) には branch 側のテスト (relay.limits、runner、lorica_applied、fuzz、lesson.limits
+  など) を足していない (id は Augur が振るため)。
 
 ## (b) 確かめていないこと
 

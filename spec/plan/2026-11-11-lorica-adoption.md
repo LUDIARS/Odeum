@@ -102,6 +102,9 @@ sanitizer のビルド設定と fuzz の入口は repo 全体で未整備 (runne
 | program AMF0 | program/core/amf0.cpp | 1 ペイロード 4096 値、深さ 16 (既存) |
 | program archive.json | program/core/archive_reader.cpp | 16KiB (読みながら)、値 64、深さ 2 |
 | program 入力フレーム | program/core/input_frame_limits.hpp → transport/input_receiver.cpp | 映像 8MiB、音声 65535 |
+| lesson WebSocket メッセージ (main の odeum-lesson) | lesson/input_limits.cpp → connection.cpp | 16KiB (既存)、値 1024、深さ 8 |
+| lesson 道具の POST 本文 | lesson/input_limits.cpp → connection.cpp | 4KiB (既存)、値 64、深さ 4 |
+| lesson プロットのファイル | lesson/catalog.cpp (`read_file_within`) | 1MiB (読みながら)、値 16384、深さ 16 |
 
 ### 5.3 sanitizer と fuzz
 
