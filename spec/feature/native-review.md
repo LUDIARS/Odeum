@@ -3,7 +3,8 @@
 ## Scope
 
 Odeum's `praesidium.json` registers every tracked C/C++ translation unit,
-including native tests and the archived Custos encoder. The registry does not
+including native tests and the archived Custos encoder, except the 13 runner units listed in
+[Runner, fuzz and limits units](#SPEC-ODEUM-NATIVE-REVIEW-RUNNER) (236 of 249). The registry does not
 exclude optional targets or mark unavailable dependencies as successful.
 Praesidium performs compiler analysis; it does not execute these programs.
 Windows is the configured analysis platform. Objective-C++ macOS sources are
@@ -136,9 +137,46 @@ The first scoped analysis of the lesson change (Windows target, clang 18) found:
 `ODEUM_LORICA_TEST_OPTIMIZED=1`, which the unit requires (it stops with `#error` without them).
 Lorica's force-included `lorica/unsafe_api.hpp` is not part of the entry (Praesidium units have no
 force-include); the unsafe-API rejection is checked by the build probes, not by this unit. The
-other units that include Lorica headers since #6 (`native/relay/http_query.cpp`,
-`native/program/core/amf0.cpp`, `native/program/core/rtmp_chunk.cpp`) do not list the package yet,
-and the runner, fuzz and new test units from #6 are not registered.
+other registered units that include Lorica headers since #6 (`native/relay/http_query.cpp`,
+`native/program/core/amf0.cpp`, `native/program/core/rtmp_chunk.cpp`) list the package too; without
+it they stopped with `fatal error: 'lorica/…' file not found`. The compile commands' dependency lists
+show no other previously registered unit reading a Lorica header.
+
+## Runner, fuzz and limits units {#SPEC-ODEUM-NATIVE-REVIEW-RUNNER}
+
+The translation units #6 added (`native/runner/**`, `native/fuzz/*`, `native/protocol/{bounded_file,json_limits,rtcp}.cpp`,
+`native/tests/{runner_*,*_limits}_tests.cpp`) are registered from their compile commands in a build configured with
+`ODEUM_BUILD_PRESENTER_CORE=ON` and `ODEUM_BUILD_PROGRAM_CORE=ON` (so that the presenter and program fuzz entries and
+limits tests have a command too): the repository include roots of the command, one host package per third-party
+include root (`odeum-json-3-11-3`, `odeum-boost-1-87-0`, `odeum-datachannel-d9391849`, `odeum-lorica-5e8281b`; every
+Odeum target links `Lorica::boundary`), `odeum-openssl-3` when the unit reads OpenSSL headers (from the system include
+path, so the command has no `-I` for it), the command's own definitions (`BOOST_ERROR_CODE_HEADER_ONLY`, `RTC_*`,
+`ODEUM_RUNNER_HAS_WEBRTC`) and the Windows definitions above. Lorica's hardening definitions (`_GLIBCXX_ASSERTIONS`,
+`_FORTIFY_SOURCE`, `_LIBCPP_HARDENING_MODE`) and the force-included `lorica/unsafe_api.hpp` are not part of an entry,
+as for the Lorica check unit. `native/fuzz/regress_main.cpp` is compiled into every regress executable with that
+entry's include roots; it reads only standard headers and is registered with the `ws_message` entry's command.
+
+`native/runner/adapters/process_posix.cpp` and `process_windows.cpp` are both built on every platform and select their
+backend with `#ifdef _WIN32` inside the unit, so both are analysed on the Windows host (the POSIX one is empty there).
+`native/tests/relay_limits_tests.cpp` used `setenv` / `unsetenv` / `getpid` and passed a `std::filesystem::path`'s
+`c_str()` as `char*`; it now keeps both backends in the unit (`_putenv_s` / `_getpid` on Windows), so it compiles
+on the analysis host.
+
+72 of the 85 units are registered. In one Revisor-equivalent run of the 75 changed entries (these 72 and the three
+Lorica fixes; two workers, 60 s per compiler) all 75 passed in 240 s, against a scheduling budget of 2,340 s.
+The other 13 units analyse with the same configuration but report findings inside Boost, not in Odeum code, so they
+are left unregistered until Praesidium can pass host packages as system includes (Actio
+`393aed37-522c-470c-aa15-c0ddbc48b1eb`, the limitation described above for `relay/server.cpp`):
+
+| Units | Finding (Boost 1.87.0) |
+| --- | --- |
+| `runner/adapters/process_common.cpp`, `process_windows.cpp`, `http_client.cpp`, `runner/app/apps_runner.cpp` | `boost/asio/detail/impl/win_thread.ipp:79:20` and `:90:38`, `cplusplus.NewDelete`, on the path that creates the IOCP thread for the first `basic_waitable_timer` (Windows only) |
+| `runner/app/http_server.cpp`, `tests/runner_{auth,boundary,http,media,playlog,process,unity,webrtc}_tests.cpp` | `boost/beast/zlib/detail/inflate_stream.ipp:319:21` and `:1072:21`, `deadcode.DeadStores` |
+
+`runner/adapters/http_client.cpp` (about 75 s) and `tests/runner_http_tests.cpp` (about 64 s) also exceed the
+60-second compiler limit on this host; `tests/runner_config_tests.cpp` takes 59 to 61 s and passed in the run above,
+so a change to it can fail with a timeout on a slower host. A PR that changes one of the 13 unregistered units
+still stops with `native.configuration-required`; registering them would turn that into the Boost finding.
 
 ## Registered native tests {#SPEC-ODEUM-NATIVE-REVIEW-TESTS}
 
@@ -160,8 +198,19 @@ therefore ledger records (`runner: command`), one per CTest name, for example
   `native/tests/lorica_unsafe_api_probes.cmake` in `native/build` (nothing is run), so they need the
   configured tree, not only the default build. Where Odeum does not apply
   `lorica_deprecate_unsafe_apis` (or EXTENDED) CTest reports them skipped with the reason.
-  The other `odeum.lorica_applied.*` tests and the runner, fuzz and `*.limits` tests from #6 are not in the ledger yet.
-- Presenter and program tests are only built with their CMake options and are not registered here.
+- `odeum.lorica_applied.{baseline,extended,compile_commands}`: `test-support`, as the probes.
+  `odeum.lorica_applied.binary.<exe>` (Lorica's `verify_binary.py`, registered by CMake only when python3 is found):
+  `test-support` and the domain of the executable (`live-relay`, `ai-lesson`, `remote-runner` for the runner and unityctl).
+- `odeum.runner.*` (11): `remote-runner`, the domain whose membership holds `native/runner/**` and `native/tests/runner_*`.
+- `odeum.fuzz.<entry>` (9, the regress executables that replay `native/fuzz/seeds/<entry>`): the domain of the library the
+  entry exercises (`live-protocol`, `live-relay`, `remote-runner`, `ai-lesson`) and `live-relay`, whose membership holds
+  `native/fuzz/**`.
+- `odeum.relay.limits` (`live-relay`), `odeum.protocol.limits` (`live-protocol`), `odeum.lesson.limits` (`ai-lesson`).
+- Presenter and program tests (including `odeum.presenter.limits`, `odeum.program.limits` and the `launch_url`, `rtmp`,
+  `amf0`, `archive` fuzz entries) are only built with their CMake options and are not registered here: the review
+  build does not contain them, so `--no-tests=error` would fail their records.
+
+Every CTest test of the default build (63) has exactly one record whose `-R` expression selects only that test.
 
 The records expect `native/build` to be configured and built by the Revisor registration's
 preparation cases, in this order: `configure` (`cmake -S native -B native/build -G Ninja

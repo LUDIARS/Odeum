@@ -121,3 +121,6 @@ sanitizer のビルド設定と fuzz の入口は repo 全体で未整備 (runne
 - TSan は `native/tests/tsan.supp` を使う (libdatachannel 内部の callback の競合だけ)。Clang の UBSan では libjuice に
   `-fno-sanitize=function` (同梱の picohash が関数ポインタの型を合わせずに呼ぶため)。
 - 結果 (2026-11-11、Linux): GCC Release / ASan+UBSan / TSan、Clang ODEUM_FUZZ で ctest 各 46/46。fuzz 10 入口を各 30 秒、クラッシュなし。
+- 審査への登録 (2026-11-12): runner・fuzz・limits の翻訳単位 72 件を `praesidium.json` に、ctest の未登録 30 本を
+  `.augur/tests.jsonl` に登録した。Boost 内の指摘で止まる runner の 13 単位は未登録 (`spec/feature/native-review.md` の
+  Runner, fuzz and limits units)。
