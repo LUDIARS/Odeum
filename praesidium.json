@@ -1433,7 +1433,8 @@
                                         "odeum-opus-1-5-2",
                                         "odeum-openssl-3",
                                         "tela",
-                                        "odeum-pictor"
+                                        "odeum-pictor",
+                                        "odeum-lorica-5e8281b"
                                     ]
                    },
                    {
@@ -1763,7 +1764,8 @@
                                         "odeum-opus-1-5-2",
                                         "odeum-openssl-3",
                                         "tela",
-                                        "odeum-pictor"
+                                        "odeum-pictor",
+                                        "odeum-lorica-5e8281b"
                                     ]
                    },
                    {
@@ -2453,7 +2455,8 @@
                                         "odeum-opus-1-5-2",
                                         "odeum-openssl-3",
                                         "tela",
-                                        "odeum-pictor"
+                                        "odeum-pictor",
+                                        "odeum-lorica-5e8281b"
                                     ]
                    },
                    {
@@ -4422,6 +4425,1410 @@
                                        "ODEUM_LORICA_TEST_OPTIMIZED=1"
                                    ],
                        "packages":  [
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_amf0.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/program",
+                                        "native/presenter",
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_archive.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/program",
+                                        "native/presenter",
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_cloudflare_turn.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/relay",
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_http_target.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/relay",
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_json_limits.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_launch_url.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/presenter",
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_lesson_message.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/lesson",
+                                        "native/lesson/core",
+                                        "native/protocol/include",
+                                        "native/relay"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_lesson_plot.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/lesson",
+                                        "native/lesson/core",
+                                        "native/protocol/include",
+                                        "native/relay"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_rtcp.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_rtmp.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/program",
+                                        "native/presenter",
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_runner_json.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_ticket.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/fuzz_ws_message.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/fuzz/regress_main.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/protocol/bounded_file.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/protocol/json_limits.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/protocol/rtcp.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/adapters/adb.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/adapters/bridge_client.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/adapters/cernere_client.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/adapters/clock.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-openssl-3"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/adapters/desktop_input.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/adapters/farm_store.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/adapters/ice_provider.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/adapters/log.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/adapters/media_tools.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/adapters/playlog_files.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/adapters/process_posix.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/app/api_router.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/app/gaze_assets.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/app/http_types.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/app/input_forwarder.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/app/main.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "ODEUM_RUNNER_HAS_WEBRTC",
+                                       "RTC_ENABLE_MEDIA=1",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_STATIC"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/app/playlog_recorder.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/app/screenshot_streamer.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/app/settings.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/app/unity_proxy.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/app/ws_broker.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0",
+                                        "odeum-openssl-3"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/app_config.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/app_view.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/audience.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/auth_policy.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/bridge_contract.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/client_message.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/control_lease.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/farm_host_auth.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-openssl-3"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/farm.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/ffmpeg_args.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/h264.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/ice.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/json.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/keys.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/playlog_row.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-openssl-3"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/registry.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/rtcp.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/stream_prefs.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/text.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/unityctl.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/video_feedback_policy.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/core/web_access.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/unityctl/main.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/webrtc/audio_pipeline.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_ENABLE_MEDIA=1",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_STATIC"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/webrtc/rtp_source_pool.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_ENABLE_MEDIA=1",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_STATIC"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/webrtc/video_pipeline.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_ENABLE_MEDIA=1",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_STATIC"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/runner/webrtc/webrtc_broker.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_ENABLE_MEDIA=1",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_STATIC"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/presenter_limits_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/presenter",
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/program_limits_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/program",
+                                        "native/presenter",
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/protocol_limits_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-openssl-3"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/relay_limits_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/relay",
+                                        "native/protocol/include"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY",
+                                       "RTC_ENABLE_MEDIA=1",
+                                       "RTC_ENABLE_WEBSOCKET=1",
+                                       "RTC_STATIC"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-datachannel-d9391849",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/runner_config_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/tests",
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/runner_farm_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/tests",
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "BOOST_ERROR_CODE_HEADER_ONLY"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
+                                        "odeum-lorica-5e8281b",
+                                        "odeum-boost-1-87-0"
+                                    ]
+                   },
+                   {
+                       "file":  "native/tests/runner_messages_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+                                        "native/tests",
+                                        "native/runner"
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE"
+                                   ],
+                       "packages":  [
+                                        "odeum-json-3-11-3",
                                         "odeum-lorica-5e8281b"
                                     ]
                    }
