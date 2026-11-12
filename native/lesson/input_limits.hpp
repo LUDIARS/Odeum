@@ -20,7 +20,7 @@ inline constexpr std::uint64_t max_request_body_bytes = 4096;
 // depth 4 leaves room for a field a newer tool adds without letting a body nest arbitrarily).
 inline constexpr JsonLimits tool_body_limits{max_request_body_bytes, 64, 4};
 // A plot file written by a lesson author (ODEUM_LESSON_PLOT, the timeline / prep-sheet commands).
-// 1 MiB was already the size limit; the built-in 90-minute course has 1,223 values at depth 7, so
+// 1 MiB was already the size limit; the built-in 90-minute course has 1,427 values at depth 7, so
 // 16,384 values and depth 16 (the operator-file limits used elsewhere in Odeum) leave over 10x room.
 inline constexpr JsonLimits plot_file_limits{1024 * 1024, 16384, 16};
 

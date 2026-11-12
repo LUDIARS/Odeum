@@ -350,4 +350,4 @@ unresolved / status) で参加する。`--teacher-answers` で、作者が用意
 | 道具の POST 本文 | 4 KiB、値 64、深さ 4 (正しい本文は値 7 個) | `invalid_request` (400) |
 | プロットのファイル (`ODEUM_LESSON_PLOT`、`timeline` / `prep-sheet` の引数) | 1 MiB (1 MiB + 1 バイトで読むのをやめる)、値 16384、深さ 16 | `invalid_plot` で起動・コマンドが止まる |
 
-組み込みの教材 (90 分) は値 1,223 個・深さ 7 で、プロットの上限の 10 分の 1 未満。
+組み込みの教材 (90 分) は値 1,427 個・深さ 7 で、プロットの上限の 10 分の 1 未満。
