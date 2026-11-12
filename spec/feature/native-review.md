@@ -30,6 +30,7 @@ before any compiler process starts. Missing packages remain errors.
 | `odeum-datachannel-d9391849` | libdatachannel commit prefix `d9391849`, as pinned by CMake |
 | `odeum-opus-1-5-2` | Opus commit `ddbe48383984d56acd9e1ab6a090c54ca6b735a6`, as pinned by CMake |
 | `odeum-openssl-3` | Installed OpenSSL 3 development headers |
+| `odeum-lorica-5e8281b` | Lorica `include/` at commit `5e8281b0e60fa16f814e16eaa620715937e8618d`, as pinned by `native/CMakeLists.txt` |
 | `tela` | Existing host registration for Tela public headers |
 | `odeum-pictor` | Pictor public headers from the local checkout |
 
@@ -126,6 +127,18 @@ The first scoped analysis of the lesson change (Windows target, clang 18) found:
   `inflate_stream.ipp`, the same SYSTEM-include limitation described above for
   `relay/server.cpp` (Actio `393aed37-522c-470c-aa15-c0ddbc48b1eb`). They are not lesson defects
   and remain errors until Praesidium can pass host packages as system includes.
+
+## Lorica check unit {#SPEC-ODEUM-NATIVE-REVIEW-LORICA}
+
+`native/tests/lorica_applied_tests.cpp` is registered like its baseline target
+(`odeum_lorica_applied_baseline_tests`): no repository include roots, the package
+`odeum-lorica-5e8281b`, the Windows definitions above, and `ODEUM_LORICA_TEST_EXTENDED=0`,
+`ODEUM_LORICA_TEST_OPTIMIZED=1`, which the unit requires (it stops with `#error` without them).
+Lorica's force-included `lorica/unsafe_api.hpp` is not part of the entry (Praesidium units have no
+force-include); the unsafe-API rejection is checked by the build probes, not by this unit. The
+other units that include Lorica headers since #6 (`native/relay/http_query.cpp`,
+`native/program/core/amf0.cpp`, `native/program/core/rtmp_chunk.cpp`) do not list the package yet,
+and the runner, fuzz and new test units from #6 are not registered.
 
 ## Registered native tests {#SPEC-ODEUM-NATIVE-REVIEW-TESTS}
 

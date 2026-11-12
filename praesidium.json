@@ -4405,6 +4405,25 @@
                                         "odeum-json-3-11-3",
                                         "odeum-openssl-3"
                                     ]
+                   },
+                   {
+                       "file":  "native/tests/lorica_applied_tests.cpp",
+                       "standard":  "c++20",
+                       "includes":  [
+
+                                    ],
+                       "defines":  [
+                                       "WIN32_LEAN_AND_MEAN",
+                                       "NOMINMAX",
+                                       "_WIN32_WINNT=0x0A00",
+                                       "UNICODE",
+                                       "_UNICODE",
+                                       "ODEUM_LORICA_TEST_EXTENDED=0",
+                                       "ODEUM_LORICA_TEST_OPTIMIZED=1"
+                                   ],
+                       "packages":  [
+                                        "odeum-lorica-5e8281b"
+                                    ]
                    }
                ],
     "web":  [
