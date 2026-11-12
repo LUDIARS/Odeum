@@ -206,6 +206,9 @@ therefore ledger records (`runner: command`), one per CTest name, for example
   entry exercises (`live-protocol`, `live-relay`, `remote-runner`, `ai-lesson`) and `live-relay`, whose membership holds
   `native/fuzz/**`.
 - `odeum.relay.limits` (`live-relay`), `odeum.protocol.limits` (`live-protocol`), `odeum.lesson.limits` (`ai-lesson`).
+  `native/tests/{relay,protocol}_limits_tests.cpp` are only in `test-support`'s membership, so those two records also list
+  `test-support`; otherwise a change to the test itself would not run it. The older relay and protocol records
+  (`odeum.media`, `odeum.protocol`, ...) have the same gap and are unchanged here.
 - Presenter and program tests (including `odeum.presenter.limits`, `odeum.program.limits` and the `launch_url`, `rtmp`,
   `amf0`, `archive` fuzz entries) are only built with their CMake options and are not registered here: the review
   build does not contain them, so `--no-tests=error` would fail their records.
