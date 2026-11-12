@@ -70,7 +70,7 @@ node native/lesson/tools/attend/seat.cjs stop
   "section": { "index": 4, "total": 9, "title": "ヒットストップをどう設計するか" },
   "slide": { "title": "ヒットストップをどう設計するか", "points": ["ヒットストップだけを戻します。…", "…"] },
   "narration": "ヒットストップだけを戻します。違いを見てください。当たった瞬間に、ほんの少し止まります。",
-  "demo": "先生の画面 (配信・教室のスクリーン) で実演中: Ergo のサンプルでヒットストップだけ ON にする (ON)。 見るところ: 2 秒ごとのログで world= の進みが約 1.7 秒に縮む (当たるたびに 0.08 秒止まる)",
+  "demo": "先生の画面 (配信・教室のスクリーン) で実演中: Ergo のサンプルでヒットストップだけ ON にする (ON)。 見るところ: 当たるたびに HIT STOP が出て、world の数字が time より少しずつ遅れていく (剣の当たり 1 回で約 0.083 秒)。止まっている間も * の火花と time は動いている",
   "activity": {
     "id": "hitstop-design", "kind": "text", "prompt": "ヒットストップをどう設計しますか。…", "code": null,
     "input": "text", "choices": null, "state": "open", "state_note": "受け取りました。締め切りまで変更できます。",
