@@ -25,16 +25,17 @@ int main() { return run([] {
     const auto power = find_activity(plot, "weapon-power");
     check(power && power->multi && power->correct == std::vector<int>({1, 2}), "Weapon power affects knockback and hit stop");
     const auto assignment = find_assignment(plot, "restore-feel");
-    check(assignment && assignment->steps.size() == 6 && assignment->stall_seconds == 150, "Assignment steps");
+    check(assignment && assignment->steps.size() == 7 && assignment->stall_seconds == 150, "Assignment steps");
     check(find_section(plot, "camera") && !find_section(plot, "nope") && !find_activity(plot, "nope"), "Lookups");
     // Every choice question explains its answer; every demo says what to watch on the teacher's screen.
     for (const auto& section : plot.sections) {
         if (section.activity && section.activity->kind == ActivityKind::choice) check(!section.activity->explanation.empty(), "Choice questions carry an explanation");
         for (const auto& demo : section.demos) check(!demo.note.empty() && !demo.watch.empty(), "Demos carry what to watch");
     }
-    // Automatic steps watch what the headless Ergo sample publishes.
+    // Automatic steps watch what the Ergo sample game publishes as "what really happened".
     for (const auto& step : assignment->steps) if (step.check)
-        check(step.check->variable == "feel.hit_stop_last_seconds" || step.check->variable == "feel.knockback_last_impulse", "Checks watch the sample's observed values");
+        check(step.check->variable == "feel.hit_stop_last_seconds" || step.check->variable == "feel.knockback_last_impulse"
+            || step.check->variable == "combat.enemy.armor_absorbed", "Checks watch the sample's observed values");
     // The rubric credits only what the reference sample removes (its six Setting switches).
     for (const auto& point : missing->points) check(point.id != "sound", "Sound is not one of the removed effects");
     check(missing->points.size() == 6, "Six removed effects, as the model answer says");

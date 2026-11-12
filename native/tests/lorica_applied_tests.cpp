@@ -7,31 +7,12 @@
 // RelWithDebInfo and MinSizeRel, the configurations where Lorica adds _FORTIFY_SOURCE).
 // Exit 77 (SKIP_RETURN_CODE) only where Odeum builds without Lorica's hardening (macOS with
 // ODEUM_LORICA_MACOS_UNHARDENED=ON).
-
-// Must stay before every #include. lorica/unsafe_api.hpp sets no macro of its own (#pragma once,
-// and it #undefs its helpers), so the force-include is seen by what it declares: strcpy, ahead of
-// the C library. Nothing else declares it before this unit's first line, so an unqualified call
-// here finds ::strcpy only when the header was force-included; otherwise it finds the fallback
-// template below. Only the type is taken (unevaluated), and the deprecation it reports is the
-// point of the header, so the warning is silenced for this one expression.
-#if defined(__GNUC__) && !defined(_WIN32)
-namespace odeum_lorica_fallback {
-struct undeclared {};
-template <class... Args> undeclared strcpy(Args...);
-} // namespace odeum_lorica_fallback
-namespace odeum_lorica_probe {
-template <class Left, class Right> struct same { static constexpr bool value = false; };
-template <class Type> struct same<Type, Type> { static constexpr bool value = true; };
-using namespace odeum_lorica_fallback;
-char* destination(); // declared only: the call below is never evaluated
-const char* source();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-using result = decltype(strcpy(destination(), source()));
-#pragma GCC diagnostic pop
-constexpr bool unsafe_api_force_included = !same<result, odeum_lorica_fallback::undeclared>::value;
-} // namespace odeum_lorica_probe
-#endif
+//
+// The rejection of the unbounded C copy and format functions (lorica_deprecate_unsafe_apis) is not
+// checked here: it is seen from outside, by building probe units that call those functions and
+// failing unless the build is refused with Lorica's diagnostic (odeum.lorica_applied.unsafe_api.*,
+// tests/lorica_unsafe_api_probes.cmake). The probes are generated into the build tree at configure
+// time, so no tracked source contains a call to the functions.
 
 #include <cstddef>
 #include <cstdio>
@@ -79,14 +60,7 @@ void check_toolchain_settings() {
     expect(stl_hardening, "EXTENDED: _MSVC_STL_HARDENING=1 / _MSVC_STL_DESTRUCTOR_TOMBSTONES=1 missing");
 #endif
 #elif defined(__linux__) && defined(__GNUC__)
-    // lorica_deprecate_unsafe_apis: Lorica refuses Clang with glibc 2.40 or newer, so Odeum
-    // leaves it off there; everywhere else on Linux it has to be in effect.
-#if defined(__clang__) && defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 40))
-    note("unsafe API rejection: not available with Clang and glibc 2.40+ (Lorica refuses it)");
-#else
-    expect(odeum_lorica_probe::unsafe_api_force_included,
-           "lorica/unsafe_api.hpp is not force-included (lorica_deprecate_unsafe_apis missing)");
-#endif
+    // lorica_deprecate_unsafe_apis: checked by odeum.lorica_applied.unsafe_api.* (build probes).
 #if defined(__SSP_STRONG__) || defined(__SSP_ALL__)
     constexpr bool stack_protector = true;
 #else

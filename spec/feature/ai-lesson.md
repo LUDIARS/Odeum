@@ -9,9 +9,10 @@ AI が進行する授業を Odeum の上で行うためのサービス。授業�
 - サンプル教材: `native/lesson/courses/action-game.plot.json`「アクションゲームの作り方」(Ergo Studio、90 分)。
   参考実装は <https://github.com/vtn-team/ActionGameSample> (Unity)。その演出 6 つ (`Setting` の切り替え: ヒットストップ・
   ノックバック・カメラの揺れ・ヒットエフェクト・ダメージの数字・体力ゲージの演出) を抜いた状態を考えさせ、何が足りないかを当てさせる。
-  実演と課題は Ergo の**ヘッドレスのサンプル** `examples/lesson_action_feel` (遊べるゲームではなく、演出 3 つを ON / OFF して
-  実際に起きたことをログと変数に出すシミュレーション。下の「道具との連携」) で行う。教材の記述はこの前提に合わせてある
-  (遊ぶ手順は無く、数値の変わり方を見る)。
+  実演と課題は Ergo のサンプルのゲーム `examples/lesson_action_feel` (壁に囲まれたアリーナで敵の波とボスを倒す小さな
+  アクションゲーム。演出の一覧 (10 個) と、敵・プレイヤーそれぞれのひるみ・スーパーアーマー・モーションキャンセルを ON / OFF でき、
+  実際に起きたことを変数に出す。下の「道具との連携」) で行う。実演は先生の端末で `--play --autopilot` (自動で遊ぶ画面)、
+  課題の前半は窓なしの自動 (ログ)、後半は生徒が `--play` で実際に遊ぶ。
 
 ## 誰が何をするか
 
@@ -158,16 +159,18 @@ pptx は OOXML を直接書き、ZIP は無圧縮。時刻を埋め込まない�
   入り直したページには `welcome` の後に同じものを送る。生徒はページの「道具の接続を切る」(`tool.unlink`) で自分の道具を切れ、
   そのときは `tool.unlinked` (`reason: "student"`) を返す (道具は次の問い合わせで `tool_unlinked`)。`/v1/tool/*` の形は変えていない。
 
-サンプル教材は `feel.hit_stop` / `feel.knockback` / `feel.camera_shake` (実演) と、`feel.hit_stop_last_seconds > 0` /
-`feel.knockback_last_impulse > 0` (課題の自動確認) を使う。これらを公開するのは Ergo の**ヘッドレスのサンプル**
-`examples/lesson_action_feel` (Ergo ブランチ `claude/ai-lesson-odeum-j57vy6`、LUDIARS/Ergo#95。仕様は Ergo
-`spec/feature/tool/lesson.md` の「サンプル」)。プレイヤーが世界時間 0.5 秒ごとに敵を叩き続ける決まったシミュレーションで、
-`--plain` で演出 3 つを OFF にして始まる。`..._last_*` は実際に止めた秒数 (0.08)・与えた撃力 (6) で、OFF に戻しても残る。
-2 秒ごとにログ (`world=` `hits=` `hit_stop_last_seconds=` `knockback_last_impulse=` `enemy_offset=` `shake=`) を出す。
-**遊べる Ergo 版のアクションゲーム (ActionGameSample の移植) はまだ無い。** 教材の課題は、Studio と授業をつなぎ
-(「授業」タブ、窓の無い Studio は `POST /lesson/api/connect`)、Studio の `/variable/ws` に `set` を送って演出を ON に戻し、
-ログの数値の変化を確かめる形にしてある (Studio には変数を切り替える画面がまだ無い)。Ergo 側の記録では、この組み合わせで
-`add-hitstop` / `add-knockback` の自動チェックが授業に届くことを Linux (libcurl 版) で確かめている。
+サンプル教材の `tool.features` は、演出の一覧をまとめて切り替える `effects` (`feel.all`。書くと一覧の 10 個がすべて ON / OFF、
+読むと「全部 ON か」)、`hit_stop` / `knockback` / `camera_shake` / `boss_blur` / `motion_blur` (`feel.*`)、敵のスーパーアーマー
+`super_armor` (`feel.super_armor`)、敵のひるみ `enemy_flinch` (`combat.enemy.flinch`)、プレイヤーのモーションキャンセル
+`player_cancel` (`combat.player.motion_cancel`)。冒頭の「演出が入った状態」は `effects` を ON、「何が足りない？」の「演出をすべて
+抜いた状態」は `effects` を OFF にする (一覧の全部が切れる。戦闘の決まりのひるみ等は演出ではないので変わらない)。`feature: "all"` は
+`tool.features` の全部を切り替えるので、サンプル教材では使わない (スーパーアーマーまで付いてしまう)。課題の自動確認は
+`feel.hit_stop_last_seconds > 0`・`feel.knockback_last_impulse > 0`・`combat.enemy.armor_absorbed > 0`。これらを公開するのは
+Ergo のサンプル `examples/lesson_action_feel` (仕様は Ergo `spec/feature/tool/lesson-action-game.md`、授業との通信は
+`spec/feature/tool/lesson.md`)。既定はプログラムが自動で遊び (窓なし、2 秒ごとにログ: `real=` `world=` `hits=` `defeated=`
+`hit_stop_last_seconds=` `knockback_last_impulse=` `knockback_travel=` と、陣営ごとの `flinches=` `armor_absorbed=` `cancels=`)、
+`--plain` で演出の一覧を全部 OFF にして始まる。`--play` で端末の中で遊べる (Linux / macOS)。`..._last_*` は実際に止めた秒数
+(剣で 0.083)・与えた撃力 (剣で 12) で、OFF に戻しても残る。
 
 ## 生徒の声の聞き分け
 
@@ -325,7 +328,11 @@ unresolved / status) で参加する。`--teacher-answers` で、作者が用意
   (Ergo `spec/feature/tool/lesson.md`)。Odeum 側でも 2026-11-11 に、サンプル教材の課題の `how` のコマンドを書いたとおりに
   `ergo_studio --headless` + `ergo_example_lesson_action_feel --plain` + `odeum-lesson` に対して打ち、接続 (ページの「道具がつながりました」)、
   `add-hitstop` / `add-knockback` の自動チェック、ページからの切断を確かめた。Windows (WinHTTP・クリップボード) と窓のある Studio では未確認。
-  遊べる Ergo 版のアクションゲームは未作成。
+  サンプルを遊べるゲームにした改訂 (2026-11-12、Ergo の作業ブランチ `wip/lesson-action-game`、未 push) では、Ergo 側で
+  `odeum-lesson` + `ergo_studio --headless` + サンプルを非既定のポートで動かし、課題の自動の 3 手順 (`add-hitstop`・`add-knockback`・
+  `super-armor`) が授業に届くこと、実演の合図 (`effects`、敵のひるみ、スーパーアーマー、モーションキャンセル、ボスのブラー、
+  モーションブラー) がゲームの変数に反映されることを確かめた (Ergo `spec/feature/tool/lesson-action-game.md` の「検証」)。
+  生徒が実際に遊んだ手触りは未確認 (擬似端末の操作役と画面の記録だけ)。
 - 生徒ページへの配信映像の埋め込み (映像は relay の視聴ページで見る)。
 - GLab / Cernere のチケットによる本人確認 (いまは参加コード + 表示名。退出の強制力は入室締め切りに頼る)。
 - Windows / macOS でのビルド、PowerPoint 実機での表示、マイク入力の実機確認。
@@ -343,4 +350,4 @@ unresolved / status) で参加する。`--teacher-answers` で、作者が用意
 | 道具の POST 本文 | 4 KiB、値 64、深さ 4 (正しい本文は値 7 個) | `invalid_request` (400) |
 | プロットのファイル (`ODEUM_LESSON_PLOT`、`timeline` / `prep-sheet` の引数) | 1 MiB (1 MiB + 1 バイトで読むのをやめる)、値 16384、深さ 16 | `invalid_plot` で起動・コマンドが止まる |
 
-組み込みの教材 (90 分) は値 1,223 個・深さ 7 で、プロットの上限の 10 分の 1 未満。
+組み込みの教材 (90 分) は値 1,427 個・深さ 7 で、プロットの上限の 10 分の 1 未満。

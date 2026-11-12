@@ -21,7 +21,8 @@ Json& sample_steps(Json& document) {
 int main() { return run([] {
     // ---- plot: what a tool may watch and switch ----
     const auto plot = sample_plot();
-    check(plot.tool_features.at("hit_stop") == "feel.hit_stop" && plot.tool_features.size() == 3, "Demo features name their variables");
+    check(plot.tool_features.at("hit_stop") == "feel.hit_stop" && plot.tool_features.at("super_armor") == "feel.super_armor"
+        && plot.tool_features.at("effects") == "feel.all" && plot.tool_features.size() == 9, "Demo features name their variables");
     const auto& steps = find_assignment(plot, "restore-feel")->steps;
     check(steps[2].check && steps[2].check->variable == "feel.hit_stop_last_seconds" && steps[2].check->op == "gt" && steps[2].check->value == 0,
         "A step can carry a check");
@@ -135,6 +136,7 @@ int main() { return run([] {
         "Presenter tool before any demo");
     room.from_console({{"type", "lesson.start"}}, 3000);
     const auto timeline = build_timeline(plot, *make_provisional_model());
+    // first_demo: the opening demo (every effect on); hit_stop_on: the hit-stop section turning it on alone.
     Millis first_demo = -1, hit_stop_on = -1;
     for (const auto& cue : timeline.cues) {
         if (cue.kind != CueKind::demo) continue;
@@ -144,21 +146,41 @@ int main() { return run([] {
     check(first_demo >= 0 && hit_stop_on > first_demo, "Sample course has demos");
     room.tick(3000 + first_demo);
     state = room.tool_state({});
-    check(state.at("demo").at("seq") == 1 && state.at("demo").at("states") == Json({{"hit_stop", true}, {"knockback", true}, {"camera_shake", true}}),
-        "\"all\" switches every named feature");
+    check(state.at("demo").at("seq") == 1 && state.at("demo").at("states") == Json({{"effects", true}}),
+        "The opening demo switches every effect on (feel.all), and nothing else");
     room.tick(3000 + hit_stop_on);
     state = room.tool_state({});
-    check(state.at("demo").at("seq").get<int>() >= 3 && state.at("demo").at("states") == Json({{"hit_stop", true}, {"knockback", false}, {"camera_shake", false}}),
+    check(state.at("demo").at("seq").get<int>() >= 3 && state.at("demo").at("states") == Json({{"effects", false}, {"hit_stop", true}}),
         "Later demos leave the latest state of each feature");
 
     // A seek skips cues; the presenter's game must still end up as the skipped demos left it.
     const auto seq = state.at("demo").at("seq").get<int>();
     room.from_console({{"type", "lesson.seek"}, {"position_ms", first_demo + 1}}, 3000 + hit_stop_on);
     state = room.tool_state({});
-    check(state.at("demo").at("seq").get<int>() > seq && state.at("demo").at("states") == Json({{"hit_stop", true}, {"knockback", true}, {"camera_shake", true}}),
+    check(state.at("demo").at("seq").get<int>() > seq && state.at("demo").at("states") == Json({{"effects", true}}),
         "Seeking back restores what the demos had switched by then");
     room.from_console({{"type", "lesson.seek"}, {"position_ms", 0}}, 3000 + hit_stop_on);
     check(room.tool_state({}).at("demo").at("states").empty(), "Before the first demo nothing is switched");
+
+    // "all" switches every named feature (a variant of the sample whose first demo says "all").
+    {
+        auto doc = sample_document();
+        doc["id"] = "all-demo";
+        doc["sections"][0]["demos"] = Json::array({{{"feature", "all"}, {"enabled", true}, {"note", "n"}, {"watch", "w"}, {"after", 0}}});
+        auto catalog = builtin_plots();
+        catalog.push_back(parse_plot(doc));
+        School variant(catalog, std::shared_ptr<const LessonModel>(make_provisional_model()), 60);
+        auto& all_room = variant.classroom(variant.open("all-demo").id);
+        all_room.from_console({{"type", "lesson.start"}}, 0);
+        Millis all_at = -1;
+        for (const auto& cue : build_timeline(*variant.plot("all-demo"), *make_provisional_model()).cues)
+            if (cue.kind == CueKind::demo && all_at < 0) all_at = cue.at;
+        all_room.tick(all_at);
+        const auto all_state = all_room.tool_state({});
+        Json every = Json::object();
+        for (const auto& [name, variable] : plot.tool_features) every[name] = true;
+        check(all_at >= 0 && all_state.at("demo").at("seq") == 1 && all_state.at("demo").at("states") == every, "\"all\" switches every named feature");
+    }
 
     // Removal ends the student's tool reports as well.
     room.from_console({{"type", "student.eject"}, {"student", aoi}}, 4000);

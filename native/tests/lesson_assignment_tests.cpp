@@ -13,7 +13,7 @@ int main() { return run([] {
     AssignmentBoard board(plan, *model, 0);
     for (const auto* id : {"a", "b", "c", "d", "e"}) board.enroll(id, 0);
     check(board.monitor(1000).empty(), "Nothing to say right after assigning");
-    check(board.brief().at("steps").size() == 6 && !board.brief().at("steps")[0].contains("hints"), "Hints are not sent with the brief");
+    check(board.brief().at("steps").size() == 7 && !board.brief().at("steps")[0].contains("hints"), "Hints are not sent with the brief");
     const auto auto_step = board.brief().at("steps")[2];
     check(auto_step.at("auto") == true && auto_step.at("check").at("variable") == "feel.hit_stop_last_seconds" && auto_step.at("check").at("op") == "gt"
         && !board.brief().at("steps")[0].contains("check"), "The brief says which variable an automatic step watches");
@@ -23,7 +23,7 @@ int main() { return run([] {
     board.report("c", 0, true, 10'000);
     board.report("d", 0, true, 10'000); board.report("d", 1, true, 20'000);
     for (std::size_t step = 0; step < plan.steps.size(); ++step) board.report("e", step, true, 30'000);
-    rejects([&] { board.report("a", 6, true, 10'000); }, "invalid_step");
+    rejects([&] { board.report("a", 7, true, 10'000); }, "invalid_step");
     rejects([&] { board.report("zz", 0, true, 10'000); }, "not_assigned");
 
     board.request_help("c", 40'000);

@@ -30,6 +30,7 @@ before any compiler process starts. Missing packages remain errors.
 | `odeum-datachannel-d9391849` | libdatachannel commit prefix `d9391849`, as pinned by CMake |
 | `odeum-opus-1-5-2` | Opus commit `ddbe48383984d56acd9e1ab6a090c54ca6b735a6`, as pinned by CMake |
 | `odeum-openssl-3` | Installed OpenSSL 3 development headers |
+| `odeum-lorica-5e8281b` | Lorica `include/` at commit `5e8281b0e60fa16f814e16eaa620715937e8618d`, as pinned by `native/CMakeLists.txt` |
 | `tela` | Existing host registration for Tela public headers |
 | `odeum-pictor` | Pictor public headers from the local checkout |
 
@@ -127,6 +128,18 @@ The first scoped analysis of the lesson change (Windows target, clang 18) found:
   `relay/server.cpp` (Actio `393aed37-522c-470c-aa15-c0ddbc48b1eb`). They are not lesson defects
   and remain errors until Praesidium can pass host packages as system includes.
 
+## Lorica check unit {#SPEC-ODEUM-NATIVE-REVIEW-LORICA}
+
+`native/tests/lorica_applied_tests.cpp` is registered like its baseline target
+(`odeum_lorica_applied_baseline_tests`): no repository include roots, the package
+`odeum-lorica-5e8281b`, the Windows definitions above, and `ODEUM_LORICA_TEST_EXTENDED=0`,
+`ODEUM_LORICA_TEST_OPTIMIZED=1`, which the unit requires (it stops with `#error` without them).
+Lorica's force-included `lorica/unsafe_api.hpp` is not part of the entry (Praesidium units have no
+force-include); the unsafe-API rejection is checked by the build probes, not by this unit. The
+other units that include Lorica headers since #6 (`native/relay/http_query.cpp`,
+`native/program/core/amf0.cpp`, `native/program/core/rtmp_chunk.cpp`) do not list the package yet,
+and the runner, fuzz and new test units from #6 are not registered.
+
 ## Registered native tests {#SPEC-ODEUM-NATIVE-REVIEW-TESTS}
 
 Because `.augur/tests.jsonl` exists, Revisor runs only the registered preparation cases
@@ -138,10 +151,20 @@ therefore ledger records (`runner: command`), one per CTest name, for example
 
 - `odeum.lesson.*` (16): business domain `ai-lesson`.
 - `odeum.protocol`, `odeum.ticket`: `live-protocol`. The other default-build relay tests: `live-relay`.
-- `odeum.overlay` is registered as `candidate`, so domain bundles do not run it: it is a
-  pre-existing flaky test (see `spec/tasks/2026-11-11-ai-lesson-handoff.md`). Promote it once fixed.
+- `odeum.overlay` (`live-relay`) was registered as `candidate` while it crashed at process exit
+  (libdatachannel threads touching OpenSSL during `atexit`, see
+  `spec/tasks/2026-11-11-ai-lesson-handoff.md`). #6 fixed that; #8 checked 30 of 30 runs and promoted it to `active`.
+- `odeum.lorica_applied.unsafe_api.{baseline,extended}.{accepted_bounded,rejected_copy,rejected_format}`
+  (`test-support`, the domain whose membership holds `native/tests/lorica_*`, so the bundle runs
+  whenever those files change): each builds one probe target of
+  `native/tests/lorica_unsafe_api_probes.cmake` in `native/build` (nothing is run), so they need the
+  configured tree, not only the default build. Where Odeum does not apply
+  `lorica_deprecate_unsafe_apis` (or EXTENDED) CTest reports them skipped with the reason.
+  The other `odeum.lorica_applied.*` tests and the runner, fuzz and `*.limits` tests from #6 are not in the ledger yet.
 - Presenter and program tests are only built with their CMake options and are not registered here.
 
 The records expect `native/build` to be configured and built by the Revisor registration's
 preparation cases, in this order: `configure` (`cmake -S native -B native/build -G Ninja
--DCMAKE_BUILD_TYPE=Release`) and `setup-build` (`cmake --build native/build`).
+-DCMAKE_BUILD_TYPE=Release`) and `setup-build` (`cmake --build native/build`). Lorica is a
+private repository that `configure` fetches at the pinned commit; a review host without access to it
+passes a local checkout of that commit with `-DLORICA_SOURCE_DIR=<checkout>` in its registration.

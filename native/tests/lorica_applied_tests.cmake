@@ -4,6 +4,10 @@
 #                           Lorica::boundary (lorica_applied_tests.cpp)
 #   .compile_commands       every compile command (own and third-party) carries Lorica's flags
 #                           (lorica_compile_commands.cmake, cmake -P)
+#   .unsafe_api.<profile>.<probe>
+#                           probe units built through odeum_harden: the unbounded C copy/format
+#                           functions are refused with Lorica's diagnostic, bounded code builds
+#                           (lorica_unsafe_api_probes.cmake, Lorica's tests/run_build_probe.cmake)
 #   .binary.<executable>    Lorica's tools/verify_binary.py on the shipped executables (Python only)
 # A check that cannot run here is registered as skipped with its reason, never as passed.
 function(odeum_lorica_skipped_test name reason)
@@ -47,6 +51,10 @@ get_property(odeum_lorica_header GLOBAL PROPERTY LORICA_UNSAFE_API_HEADER)
 cmake_path(GET odeum_lorica_header PARENT_PATH odeum_lorica_root)
 cmake_path(GET odeum_lorica_root PARENT_PATH odeum_lorica_root)
 cmake_path(GET odeum_lorica_root PARENT_PATH odeum_lorica_root)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/lorica_unsafe_api_probes.cmake)
+odeum_lorica_add_unsafe_api_probes(${odeum_lorica_root})
+
 set(odeum_lorica_verify ${odeum_lorica_root}/tools/verify_binary.py)
 find_package(Python3 QUIET COMPONENTS Interpreter)
 if(NOT Python3_Interpreter_FOUND)
