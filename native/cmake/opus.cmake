@@ -11,4 +11,5 @@ FetchContent_Declare(opus GIT_REPOSITORY https://github.com/xiph/opus.git
 set(ODEUM_SAVED_BUILD_TESTING ${BUILD_TESTING})
 set(BUILD_TESTING OFF)
 FetchContent_MakeAvailable(opus)
+odeum_harden_third_party(opus)
 set(BUILD_TESTING ${ODEUM_SAVED_BUILD_TESTING})

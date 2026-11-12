@@ -1,10 +1,9 @@
 #include "media_sdp.hpp"
+#include <odeum/rtcp.hpp>
 #include <sstream>
 
 namespace odeum::relay {
 namespace {
-unsigned byte(const rtc::binary& p, std::size_t i) { return std::to_integer<unsigned>(p.at(i)); }
-bool is_rtcp(const rtc::binary& p) { return p.size() >= 4 && (byte(p, 0) >> 6) == 2 && byte(p, 1) >= 192 && byte(p, 1) <= 223; }
 const rtc::Description::Media& section(const rtc::Description& description, int index) {
     auto entry = description.media(index);
     auto media = std::get_if<const rtc::Description::Media*>(&entry);
@@ -75,15 +74,8 @@ rtc::binary picture_loss_indication(std::uint32_t ssrc) {
     return pli;
 }
 bool contains_keyframe_request(const rtc::binary& packet) {
-    if (!is_rtcp(packet)) return false;
-    for (std::size_t offset = 0; offset + 4 <= packet.size();) {
-        auto size = ((byte(packet, offset + 2) << 8) | byte(packet, offset + 3)) * 4 + 4;
-        if (size < 4 || offset + size > packet.size()) return false;
-        auto fmt = byte(packet, offset) & 31;
-        if (byte(packet, offset + 1) == 206 && ((fmt == 1 && size >= 12) || (fmt == 4 && size >= 20))) return true;
-        offset += size;
-    }
-    return false;
+    // One reader for the relay and the presenter (protocol/rtcp.cpp, Lorica-checked lengths).
+    return odeum::is_keyframe_request(packet);
 }
 std::string public_candidate(std::string candidate, const std::string& address) {
     if (address.empty()) return candidate;

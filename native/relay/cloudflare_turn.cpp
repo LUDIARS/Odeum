@@ -118,16 +118,19 @@ std::optional<HttpReply> parse_http_reply(std::string_view raw) {
 }
 
 Json cloudflare_ice_servers(std::string_view response_body) {
-    auto document = Json::parse(response_body, nullptr, false);
+    Json document;
+    try { document = parse_json_within(response_body, cloudflare_reply_limits); }
+    catch (const ProtocolError&) { throw std::runtime_error("Cloudflare TURN response exceeds its limits"); }
+    catch (const Json::exception&) { throw std::runtime_error("Unexpected Cloudflare TURN response"); }
     if (!document.is_object() || !document.contains("iceServers")) throw std::runtime_error("Unexpected Cloudflare TURN response");
     auto entries = document.at("iceServers");
     if (entries.is_object()) entries = Json::array({entries});
-    if (!entries.is_array()) throw std::runtime_error("Unexpected Cloudflare TURN response");
+    if (!entries.is_array() || entries.size() > max_cloudflare_ice_entries) throw std::runtime_error("Unexpected Cloudflare TURN response");
     Json result = Json::array(); bool turn = false;
     for (const auto& entry : entries) {
         if (!entry.is_object() || !entry.contains("urls")) throw std::runtime_error("Unexpected Cloudflare TURN response");
         auto urls = entry.at("urls"); if (urls.is_string()) urls = Json::array({urls});
-        if (!urls.is_array()) throw std::runtime_error("Unexpected Cloudflare TURN response");
+        if (!urls.is_array() || urls.size() > max_cloudflare_ice_urls) throw std::runtime_error("Unexpected Cloudflare TURN response");
         Json kept = Json::array(); bool relay = false;
         for (const auto& url : urls) {
             if (!url.is_string()) throw std::runtime_error("Unexpected Cloudflare TURN response");

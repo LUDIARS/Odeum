@@ -1,4 +1,5 @@
 #include "program_settings.hpp"
+#include <odeum/json_limits.hpp>
 #include <stdexcept>
 
 namespace odeum::program {
@@ -35,6 +36,15 @@ void validate(const ProgramSettings& s) {
     range(s.return_audio_kbps, 16, 256, "return.audio_kbps");
     if (!(s.volume >= 0.0 && s.volume <= 2.0)) throw std::invalid_argument("volume must be 0..2");
     parse_rtmps_url(s.youtube_url);
+}
+
+ProgramSettings settings_from_text(std::string_view text) {
+    if (text.size() > max_settings_file_bytes) throw std::invalid_argument("Settings file is too large");
+    Json json;
+    try { json = parse_json_within(text, config_limits); }
+    catch (const ProtocolError&) { throw std::invalid_argument("Settings file exceeds its limits"); }
+    catch (const Json::exception&) { throw std::invalid_argument("Settings file is not JSON"); }
+    return settings_from_json(json);
 }
 
 ProgramSettings settings_from_json(const Json& json) {

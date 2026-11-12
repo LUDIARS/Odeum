@@ -1,7 +1,8 @@
 #include "check.hpp"
+#include "rtc_exit.hpp"
 #include "media.hpp"
 using namespace odeum::relay;
-int main() { return run([] {
+int main() { return finish_rtc(run([] {
     rtc::binary pli(12,std::byte{0}); pli[0]=std::byte{0x81}; pli[1]=std::byte{206}; pli[3]=std::byte{2};
     check(contains_keyframe_request(pli),"PLI recognized");
     rtc::binary fir(20,std::byte{0}); fir[0]=std::byte{0x84}; fir[1]=std::byte{206}; fir[3]=std::byte{4};
@@ -18,4 +19,4 @@ int main() { return run([] {
     check(!access.allows_host("localhost:bad"),"Invalid port rejected");
     check(access.allows_origin(""),"Native client without Origin");
     check(!access.allows_origin("https://unconfigured.invalid"),"Unknown Origin rejected");
-}); }
+})); }

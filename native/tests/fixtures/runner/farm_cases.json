@@ -1,0 +1,1551 @@
+{
+  "config": {
+    "version": 1,
+    "heartbeatTimeoutSec": 30,
+    "hosts": [
+      {
+        "id": "host",
+        "tokenEnv": "HOST_TOKEN"
+      }
+    ],
+    "devices": [
+      {
+        "id": "pixel",
+        "hostId": "host",
+        "platform": "android",
+        "serial": " a ",
+        "model": "Pixel",
+        "osVersion": "16",
+        "tags": [
+          " t1 "
+        ]
+      },
+      {
+        "id": "iphone",
+        "hostId": "host",
+        "platform": "ios",
+        "serial": "b",
+        "model": "iPhone",
+        "osVersion": "26"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "op": "list",
+      "args": [],
+      "ok": true,
+      "value": [
+        {
+          "id": "pixel",
+          "hostId": "host",
+          "platform": "android",
+          "serial": "a",
+          "model": "Pixel",
+          "osVersion": "16",
+          "tags": [
+            "t1"
+          ],
+          "availability": "offline",
+          "generation": 1,
+          "lastSeenAt": null,
+          "reason": "not-reported",
+          "lease": null
+        },
+        {
+          "id": "iphone",
+          "hostId": "host",
+          "platform": "ios",
+          "serial": "b",
+          "model": "iPhone",
+          "osVersion": "26",
+          "tags": [],
+          "availability": "offline",
+          "generation": 1,
+          "lastSeenAt": null,
+          "reason": "not-reported",
+          "lease": null
+        }
+      ],
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 1,
+            "lastSeenAt": null,
+            "connected": false,
+            "needsCleanup": true,
+            "reason": "not-reported",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": null,
+            "connected": false,
+            "needsCleanup": true,
+            "reason": "not-reported",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "report",
+      "args": [
+        "host",
+        {
+          "devices": [
+            {
+              "id": "pixel",
+              "connected": true
+            },
+            {
+              "id": "iphone",
+              "connected": true
+            }
+          ]
+        }
+      ],
+      "ok": true,
+      "value": [
+        {
+          "id": "pixel",
+          "hostId": "host",
+          "platform": "android",
+          "serial": "a",
+          "model": "Pixel",
+          "osVersion": "16",
+          "tags": [
+            "t1"
+          ],
+          "availability": "cleanup",
+          "generation": 1,
+          "lastSeenAt": "1970-01-01T00:16:40.000Z",
+          "reason": "not-reported",
+          "lease": null
+        },
+        {
+          "id": "iphone",
+          "hostId": "host",
+          "platform": "ios",
+          "serial": "b",
+          "model": "iPhone",
+          "osVersion": "26",
+          "tags": [],
+          "availability": "cleanup",
+          "generation": 1,
+          "lastSeenAt": "1970-01-01T00:16:40.000Z",
+          "reason": "not-reported",
+          "lease": null
+        }
+      ],
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": true,
+            "reason": "not-reported",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": true,
+            "reason": "not-reported",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "acquire",
+      "args": [
+        "pixel",
+        "alice",
+        60
+      ],
+      "ok": false,
+      "error": "device_unavailable",
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": true,
+            "reason": "not-reported",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": true,
+            "reason": "not-reported",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "report",
+      "args": [
+        "host",
+        {
+          "devices": [
+            {
+              "id": "pixel",
+              "connected": true,
+              "readyGeneration": 1
+            },
+            {
+              "id": "iphone",
+              "connected": true,
+              "readyGeneration": 1
+            }
+          ]
+        }
+      ],
+      "ok": true,
+      "value": [
+        {
+          "id": "pixel",
+          "hostId": "host",
+          "platform": "android",
+          "serial": "a",
+          "model": "Pixel",
+          "osVersion": "16",
+          "tags": [
+            "t1"
+          ],
+          "availability": "available",
+          "generation": 1,
+          "lastSeenAt": "1970-01-01T00:16:40.000Z",
+          "reason": "ready",
+          "lease": null
+        },
+        {
+          "id": "iphone",
+          "hostId": "host",
+          "platform": "ios",
+          "serial": "b",
+          "model": "iPhone",
+          "osVersion": "26",
+          "tags": [],
+          "availability": "available",
+          "generation": 1,
+          "lastSeenAt": "1970-01-01T00:16:40.000Z",
+          "reason": "ready",
+          "lease": null
+        }
+      ],
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "acquire",
+      "args": [
+        "pixel",
+        "alice",
+        60
+      ],
+      "ok": true,
+      "value": {
+        "id": "pixel",
+        "hostId": "host",
+        "platform": "android",
+        "serial": "a",
+        "model": "Pixel",
+        "osVersion": "16",
+        "tags": [
+          "t1"
+        ],
+        "availability": "leased",
+        "generation": 2,
+        "lastSeenAt": "1970-01-01T00:16:40.000Z",
+        "reason": "leased",
+        "lease": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "ownerId": "alice",
+          "generation": 2,
+          "expiresAt": "1970-01-01T00:17:40.000Z"
+        }
+      },
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 2,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "leased",
+            "lease": {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "ownerId": "alice",
+              "generation": 2,
+              "expiresAt": 1060000
+            }
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "acquire",
+      "args": [
+        "pixel",
+        "bob",
+        60
+      ],
+      "ok": false,
+      "error": "device_unavailable",
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 2,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "leased",
+            "lease": {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "ownerId": "alice",
+              "generation": 2,
+              "expiresAt": 1060000
+            }
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "renew",
+      "args": [
+        "pixel",
+        "bob",
+        "00000000-0000-4000-8000-000000000001",
+        60
+      ],
+      "ok": false,
+      "error": "lease_owner_mismatch",
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 2,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "leased",
+            "lease": {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "ownerId": "alice",
+              "generation": 2,
+              "expiresAt": 1060000
+            }
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "renew",
+      "args": [
+        "pixel",
+        "alice",
+        "00000000-0000-4000-8000-000000000001",
+        120
+      ],
+      "advance": 1000,
+      "ok": true,
+      "value": {
+        "id": "pixel",
+        "hostId": "host",
+        "platform": "android",
+        "serial": "a",
+        "model": "Pixel",
+        "osVersion": "16",
+        "tags": [
+          "t1"
+        ],
+        "availability": "leased",
+        "generation": 2,
+        "lastSeenAt": "1970-01-01T00:16:40.000Z",
+        "reason": "leased",
+        "lease": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "ownerId": "alice",
+          "generation": 2,
+          "expiresAt": "1970-01-01T00:18:41.000Z"
+        }
+      },
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 2,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "leased",
+            "lease": {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "ownerId": "alice",
+              "generation": 2,
+              "expiresAt": 1121000
+            }
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "release",
+      "args": [
+        "pixel",
+        "alice",
+        "00000000-0000-4000-8000-000000000009"
+      ],
+      "ok": false,
+      "error": "stale_lease",
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 2,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "leased",
+            "lease": {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "ownerId": "alice",
+              "generation": 2,
+              "expiresAt": 1121000
+            }
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "release",
+      "args": [
+        "pixel",
+        "alice",
+        "00000000-0000-4000-8000-000000000001"
+      ],
+      "ok": true,
+      "value": {
+        "id": "pixel",
+        "hostId": "host",
+        "platform": "android",
+        "serial": "a",
+        "model": "Pixel",
+        "osVersion": "16",
+        "tags": [
+          "t1"
+        ],
+        "availability": "cleanup",
+        "generation": 3,
+        "lastSeenAt": "1970-01-01T00:16:40.000Z",
+        "reason": "released",
+        "lease": null
+      },
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 3,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": true,
+            "reason": "released",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "acquire",
+      "args": [
+        "iphone",
+        "  ",
+        60
+      ],
+      "ok": false,
+      "error": "owner_required",
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 3,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": true,
+            "reason": "released",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "acquire",
+      "args": [
+        "nope",
+        "alice",
+        60
+      ],
+      "ok": false,
+      "error": "unknown_device",
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 3,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": true,
+            "reason": "released",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "report",
+      "args": [
+        "other",
+        {
+          "devices": []
+        }
+      ],
+      "ok": false,
+      "error": "unknown_host",
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 3,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": true,
+            "reason": "released",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "report",
+      "args": [
+        "host",
+        {
+          "devices": [
+            {
+              "id": "pixel",
+              "connected": true
+            }
+          ]
+        }
+      ],
+      "ok": false,
+      "error": "report_must_include_exact_host_inventory",
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 3,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": true,
+            "reason": "released",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 1,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "acquire",
+      "args": [
+        "iphone",
+        "carol",
+        10
+      ],
+      "ok": true,
+      "value": {
+        "id": "iphone",
+        "hostId": "host",
+        "platform": "ios",
+        "serial": "b",
+        "model": "iPhone",
+        "osVersion": "26",
+        "tags": [],
+        "availability": "leased",
+        "generation": 2,
+        "lastSeenAt": "1970-01-01T00:16:40.000Z",
+        "reason": "leased",
+        "lease": {
+          "id": "00000000-0000-4000-8000-000000000002",
+          "ownerId": "carol",
+          "generation": 2,
+          "expiresAt": "1970-01-01T00:16:51.000Z"
+        }
+      },
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 3,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": true,
+            "reason": "released",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 2,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "leased",
+            "lease": {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "ownerId": "carol",
+              "generation": 2,
+              "expiresAt": 1011000
+            }
+          }
+        }
+      }
+    },
+    {
+      "op": "list",
+      "args": [],
+      "advance": 10000,
+      "ok": true,
+      "value": [
+        {
+          "id": "pixel",
+          "hostId": "host",
+          "platform": "android",
+          "serial": "a",
+          "model": "Pixel",
+          "osVersion": "16",
+          "tags": [
+            "t1"
+          ],
+          "availability": "cleanup",
+          "generation": 3,
+          "lastSeenAt": "1970-01-01T00:16:40.000Z",
+          "reason": "released",
+          "lease": null
+        },
+        {
+          "id": "iphone",
+          "hostId": "host",
+          "platform": "ios",
+          "serial": "b",
+          "model": "iPhone",
+          "osVersion": "26",
+          "tags": [],
+          "availability": "cleanup",
+          "generation": 3,
+          "lastSeenAt": "1970-01-01T00:16:40.000Z",
+          "reason": "expired",
+          "lease": null
+        }
+      ],
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 3,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": true,
+            "reason": "released",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 3,
+            "lastSeenAt": 1000000,
+            "connected": true,
+            "needsCleanup": true,
+            "reason": "expired",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "report",
+      "args": [
+        "host",
+        {
+          "devices": [
+            {
+              "id": "pixel",
+              "connected": false
+            },
+            {
+              "id": "iphone",
+              "connected": true,
+              "readyGeneration": 3
+            }
+          ]
+        }
+      ],
+      "ok": true,
+      "value": [
+        {
+          "id": "pixel",
+          "hostId": "host",
+          "platform": "android",
+          "serial": "a",
+          "model": "Pixel",
+          "osVersion": "16",
+          "tags": [
+            "t1"
+          ],
+          "availability": "offline",
+          "generation": 4,
+          "lastSeenAt": "1970-01-01T00:16:51.000Z",
+          "reason": "disconnected",
+          "lease": null
+        },
+        {
+          "id": "iphone",
+          "hostId": "host",
+          "platform": "ios",
+          "serial": "b",
+          "model": "iPhone",
+          "osVersion": "26",
+          "tags": [],
+          "availability": "available",
+          "generation": 3,
+          "lastSeenAt": "1970-01-01T00:16:51.000Z",
+          "reason": "ready",
+          "lease": null
+        }
+      ],
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 4,
+            "lastSeenAt": 1011000,
+            "connected": false,
+            "needsCleanup": true,
+            "reason": "disconnected",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 3,
+            "lastSeenAt": 1011000,
+            "connected": true,
+            "needsCleanup": false,
+            "reason": "ready",
+            "lease": null
+          }
+        }
+      }
+    },
+    {
+      "op": "list",
+      "args": [],
+      "advance": 31000,
+      "ok": true,
+      "value": [
+        {
+          "id": "pixel",
+          "hostId": "host",
+          "platform": "android",
+          "serial": "a",
+          "model": "Pixel",
+          "osVersion": "16",
+          "tags": [
+            "t1"
+          ],
+          "availability": "offline",
+          "generation": 4,
+          "lastSeenAt": "1970-01-01T00:16:51.000Z",
+          "reason": "disconnected",
+          "lease": null
+        },
+        {
+          "id": "iphone",
+          "hostId": "host",
+          "platform": "ios",
+          "serial": "b",
+          "model": "iPhone",
+          "osVersion": "26",
+          "tags": [],
+          "availability": "offline",
+          "generation": 4,
+          "lastSeenAt": "1970-01-01T00:16:51.000Z",
+          "reason": "host-timeout",
+          "lease": null
+        }
+      ],
+      "state": {
+        "version": 1,
+        "devices": {
+          "pixel": {
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "generation": 4,
+            "lastSeenAt": 1011000,
+            "connected": false,
+            "needsCleanup": true,
+            "reason": "disconnected",
+            "lease": null
+          },
+          "iphone": {
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "generation": 4,
+            "lastSeenAt": 1011000,
+            "connected": false,
+            "needsCleanup": true,
+            "reason": "host-timeout",
+            "lease": null
+          }
+        }
+      }
+    }
+  ],
+  "schema": [
+    {
+      "input": {
+        "version": 1,
+        "heartbeatTimeoutSec": 30,
+        "hosts": [
+          {
+            "id": "host",
+            "tokenEnv": "HOST_TOKEN"
+          }
+        ],
+        "devices": [
+          {
+            "id": "pixel",
+            "hostId": "host",
+            "platform": "android",
+            "serial": " a ",
+            "model": "Pixel",
+            "osVersion": "16",
+            "tags": [
+              " t1 "
+            ]
+          },
+          {
+            "id": "iphone",
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "model": "iPhone",
+            "osVersion": "26"
+          }
+        ]
+      },
+      "ok": true,
+      "output": {
+        "version": 1,
+        "heartbeatTimeoutSec": 30,
+        "hosts": [
+          {
+            "id": "host",
+            "tokenEnv": "HOST_TOKEN"
+          }
+        ],
+        "devices": [
+          {
+            "id": "pixel",
+            "hostId": "host",
+            "platform": "android",
+            "serial": "a",
+            "model": "Pixel",
+            "osVersion": "16",
+            "tags": [
+              "t1"
+            ]
+          },
+          {
+            "id": "iphone",
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "model": "iPhone",
+            "osVersion": "26",
+            "tags": []
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "version": 1,
+        "heartbeatTimeoutSec": 30,
+        "hosts": [
+          {
+            "id": "host",
+            "tokenEnv": "HOST_TOKEN"
+          }
+        ],
+        "devices": [
+          {
+            "id": "pixel",
+            "hostId": "host",
+            "platform": "android",
+            "serial": " a ",
+            "model": "Pixel",
+            "osVersion": "16",
+            "tags": [
+              " t1 "
+            ]
+          },
+          {
+            "id": "iphone",
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "model": "iPhone",
+            "osVersion": "26"
+          }
+        ],
+        "extra": 1
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "version": 2,
+        "heartbeatTimeoutSec": 30,
+        "hosts": [
+          {
+            "id": "host",
+            "tokenEnv": "HOST_TOKEN"
+          }
+        ],
+        "devices": [
+          {
+            "id": "pixel",
+            "hostId": "host",
+            "platform": "android",
+            "serial": " a ",
+            "model": "Pixel",
+            "osVersion": "16",
+            "tags": [
+              " t1 "
+            ]
+          },
+          {
+            "id": "iphone",
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "model": "iPhone",
+            "osVersion": "26"
+          }
+        ]
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "version": 1,
+        "heartbeatTimeoutSec": 9,
+        "hosts": [
+          {
+            "id": "host",
+            "tokenEnv": "HOST_TOKEN"
+          }
+        ],
+        "devices": [
+          {
+            "id": "pixel",
+            "hostId": "host",
+            "platform": "android",
+            "serial": " a ",
+            "model": "Pixel",
+            "osVersion": "16",
+            "tags": [
+              " t1 "
+            ]
+          },
+          {
+            "id": "iphone",
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "model": "iPhone",
+            "osVersion": "26"
+          }
+        ]
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "version": 1,
+        "heartbeatTimeoutSec": 30,
+        "hosts": [],
+        "devices": [
+          {
+            "id": "pixel",
+            "hostId": "host",
+            "platform": "android",
+            "serial": " a ",
+            "model": "Pixel",
+            "osVersion": "16",
+            "tags": [
+              " t1 "
+            ]
+          },
+          {
+            "id": "iphone",
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "model": "iPhone",
+            "osVersion": "26"
+          }
+        ]
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "version": 1,
+        "heartbeatTimeoutSec": 30,
+        "hosts": [
+          {
+            "id": "host",
+            "tokenEnv": "lower"
+          }
+        ],
+        "devices": [
+          {
+            "id": "pixel",
+            "hostId": "host",
+            "platform": "android",
+            "serial": " a ",
+            "model": "Pixel",
+            "osVersion": "16",
+            "tags": [
+              " t1 "
+            ]
+          },
+          {
+            "id": "iphone",
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "model": "iPhone",
+            "osVersion": "26"
+          }
+        ]
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "version": 1,
+        "heartbeatTimeoutSec": 30,
+        "hosts": [
+          {
+            "id": "host",
+            "tokenEnv": "HOST_TOKEN"
+          }
+        ],
+        "devices": [
+          {
+            "id": "pixel",
+            "hostId": "host",
+            "platform": "android",
+            "serial": " a ",
+            "model": "Pixel",
+            "osVersion": "16",
+            "tags": [
+              " t1 "
+            ]
+          },
+          {
+            "id": "iphone",
+            "hostId": "host",
+            "platform": "ios",
+            "serial": "b",
+            "model": "iPhone",
+            "osVersion": "26"
+          },
+          {
+            "id": "alias",
+            "hostId": "host",
+            "platform": "android",
+            "serial": " a ",
+            "model": "Pixel",
+            "osVersion": "16",
+            "tags": [
+              " t1 "
+            ]
+          }
+        ]
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "version": 1,
+        "heartbeatTimeoutSec": 30,
+        "hosts": [
+          {
+            "id": "host",
+            "tokenEnv": "HOST_TOKEN"
+          }
+        ],
+        "devices": [
+          {
+            "id": "pixel",
+            "hostId": "ghost",
+            "platform": "android",
+            "serial": " a ",
+            "model": "Pixel",
+            "osVersion": "16",
+            "tags": [
+              " t1 "
+            ]
+          }
+        ]
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "version": 1,
+        "heartbeatTimeoutSec": 30,
+        "hosts": [
+          {
+            "id": "host",
+            "tokenEnv": "HOST_TOKEN"
+          }
+        ],
+        "devices": [
+          {
+            "id": "Pixel",
+            "hostId": "host",
+            "platform": "android",
+            "serial": " a ",
+            "model": "Pixel",
+            "osVersion": "16",
+            "tags": [
+              " t1 "
+            ]
+          }
+        ]
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "version": 1,
+        "heartbeatTimeoutSec": 30,
+        "hosts": [
+          {
+            "id": "host",
+            "tokenEnv": "HOST_TOKEN"
+          }
+        ],
+        "devices": [
+          {
+            "id": "pixel",
+            "hostId": "host",
+            "platform": "android",
+            "serial": "   ",
+            "model": "Pixel",
+            "osVersion": "16",
+            "tags": [
+              " t1 "
+            ]
+          }
+        ]
+      },
+      "ok": false,
+      "output": null
+    },
+    {
+      "input": {
+        "version": 1,
+        "heartbeatTimeoutSec": 30,
+        "hosts": [
+          {
+            "id": "host",
+            "tokenEnv": "HOST_TOKEN"
+          }
+        ],
+        "devices": [
+          {
+            "id": "pixel",
+            "hostId": "host",
+            "platform": "android",
+            "serial": " a ",
+            "model": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "osVersion": "16",
+            "tags": [
+              " t1 "
+            ]
+          }
+        ]
+      },
+      "ok": false,
+      "output": null
+    }
+  ],
+  "bodies": {
+    "report": [
+      {
+        "body": {
+          "devices": []
+        },
+        "ok": true
+      },
+      {
+        "body": {
+          "devices": [
+            {
+              "id": "a",
+              "connected": true,
+              "readyGeneration": 1
+            }
+          ]
+        },
+        "ok": true
+      },
+      {
+        "body": {
+          "devices": [
+            {
+              "id": "a",
+              "connected": "yes"
+            }
+          ]
+        },
+        "ok": false
+      },
+      {
+        "body": {
+          "devices": [],
+          "x": 1
+        },
+        "ok": false
+      },
+      {
+        "body": {
+          "devices": [
+            {
+              "id": "a",
+              "connected": true,
+              "readyGeneration": 0
+            }
+          ]
+        },
+        "ok": false
+      },
+      {
+        "body": {},
+        "ok": false
+      }
+    ],
+    "acquire": [
+      {
+        "body": {
+          "ttlSec": 10
+        },
+        "ok": true
+      },
+      {
+        "body": {
+          "ttlSec": 1800
+        },
+        "ok": true
+      },
+      {
+        "body": {
+          "ttlSec": 9
+        },
+        "ok": false
+      },
+      {
+        "body": {
+          "ttlSec": 1801
+        },
+        "ok": false
+      },
+      {
+        "body": {
+          "ttlSec": 60,
+          "ownerId": "bob"
+        },
+        "ok": false
+      },
+      {
+        "body": {
+          "ttlSec": 60.5
+        },
+        "ok": false
+      },
+      {
+        "body": {},
+        "ok": false
+      }
+    ],
+    "release": [
+      {
+        "body": {
+          "leaseId": "00000000-0000-4000-8000-000000000001"
+        },
+        "ok": true
+      },
+      {
+        "body": {
+          "leaseId": "not-a-uuid"
+        },
+        "ok": false
+      },
+      {
+        "body": {
+          "leaseId": "00000000-0000-4000-8000-000000000001",
+          "x": 1
+        },
+        "ok": false
+      }
+    ],
+    "renew": [
+      {
+        "body": {
+          "leaseId": "00000000-0000-4000-8000-000000000001",
+          "ttlSec": 60
+        },
+        "ok": true
+      },
+      {
+        "body": {
+          "leaseId": "00000000-0000-4000-8000-000000000001"
+        },
+        "ok": false
+      }
+    ]
+  }
+}

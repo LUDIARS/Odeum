@@ -4,6 +4,7 @@
 
 namespace odeum::program {
 RtmpHandshake::RtmpHandshake(std::uint32_t epoch_ms, const std::array<std::byte, rtmp_random_size>& random) {
+    c1_.reserve(rtmp_handshake_size);
     put_u32(c1_, epoch_ms);
     put_u32(c1_, 0);
     c1_.insert(c1_.end(), random.begin(), random.end());

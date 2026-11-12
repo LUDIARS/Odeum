@@ -1,4 +1,5 @@
 #include "input_receiver.hpp"
+#include "../core/input_frame_limits.hpp"
 #include "../core/producer_routing.hpp"
 #include "transport/ice_servers.hpp"
 #include <rtc/rtc.hpp>
@@ -53,6 +54,7 @@ void InputReceiver::attach(const std::shared_ptr<rtc::Track>& track) {
     auto sink_video = callbacks_.video;
     auto sink_audio = callbacks_.audio;
     track->onFrame([video, index = *input, sink_video, sink_audio](rtc::binary data, rtc::FrameInfo) {
+        if (!accepts_input_frame(video, data.size())) return; // oversized or empty: dropped
         const std::span<const std::byte> bytes(data.data(), data.size());
         if (video) { if (sink_video) sink_video(index, bytes); }
         else if (sink_audio) sink_audio(index, bytes);

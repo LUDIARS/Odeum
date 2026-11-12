@@ -1,9 +1,10 @@
 #include "config.hpp"
 #include <odeum/slot.hpp>
+#include <odeum/bounded_file.hpp>
+#include <odeum/json_limits.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <charconv>
 #include <cstdlib>
-#include <fstream>
 
 namespace odeum::relay {
 namespace {
@@ -32,7 +33,8 @@ Config load_config() {
     c.max_sessions = integer(env("ODEUM_RELAY_MAX_SESSIONS", "32"), 1024);
     c.max_inputs = integer(env("ODEUM_RELAY_MAX_INPUTS", "4"), max_input_slots);
     auto path = env("ODEUM_RELAY_TICKET_PUBKEYS"); if (path.empty()) throw std::runtime_error("ODEUM_RELAY_TICKET_PUBKEYS is required");
-    std::ifstream keys(path, std::ios::binary); if (!keys) throw std::runtime_error("Cannot read public key file"); keys >> c.keys;
+    const auto keys = read_file_within(path, max_config_file_bytes); if (!keys) throw std::runtime_error("Cannot read public key file");
+    c.keys = parse_json_within(*keys, config_limits);
     auto range = env("ODEUM_RELAY_UDP_PORT_RANGE", "1024-65535"); auto dash = range.find('-');
     if (dash == std::string::npos) throw std::runtime_error("UDP range must be begin-end");
     c.rtc.portRangeBegin = static_cast<std::uint16_t>(integer(range.substr(0, dash), 65535));
@@ -40,7 +42,7 @@ Config load_config() {
     if (c.rtc.portRangeBegin > c.rtc.portRangeEnd) throw std::runtime_error("Invalid UDP port range");
     c.public_ip = env("ODEUM_RELAY_PUBLIC_IP");
     if (!c.public_ip.empty()) boost::asio::ip::make_address(c.public_ip);
-    c.ice->set_static(parse_ice_servers(Json::parse(env("ODEUM_RELAY_ICE_SERVERS", "[]"))));
+    c.ice->set_static(parse_ice_servers(parse_json_within(env("ODEUM_RELAY_ICE_SERVERS", "[]"), config_limits)));
     c.cloudflare = cloudflare_turn_from(optional_env("ODEUM_RELAY_CLOUDFLARE_TURN_KEY_ID"),
         optional_env("ODEUM_RELAY_CLOUDFLARE_TURN_API_TOKEN"), optional_env("ODEUM_RELAY_CLOUDFLARE_TURN_TTL"));
     c.rtc.disableAutoNegotiation = true;

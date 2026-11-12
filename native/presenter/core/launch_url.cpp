@@ -1,6 +1,6 @@
 #include "launch_url.hpp"
 #include "base64url.hpp"
-#include <nlohmann/json.hpp>
+#include <odeum/json_limits.hpp>
 #include <algorithm>
 #include <cctype>
 #include <optional>
@@ -86,7 +86,9 @@ LaunchRequest parse_launch_url(std::string_view text, std::string_view expected_
         throw LaunchUrlError("unsupported_action", "Only odeum://" + std::string(expected_action) + " is accepted");
     std::optional<std::string> relay, ticket, project;
     auto query = question == std::string_view::npos ? std::string_view{} : rest.substr(question + 1);
+    std::size_t parameters = 0;
     while (!query.empty()) {
+        if (++parameters > max_launch_parameters) throw LaunchUrlError("invalid_url", "The launch link has too many parameters");
         const auto amp = query.find('&');
         const auto pair = query.substr(0, amp);
         query = amp == std::string_view::npos ? std::string_view{} : query.substr(amp + 1);
@@ -113,12 +115,16 @@ std::string relay_socket_url(const LaunchRequest& request) {
 }
 
 std::int64_t ticket_expiry(std::string_view ticket) {
+    if (ticket.size() > max_ticket_bytes) throw LaunchUrlError("invalid_ticket", "The ticket is too long");
     const auto first = ticket.find('.');
     const auto second = first == std::string_view::npos ? std::string_view::npos : ticket.find('.', first + 1);
     if (second == std::string_view::npos) throw LaunchUrlError("invalid_ticket", "The ticket is not a JWS compact token");
     const auto payload = decode_base64url(ticket.substr(first + 1, second - first - 1));
     if (!payload) throw LaunchUrlError("invalid_ticket", "The ticket payload is not base64url");
-    const auto claims = nlohmann::json::parse(*payload, nullptr, false);
+    odeum::Json claims;
+    try { claims = odeum::parse_json_within(*payload, odeum::ticket_part_limits); }
+    catch (const odeum::ProtocolError&) { throw LaunchUrlError("invalid_ticket", "The ticket payload exceeds its limits"); }
+    catch (const odeum::Json::exception&) { throw LaunchUrlError("invalid_ticket", "The ticket payload is not JSON"); }
     if (!claims.is_object() || !claims.contains("exp") || !claims["exp"].is_number_integer())
         throw LaunchUrlError("invalid_ticket", "The ticket carries no expiry");
     return claims["exp"].get<std::int64_t>();

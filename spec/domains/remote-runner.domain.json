@@ -1,0 +1,13 @@
+{
+  "name": "remote-runner",
+  "description": "遠隔テストランナー odeum-runner / odeum-unityctl (取り込んだ Custos の C++ 移行): 対象アプリの build/run/test、ログと仮想キー、Unity 制御、行動ログ、実機ファーム、WebRTC 画面送出、その仕様とテスト。",
+  "presetRules": [],
+  "specRefs": ["spec/plan/2026-10-30-runner-cpp-port.md"],
+  "templateRules": [],
+  "membership": [
+    {"pathPattern": "(^|/)native/runner/(?:.*/)?[^/]+$"},
+    {"pathPattern": "(^|/)native/tests/runner_[^/]+$"},
+    {"pathPattern": "(^|/)native/tests/fixtures/runner/(?:.*/)?[^/]+$"},
+    {"pathPattern": "(^|/)spec/(plan/2026-10-30-runner-cpp-port\\.md|domains/remote-runner\\.domain\\.json)$"}
+  ]
+}

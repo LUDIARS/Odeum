@@ -1,0 +1,142 @@
+[
+  {
+    "name": "a",
+    "hid": 4
+  },
+  {
+    "name": "A",
+    "hid": 4
+  },
+  {
+    "name": "z",
+    "hid": 29
+  },
+  {
+    "name": "Z",
+    "hid": 29
+  },
+  {
+    "name": "0",
+    "hid": 39
+  },
+  {
+    "name": "1",
+    "hid": 30
+  },
+  {
+    "name": "9",
+    "hid": 38
+  },
+  {
+    "name": "Num0",
+    "hid": 39
+  },
+  {
+    "name": "Num5",
+    "hid": 34
+  },
+  {
+    "name": "Enter",
+    "hid": 40
+  },
+  {
+    "name": "Return",
+    "hid": 40
+  },
+  {
+    "name": "Escape",
+    "hid": 41
+  },
+  {
+    "name": "Esc",
+    "hid": 41
+  },
+  {
+    "name": "Backspace",
+    "hid": 42
+  },
+  {
+    "name": "Tab",
+    "hid": 43
+  },
+  {
+    "name": "Space",
+    "hid": 44
+  },
+  {
+    "name": "F1",
+    "hid": 58
+  },
+  {
+    "name": "F12",
+    "hid": 69
+  },
+  {
+    "name": "F13",
+    "hid": null
+  },
+  {
+    "name": "Right",
+    "hid": 79
+  },
+  {
+    "name": "Left",
+    "hid": 80
+  },
+  {
+    "name": "Down",
+    "hid": 81
+  },
+  {
+    "name": "Up",
+    "hid": 82
+  },
+  {
+    "name": "LCtrl",
+    "hid": 224
+  },
+  {
+    "name": "LShift",
+    "hid": 225
+  },
+  {
+    "name": "LAlt",
+    "hid": 226
+  },
+  {
+    "name": "LSuper",
+    "hid": 227
+  },
+  {
+    "name": "Ctrl",
+    "hid": 224
+  },
+  {
+    "name": "Shift",
+    "hid": 225
+  },
+  {
+    "name": "Alt",
+    "hid": 226
+  },
+  {
+    "name": "RShift",
+    "hid": null
+  },
+  {
+    "name": "ab",
+    "hid": null
+  },
+  {
+    "name": "",
+    "hid": null
+  },
+  {
+    "name": "space",
+    "hid": null
+  },
+  {
+    "name": "f1",
+    "hid": null
+  }
+]

@@ -1,4 +1,5 @@
 #include "http_query.hpp"
+#include <lorica/input_budget.hpp>
 
 namespace odeum::relay {
 namespace {
@@ -24,10 +25,13 @@ std::optional<HttpTarget> parse_target(std::string_view target) {
     result.path = std::string(target.substr(0, mark));
     if (mark == std::string_view::npos) return result;
     auto rest = target.substr(mark + 1);
+    // Each parameter is charged before it is decoded; the decoded text never exceeds the target.
+    lorica::input_budget budget({target.size(), max_query_parameters, max_query_parameters, 1});
     while (!rest.empty()) {
         auto amp = rest.find('&'); auto pair = rest.substr(0, amp);
         rest = amp == std::string_view::npos ? std::string_view{} : rest.substr(amp + 1);
         auto eq = pair.find('='); if (eq == std::string_view::npos || eq == 0) return std::nullopt;
+        if (!budget.consume(pair.size(), 1, 1)) return std::nullopt;
         auto key = decode(pair.substr(0, eq)), value = decode(pair.substr(eq + 1));
         if (!key || !value || !result.query.emplace(*key, *value).second) return std::nullopt;
     }

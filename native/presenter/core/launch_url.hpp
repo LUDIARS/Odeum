@@ -24,6 +24,11 @@ struct LaunchUrlError : std::runtime_error {
 // surrounding whitespace ignored so a pasted link works). Rejects every other scheme or action,
 // a relay that is not wss://, and a missing or malformed ticket. Throws LaunchUrlError.
 LaunchRequest parse_launch_url(std::string_view text);
+// A launch link has at most this many query parameters (relay, ticket, projectId and room for
+// what GLab may add later); more is refused as invalid_url before any value is decoded.
+inline constexpr std::size_t max_launch_parameters = 16;
+// The longest ticket ticket_expiry reads (the relay refuses longer ones too).
+inline constexpr std::size_t max_ticket_bytes = 8192;
 // The same for another action: odeum-program takes `odeum://produce?relay=...&ticket=...`.
 // `expected_action` is lower case.
 LaunchRequest parse_launch_url(std::string_view text, std::string_view expected_action);

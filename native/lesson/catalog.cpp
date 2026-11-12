@@ -1,16 +1,11 @@
 #include "catalog.hpp"
 #include "assets.hpp"
-#include <fstream>
-#include <sstream>
+#include "input_limits.hpp"
+#include <odeum/bounded_file.hpp>
 
 namespace odeum::lesson {
 namespace {
-constexpr std::size_t max_plot_bytes = 1024 * 1024;
-Plot parse(std::string_view text) {
-    Json document;
-    try { document = Json::parse(text); } catch (const Json::exception&) { throw ProtocolError("invalid_plot", "Plot is not valid JSON"); }
-    return parse_plot(document);
-}
+Plot parse(std::string_view text) { return parse_plot(parse_plot_text(text)); }
 }
 std::vector<Plot> builtin_plots() {
     std::vector<Plot> plots;
@@ -18,11 +13,11 @@ std::vector<Plot> builtin_plots() {
     return plots;
 }
 Plot load_plot_file(const std::string& path) {
-    std::ifstream file(path, std::ios::binary);
-    if (!file) throw std::runtime_error("Cannot read plot file");
-    std::ostringstream buffer; buffer << file.rdbuf();
-    const auto text = buffer.str();
-    if (text.size() > max_plot_bytes) throw ProtocolError("invalid_plot", "Plot file is too large");
-    return parse(text);
+    // Read in chunks up to the limit + 1 byte, so a huge file is refused without being kept whole.
+    std::optional<std::string> text;
+    try { text = read_file_within(path, plot_file_limits.bytes); }
+    catch (const FileTooLarge&) { throw ProtocolError("invalid_plot", "Plot file is too large"); }
+    if (!text) throw std::runtime_error("Cannot read plot file");
+    return parse(*text);
 }
 }

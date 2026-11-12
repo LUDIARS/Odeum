@@ -1,10 +1,11 @@
 {
-  "$comment": "Anatomia program layers (the dual-layer gate). A glob matches a repo-relative file path exactly (`*` = one level, `**` = any depth). Anatomia's module is a directory, so native/ has one `<dir>/*` rule per directory and the rules never overlap (the loader sorts globs and the first match wins). native/: the wire protocol shared by every program is shared; pure cores without sockets or clocks (lesson/core, presenter/core, program/core) are domain-logic; directories that compose a service or app around a core (relay, lesson service + HTTP/WebSocket transport + CLI, presenter/app, program/app) are application; OS and network adapters (platform/*, transport) are infrastructure; embedded browser pages and the program's renderer are presentation; native/tests and the lesson's manual end-to-end and attend harnesses are test. Check with `anatomia domains program --repo .` that native/ has no unclassified module.",
+  "$comment": "Anatomia program layers (the dual-layer gate). A glob matches a repo-relative file path exactly (`*` = one level, `**` = any depth). Anatomia's module is a directory, so native/ has one `<dir>/*` rule per directory and the rules never overlap (the loader sorts globs and the first match wins). native/: the wire protocol shared by every program is shared; pure cores without sockets or clocks (lesson/core, presenter/core, program/core, runner/core) are domain-logic; directories that compose a service or app around a core (relay, lesson service + HTTP/WebSocket transport + CLI, presenter/app, program/app, runner/app, runner/unityctl) are application; OS and network adapters (platform/*, transport, runner/adapters, runner/webrtc) are infrastructure; embedded browser pages and the program's renderer are presentation; native/tests, native/fuzz, the runner's compat/golden fixtures and the lesson's manual end-to-end and attend harnesses are test. Check with `anatomia domains program --repo .` that native/ has no unclassified module.",
   "layers": [
     { "glob": "custos/public/js/**", "layer": "presentation" },
     { "glob": "custos/scripts/setup-gaze.mjs", "layer": "infrastructure" },
     { "glob": "custos/tests/**", "layer": "test" },
     { "glob": "native/cmake/*", "layer": "infrastructure" },
+    { "glob": "native/fuzz/*", "layer": "test" },
     { "glob": "native/lesson/*", "layer": "application" },
     { "glob": "native/lesson/core/*", "layer": "domain-logic" },
     { "glob": "native/lesson/courses/*", "layer": "domain-logic" },
@@ -29,6 +30,13 @@
     { "glob": "native/protocol/include/odeum/*", "layer": "shared" },
     { "glob": "native/relay/*", "layer": "application" },
     { "glob": "native/relay/web/*", "layer": "presentation" },
+    { "glob": "native/runner/adapters/*", "layer": "infrastructure" },
+    { "glob": "native/runner/app/*", "layer": "application" },
+    { "glob": "native/runner/core/*", "layer": "domain-logic" },
+    { "glob": "native/runner/tests/compat/*", "layer": "test" },
+    { "glob": "native/runner/tests/golden/*", "layer": "test" },
+    { "glob": "native/runner/unityctl/*", "layer": "application" },
+    { "glob": "native/runner/webrtc/*", "layer": "infrastructure" },
     { "glob": "native/tests/*", "layer": "test" }
   ],
   "mergeCouplingThreshold": 1

@@ -1,0 +1,2395 @@
+[
+  {
+    "name": "minimal",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "empty apps",
+    "input": {
+      "apps": []
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": []
+    }
+  },
+  {
+    "name": "version 1",
+    "input": {
+      "version": 1,
+      "apps": []
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": []
+    }
+  },
+  {
+    "name": "version 2 rejected",
+    "input": {
+      "version": 2,
+      "apps": []
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "missing apps",
+    "input": {},
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "apps not array",
+    "input": {
+      "apps": {}
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "run with args env timeout",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "echo",
+            "args": [
+              "hi",
+              "there"
+            ],
+            "env": {
+              "FOO": "bar",
+              "A": "b"
+            },
+            "timeoutSec": 60
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "echo",
+            "args": [
+              "hi",
+              "there"
+            ],
+            "env": {
+              "FOO": "bar",
+              "A": "b"
+            },
+            "timeoutSec": 60,
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "workingDir only",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "workingDir": "/tmp/work",
+            "cmd": "x"
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "workingDir": "/tmp/work",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "cwd": "/tmp/work"
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "workingDir wins",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "workingDir": "/new",
+            "cwd": "/old",
+            "cmd": "x"
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "workingDir": "/new",
+            "cwd": "/new",
+            "cmd": "x",
+            "args": [],
+            "env": {}
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "missing working dir",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cmd": "x"
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "empty cwd",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": "",
+            "cmd": "x"
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "empty cmd",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": ""
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "args not strings",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [
+              1
+            ]
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "env not strings",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "env": {
+              "A": 1
+            }
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "timeout negative",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "timeoutSec": -1
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "timeout fraction",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "timeoutSec": 1.5
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "timeout exponent",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "timeoutSec": 100
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "timeoutSec": 100,
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "build and test",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "build": {
+            "workingDir": "/b",
+            "cmd": "cmake",
+            "args": [
+              "--build",
+              "."
+            ]
+          },
+          "test": {
+            "workingDir": "/t",
+            "cmd": "ctest"
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "build": {
+            "workingDir": "/b",
+            "cmd": "cmake",
+            "args": [
+              "--build",
+              "."
+            ],
+            "env": {},
+            "cwd": "/b"
+          },
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "test": {
+            "workingDir": "/t",
+            "cmd": "ctest",
+            "args": [],
+            "env": {},
+            "cwd": "/t"
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "build null",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "build": null
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "bad id",
+    "input": {
+      "apps": [
+        {
+          "id": "Bad ID with spaces",
+          "name": "x",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "upper id",
+    "input": {
+      "apps": [
+        {
+          "id": "Demo-1",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "Demo-1",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "leading hyphen id",
+    "input": {
+      "apps": [
+        {
+          "id": "-demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "duplicate ids",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          }
+        },
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "empty name",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "description",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "description": "text"
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "description": "text",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "android target",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "target": "android"
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "android",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "bad target",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "target": "ios"
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "unknown keys dropped",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "extra": true
+          },
+          "extra": 1
+        }
+      ],
+      "extra": "x"
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "capture defaults",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "capture": {
+            "type": "window"
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "capture": {
+            "type": "window",
+            "fps": 30,
+            "preset": "veryfast",
+            "intervalSec": 1
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "capture full",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "capture": {
+            "type": "window",
+            "windowTitle": "W",
+            "androidSerial": "S",
+            "fps": 60,
+            "preset": "fast",
+            "intervalSec": 0.5
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "capture": {
+            "type": "window",
+            "windowTitle": "W",
+            "androidSerial": "S",
+            "fps": 60,
+            "preset": "fast",
+            "intervalSec": 0.5
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "capture fps 0",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "capture": {
+            "type": "window",
+            "fps": 0
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "capture fps 61",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "capture": {
+            "type": "window",
+            "fps": 61
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "capture interval 60",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "capture": {
+            "type": "fullscreen",
+            "intervalSec": 60
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "capture": {
+            "type": "fullscreen",
+            "fps": 30,
+            "preset": "veryfast",
+            "intervalSec": 60
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "capture interval 61",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "capture": {
+            "type": "fullscreen",
+            "intervalSec": 61
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "capture bad type",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "capture": {
+            "type": "screen"
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "button key",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "input": {
+            "buttons": [
+              {
+                "label": "Jump",
+                "key": "Space"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [
+              {
+                "label": "Jump",
+                "key": "Space"
+              }
+            ],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "button action",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "input": {
+            "buttons": [
+              {
+                "label": "Quit",
+                "action": "kill"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [
+              {
+                "label": "Quit",
+                "action": "kill"
+              }
+            ],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "button neither",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "input": {
+            "buttons": [
+              {
+                "label": "broken"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "button both",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "input": {
+            "buttons": [
+              {
+                "label": "both",
+                "key": "W",
+                "action": "kill"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "button empty key with action",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "input": {
+            "buttons": [
+              {
+                "label": "x",
+                "key": "",
+                "action": "noop"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [
+              {
+                "label": "x",
+                "key": "",
+                "action": "noop"
+              }
+            ],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "button empty key alone",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "input": {
+            "buttons": [
+              {
+                "label": "x",
+                "key": ""
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "button bad action",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "input": {
+            "buttons": [
+              {
+                "label": "x",
+                "action": "explode"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "input flags",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "input": {
+            "allowKeyboard": false,
+            "allowMouse": false
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": false,
+            "allowMouse": false
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "pad",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "input": {
+            "pad": {
+              "leftStick": {
+                "up": "W",
+                "down": "S",
+                "left": "A",
+                "right": "D",
+                "press": "Q"
+              },
+              "rightStick": {
+                "up": "Up",
+                "down": "Down",
+                "left": "Left",
+                "right": "Right"
+              },
+              "dpad": {
+                "up": "I",
+                "down": "K",
+                "left": "J",
+                "right": "L"
+              },
+              "face": {
+                "a": "Space",
+                "x": "E"
+              },
+              "shoulders": {
+                "lb": "Q",
+                "rt": "R"
+              },
+              "menu": [
+                {
+                  "label": "Shot",
+                  "action": "screenshot"
+                },
+                {
+                  "label": "Menu",
+                  "key": "Escape"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "pad": {
+              "leftStick": {
+                "up": "W",
+                "down": "S",
+                "left": "A",
+                "right": "D",
+                "press": "Q"
+              },
+              "rightStick": {
+                "up": "Up",
+                "down": "Down",
+                "left": "Left",
+                "right": "Right"
+              },
+              "dpad": {
+                "up": "I",
+                "down": "K",
+                "left": "J",
+                "right": "L"
+              },
+              "face": {
+                "a": "Space",
+                "x": "E"
+              },
+              "shoulders": {
+                "lb": "Q",
+                "rt": "R"
+              },
+              "menu": [
+                {
+                  "label": "Shot",
+                  "action": "screenshot"
+                },
+                {
+                  "label": "Menu",
+                  "key": "Escape"
+                }
+              ]
+            },
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "pad empty",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "input": {
+            "pad": {}
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "pad": {
+              "menu": []
+            },
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "pad bad direction",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "input": {
+            "pad": {
+              "dpad": {
+                "up": "",
+                "down": "S",
+                "left": "A",
+                "right": "D"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "logs",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "logs": {
+            "stdout": false,
+            "files": [
+              "a.log"
+            ]
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": false,
+            "stderr": true,
+            "files": [
+              "a.log"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "bridge ergo default",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "inAppBridge": {
+            "kind": "ergo"
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "inAppBridge": {
+            "kind": "ergo",
+            "host": "127.0.0.1",
+            "port": 5198,
+            "fps": 24,
+            "video": {
+              "codec": "auto",
+              "width": 1280,
+              "height": 720,
+              "bitrate": 3000000,
+              "minBitrate": 300000,
+              "maxBitrate": 6000000
+            }
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "bridge unity default",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "inAppBridge": {
+            "kind": "unity"
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "inAppBridge": {
+            "kind": "unity",
+            "host": "127.0.0.1",
+            "port": 17778,
+            "fps": 24,
+            "video": {
+              "codec": "auto",
+              "width": 1280,
+              "height": 720,
+              "bitrate": 3000000,
+              "minBitrate": 300000,
+              "maxBitrate": 6000000
+            }
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "bridge explicit port",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "inAppBridge": {
+            "kind": "unity",
+            "port": 8888,
+            "host": "localhost",
+            "fps": 30
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "inAppBridge": {
+            "kind": "unity",
+            "host": "localhost",
+            "port": 8888,
+            "fps": 30,
+            "video": {
+              "codec": "auto",
+              "width": 1280,
+              "height": 720,
+              "bitrate": 3000000,
+              "minBitrate": 300000,
+              "maxBitrate": 6000000
+            }
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "bridge kind omitted",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "inAppBridge": {
+            "host": "127.0.0.1",
+            "port": 5198
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "inAppBridge": {
+            "kind": "ergo",
+            "host": "127.0.0.1",
+            "port": 5198,
+            "fps": 24,
+            "video": {
+              "codec": "auto",
+              "width": 1280,
+              "height": 720,
+              "bitrate": 3000000,
+              "minBitrate": 300000,
+              "maxBitrate": 6000000
+            }
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "bridge bad kind",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "inAppBridge": {
+            "kind": "unknown"
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "bridge bad port",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "inAppBridge": {
+            "kind": "unity",
+            "port": 99999
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "bridge fps 121",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "inAppBridge": {
+            "fps": 121
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "bridge video override",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "inAppBridge": {
+            "kind": "unity",
+            "video": {
+              "codec": "rawvideo",
+              "width": 1920,
+              "height": 1080,
+              "bitrate": 5000000,
+              "maxBitrate": 8000000
+            }
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "inAppBridge": {
+            "kind": "unity",
+            "host": "127.0.0.1",
+            "port": 17778,
+            "fps": 24,
+            "video": {
+              "codec": "rawvideo",
+              "width": 1920,
+              "height": 1080,
+              "bitrate": 5000000,
+              "minBitrate": 300000,
+              "maxBitrate": 8000000
+            }
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "bridge video bitrate above max",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "inAppBridge": {
+            "kind": "unity",
+            "video": {
+              "bitrate": 9000000
+            }
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "bridge video width 63",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "inAppBridge": {
+            "video": {
+              "width": 63
+            }
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "ergoCustos legacy",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "ergoCustos": {
+            "host": "127.0.0.1",
+            "port": 5198
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          },
+          "inAppBridge": {
+            "kind": "ergo",
+            "host": "127.0.0.1",
+            "port": 5198,
+            "fps": 24,
+            "video": {
+              "codec": "auto",
+              "width": 1280,
+              "height": 720,
+              "bitrate": 3000000,
+              "minBitrate": 300000,
+              "maxBitrate": 6000000
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "ergoCustos empty",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "ergoCustos": {}
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          },
+          "inAppBridge": {
+            "kind": "ergo",
+            "host": "127.0.0.1",
+            "port": 5198,
+            "fps": 24,
+            "video": {
+              "codec": "auto",
+              "width": 1280,
+              "height": 720,
+              "bitrate": 3000000,
+              "minBitrate": 300000,
+              "maxBitrate": 6000000
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "ergoCustos and inAppBridge",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "ergoCustos": {
+            "port": 5198
+          },
+          "inAppBridge": {
+            "kind": "unity",
+            "port": 5199
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "inAppBridge": {
+            "kind": "unity",
+            "host": "127.0.0.1",
+            "port": 5199,
+            "fps": 24,
+            "video": {
+              "codec": "auto",
+              "width": 1280,
+              "height": 720,
+              "bitrate": 3000000,
+              "minBitrate": 300000,
+              "maxBitrate": 6000000
+            }
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "ergoCustos bad port",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "ergoCustos": {
+            "port": 0
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "playLog defaults",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "playLog": {}
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          },
+          "playLog": {
+            "enabled": true,
+            "statePollMs": 500,
+            "idleStopSec": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "playLog values",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "playLog": {
+            "enabled": false,
+            "statePollMs": 100,
+            "idleStopSec": 86400
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          },
+          "playLog": {
+            "enabled": false,
+            "statePollMs": 100,
+            "idleStopSec": 86400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "playLog poll 99",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "playLog": {
+            "statePollMs": 99
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  },
+  {
+    "name": "audio",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "audio": {
+            "source": "process-loopback"
+          }
+        }
+      ]
+    },
+    "ok": true,
+    "output": {
+      "version": 1,
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "target": "desktop",
+          "run": {
+            "cwd": ".",
+            "cmd": "x",
+            "args": [],
+            "env": {},
+            "workingDir": "."
+          },
+          "input": {
+            "buttons": [],
+            "allowKeyboard": true,
+            "allowMouse": true
+          },
+          "logs": {
+            "stdout": true,
+            "stderr": true,
+            "files": []
+          },
+          "audio": {
+            "source": "process-loopback"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "audio bad source",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "audio": {
+            "source": "mic"
+          }
+        }
+      ]
+    },
+    "ok": false,
+    "output": null
+  }
+]

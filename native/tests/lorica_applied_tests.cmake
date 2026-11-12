@@ -1,0 +1,68 @@
+# odeum.lorica_applied.*: Lorica is really in the build output, not only requested at configure
+# time (odeum_lorica_require_coverage stays the configure-time check).
+#   .baseline / .extended   a unit built through odeum_harden checks its own settings and runs
+#                           Lorica::boundary (lorica_applied_tests.cpp)
+#   .compile_commands       every compile command (own and third-party) carries Lorica's flags
+#                           (lorica_compile_commands.cmake, cmake -P)
+#   .binary.<executable>    Lorica's tools/verify_binary.py on the shipped executables (Python only)
+# A check that cannot run here is registered as skipped with its reason, never as passed.
+function(odeum_lorica_skipped_test name reason)
+  add_test(NAME ${name} COMMAND ${CMAKE_COMMAND} -E echo "ODEUM_LORICA_SKIP: ${reason}")
+  set_tests_properties(${name} PROPERTIES SKIP_REGULAR_EXPRESSION "ODEUM_LORICA_SKIP:")
+endfunction()
+
+set(odeum_lorica_optimized "$<IF:$<CONFIG:Release,RelWithDebInfo,MinSizeRel>,1,0>")
+foreach(profile baseline extended)
+  set(name odeum.lorica_applied.${profile})
+  if(profile STREQUAL "extended" AND NOT ODEUM_LORICA_EXTENDED_OK)
+    odeum_lorica_skipped_test(${name} "Lorica EXTENDED is not applied here (${ODEUM_LORICA_EXTENDED_REASON})")
+    continue()
+  endif()
+  set(target odeum_lorica_applied_${profile}_tests)
+  add_executable(${target} lorica_applied_tests.cpp)
+  if(profile STREQUAL "extended")
+    odeum_harden(${target} EXTENDED)
+    target_compile_definitions(${target} PRIVATE ODEUM_LORICA_TEST_EXTENDED=1)
+  else()
+    odeum_harden(${target})
+    target_compile_definitions(${target} PRIVATE ODEUM_LORICA_TEST_EXTENDED=0)
+  endif()
+  target_compile_definitions(${target} PRIVATE ODEUM_LORICA_TEST_OPTIMIZED=${odeum_lorica_optimized})
+  add_test(NAME ${name} COMMAND ${target})
+  set_tests_properties(${name} PROPERTIES SKIP_RETURN_CODE 77)
+endforeach()
+
+if(CMAKE_GENERATOR MATCHES "^(Ninja|Ninja Multi-Config|Unix Makefiles)$" AND CMAKE_EXPORT_COMPILE_COMMANDS)
+  add_test(NAME odeum.lorica_applied.compile_commands COMMAND ${CMAKE_COMMAND}
+    -DCOMPILE_COMMANDS=${CMAKE_BINARY_DIR}/compile_commands.json
+    -DEXPECT=${CMAKE_BINARY_DIR}/lorica_applied/expect.cmake
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/lorica_compile_commands.cmake)
+  set_tests_properties(odeum.lorica_applied.compile_commands PROPERTIES SKIP_REGULAR_EXPRESSION "ODEUM_LORICA_SKIP:")
+else()
+  odeum_lorica_skipped_test(odeum.lorica_applied.compile_commands
+    "the ${CMAKE_GENERATOR} generator writes no compile_commands.json (or Odeum is not the top-level project)")
+endif()
+
+get_property(odeum_lorica_header GLOBAL PROPERTY LORICA_UNSAFE_API_HEADER)
+cmake_path(GET odeum_lorica_header PARENT_PATH odeum_lorica_root)
+cmake_path(GET odeum_lorica_root PARENT_PATH odeum_lorica_root)
+cmake_path(GET odeum_lorica_root PARENT_PATH odeum_lorica_root)
+set(odeum_lorica_verify ${odeum_lorica_root}/tools/verify_binary.py)
+find_package(Python3 QUIET COMPONENTS Interpreter)
+if(NOT Python3_Interpreter_FOUND)
+  message(STATUS "Odeum: python3 not found; odeum.lorica_applied.binary.* (verify_binary.py) not registered")
+elseif(NOT EXISTS ${odeum_lorica_verify})
+  message(FATAL_ERROR "Odeum: Lorica's tools/verify_binary.py is missing (${odeum_lorica_verify})")
+else()
+  foreach(executable odeum-relay odeum-lesson odeum-runner odeum-unityctl)
+    if(NOT TARGET ${executable})
+      continue()
+    endif()
+    set(name odeum.lorica_applied.binary.${executable})
+    if(NOT ODEUM_LORICA_HARDEN)
+      odeum_lorica_skipped_test(${name} "${executable} is built without Lorica target hardening (macOS)")
+      continue()
+    endif()
+    add_test(NAME ${name} COMMAND ${Python3_EXECUTABLE} ${odeum_lorica_verify} $<TARGET_FILE:${executable}>)
+  endforeach()
+endif()

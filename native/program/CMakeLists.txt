@@ -6,6 +6,7 @@ add_library(odeum_program_core core/program_state.cpp core/layout.cpp core/audio
   core/program_settings.cpp core/producer_routing.cpp core/archive_recorder.cpp core/archive_reader.cpp)
 target_include_directories(odeum_program_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(odeum_program_core PUBLIC odeum_presenter_core)
+odeum_harden(odeum_program_core)
 
 if(NOT ODEUM_BUILD_PROGRAM)
   return()
@@ -34,6 +35,9 @@ endif()
 add_library(odeum_program_app app/input_pipeline.cpp app/program_engine.cpp app/program_controller.cpp app/program_labels.cpp
   app/program_panel.cpp app/program_settings_file.cpp app/program_app.cpp)
 target_link_libraries(odeum_program_app PUBLIC odeum_program_render odeum_program_transport)
+foreach(target odeum_program_render odeum_program_transport odeum_program_app)
+  odeum_harden(${target})
+endforeach()
 
 if(WIN32)
   add_executable(odeum-program WIN32 platform/windows/windows_main.cpp platform/windows/windows_program_platform.cpp
@@ -52,4 +56,5 @@ else()
 endif()
 set_target_properties(odeum-program PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin" RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin")
+odeum_harden(odeum-program)
 install(TARGETS odeum-program RUNTIME DESTINATION bin)

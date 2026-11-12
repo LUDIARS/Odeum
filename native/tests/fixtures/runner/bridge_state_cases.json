@@ -1,0 +1,69 @@
+[
+  {
+    "body": {
+      "isPlaying": true,
+      "state": {
+        "a": 1
+      }
+    },
+    "output": {
+      "isPlaying": true,
+      "state": {
+        "a": 1
+      }
+    }
+  },
+  {
+    "body": {
+      "isPlaying": "yes",
+      "state": [
+        1
+      ]
+    },
+    "output": {
+      "isPlaying": false,
+      "state": null
+    }
+  },
+  {
+    "body": null,
+    "output": {
+      "isPlaying": false,
+      "state": null
+    }
+  },
+  {
+    "body": [],
+    "output": {
+      "isPlaying": false,
+      "state": null
+    }
+  },
+  {
+    "body": {
+      "state": null
+    },
+    "output": {
+      "isPlaying": false,
+      "state": null
+    }
+  },
+  {
+    "body": {
+      "isPlaying": false,
+      "state": {
+        "nested": {
+          "b": true
+        }
+      }
+    },
+    "output": {
+      "isPlaying": false,
+      "state": {
+        "nested": {
+          "b": true
+        }
+      }
+    }
+  }
+]

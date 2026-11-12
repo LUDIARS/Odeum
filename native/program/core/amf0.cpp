@@ -1,5 +1,6 @@
 #include "amf0.hpp"
 #include "bytes.hpp"
+#include <lorica/input_budget.hpp>
 #include <bit>
 
 namespace odeum::program {
@@ -24,10 +25,13 @@ void encode_properties(std::vector<std::byte>& out, const std::vector<Amf0Proper
 
 class Reader {
 public:
-    explicit Reader(std::span<const std::byte> data) : data_(data) {}
+    explicit Reader(std::span<const std::byte> data)
+        : data_(data), budget_({data.size(), max_amf0_values, max_amf0_values, max_depth}) {}
     bool done() const noexcept { return at_ >= data_.size(); }
     Amf0Value value(int depth) {
-        if (depth > max_depth) throw Amf0Error("AMF0 nesting too deep");
+        if (!budget_.permits_depth(static_cast<std::size_t>(depth))) throw Amf0Error("AMF0 nesting too deep");
+        // Charged before the value is built: a payload of one-byte nulls cannot become millions of values.
+        if (!budget_.consume(0, 1, 1)) throw Amf0Error("Too many AMF0 values");
         const auto marker = u8();
         switch (marker) {
         case number: return Amf0Value::of(f64());
@@ -69,6 +73,7 @@ private:
     }
     std::span<const std::byte> data_;
     std::size_t at_ = 0;
+    lorica::input_budget budget_;
 };
 }
 
@@ -85,7 +90,16 @@ const Amf0Value* Amf0Value::find(std::string_view key) const {
     return nullptr;
 }
 
-bool Amf0Value::operator==(const Amf0Value&) const = default;
+// Spelled out instead of "= default": Clang 18 crashes instantiating the defaulted comparison of
+// this recursive type (Amf0Value holds a vector of Amf0Property, which holds an Amf0Value).
+bool Amf0Value::operator==(const Amf0Value& other) const {
+    if (type != other.type || number != other.number || boolean != other.boolean || string != other.string ||
+        properties.size() != other.properties.size()) return false;
+    for (std::size_t i = 0; i < properties.size(); ++i) {
+        if (properties[i].key != other.properties[i].key || !(properties[i].value == other.properties[i].value)) return false;
+    }
+    return true;
+}
 
 void amf0_encode(std::vector<std::byte>& out, const Amf0Value& value) {
     switch (value.type) {

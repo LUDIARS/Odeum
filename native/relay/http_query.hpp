@@ -6,6 +6,8 @@
 
 namespace odeum::relay {
 struct HttpTarget { std::string path; std::map<std::string, std::string> query; };
+// More parameters than any relay route takes (guest: 2) is refused, not decoded.
+inline constexpr std::size_t max_query_parameters = 16;
 // Splits a request target into path and percent-decoded query ('+' is a space). Duplicate or
 // malformed parameters return nullopt rather than guessing which value was intended.
 std::optional<HttpTarget> parse_target(std::string_view target);

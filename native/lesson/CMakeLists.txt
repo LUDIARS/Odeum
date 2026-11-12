@@ -36,7 +36,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/assets.cpp
 add_library(odeum_lesson_assets ${CMAKE_CURRENT_BINARY_DIR}/assets.cpp)
 target_include_directories(odeum_lesson_assets PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_library(odeum_lesson_service catalog.cpp school.cpp tool_desk.cpp console_guard.cpp)
+add_library(odeum_lesson_service catalog.cpp input_limits.cpp school.cpp tool_desk.cpp console_guard.cpp)
 target_include_directories(odeum_lesson_service PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(odeum_lesson_service PUBLIC odeum_lesson_core odeum_lesson_assets odeum_relay_state PRIVATE OpenSSL::Crypto)
 
@@ -48,3 +48,8 @@ target_link_libraries(odeum-lesson PRIVATE odeum_lesson_transport)
 set_target_properties(odeum-lesson PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin" RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin")
 install(TARGETS odeum-lesson RUNTIME DESTINATION bin)
+# odeum-lesson is a long-running server (HTTP/WebSocket from browsers and the attend harness): it
+# and the libraries it is built from take EXTENDED, like odeum-relay.
+foreach(target odeum_lesson_core odeum_lesson_assets odeum_lesson_service odeum_lesson_transport odeum-lesson)
+  odeum_harden(${target} EXTENDED)
+endforeach()

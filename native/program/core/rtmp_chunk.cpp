@@ -2,6 +2,7 @@
 #include "bytes.hpp"
 #include "rtmp_handshake.hpp"
 #include <algorithm>
+#include <lorica/checked_size.hpp>
 
 namespace odeum::program {
 namespace {
@@ -47,6 +48,10 @@ std::vector<RtmpMessage> ChunkReader::feed(std::span<const std::byte> data) {
     buffer_.insert(buffer_.end(), data.begin(), data.end());
     std::vector<RtmpMessage> out;
     while (chunk(out)) {}
+    // What is left is at most one incomplete chunk plus the partly received messages.
+    std::optional<std::size_t> pending = buffer_.size();
+    for (const auto& [id, stream] : streams_) pending = pending ? lorica::checked_add(*pending, stream.partial.size()) : std::nullopt;
+    if (!pending || *pending > max_rtmp_pending_bytes) throw RtmpError("invalid_chunk", "Too much partly received RTMP data");
     return out;
 }
 
@@ -63,6 +68,7 @@ bool ChunkReader::chunk(std::vector<RtmpMessage>& out) {
     if (in.size() < at + header_sizes[fmt]) return false;
     const auto known = streams_.find(id);
     if (fmt != 0 && known == streams_.end()) throw RtmpError("invalid_chunk", "Chunk refers to an unknown chunk stream");
+    if (known == streams_.end() && streams_.size() >= max_rtmp_chunk_streams) throw RtmpError("invalid_chunk", "Too many chunk streams");
     Stream next = known == streams_.end() ? Stream{} : known->second;
     const bool starts = next.partial.empty();
     std::uint32_t field = 0;

@@ -1,0 +1,397 @@
+[
+  {
+    "name": "minimal",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          }
+        }
+      ]
+    },
+    "output": {
+      "id": "demo",
+      "name": "Demo",
+      "description": "",
+      "target": "desktop",
+      "hasBuild": false,
+      "hasTest": false,
+      "hasUnityBridge": false,
+      "hasVideo": false,
+      "hasAudio": false,
+      "capture": null,
+      "input": {
+        "buttons": [],
+        "allowKeyboard": true,
+        "allowMouse": true
+      },
+      "playLog": {
+        "enabled": false
+      }
+    }
+  },
+  {
+    "name": "capture full",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "capture": {
+            "type": "window",
+            "windowTitle": "W",
+            "androidSerial": "S",
+            "fps": 60,
+            "preset": "fast",
+            "intervalSec": 0.5
+          }
+        }
+      ]
+    },
+    "output": {
+      "id": "demo",
+      "name": "Demo",
+      "description": "",
+      "target": "desktop",
+      "hasBuild": false,
+      "hasTest": false,
+      "hasUnityBridge": false,
+      "hasVideo": true,
+      "hasAudio": false,
+      "capture": {
+        "type": "window",
+        "fps": 60
+      },
+      "input": {
+        "buttons": [],
+        "allowKeyboard": true,
+        "allowMouse": true
+      },
+      "playLog": {
+        "enabled": false
+      }
+    }
+  },
+  {
+    "name": "bridge unity default",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "inAppBridge": {
+            "kind": "unity"
+          }
+        }
+      ]
+    },
+    "output": {
+      "id": "demo",
+      "name": "Demo",
+      "description": "",
+      "target": "desktop",
+      "hasBuild": false,
+      "hasTest": false,
+      "hasUnityBridge": true,
+      "hasVideo": true,
+      "hasAudio": false,
+      "capture": null,
+      "input": {
+        "buttons": [],
+        "allowKeyboard": true,
+        "allowMouse": true
+      },
+      "playLog": {
+        "enabled": false
+      }
+    }
+  },
+  {
+    "name": "pad",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "input": {
+            "pad": {
+              "leftStick": {
+                "up": "W",
+                "down": "S",
+                "left": "A",
+                "right": "D",
+                "press": "Q"
+              },
+              "rightStick": {
+                "up": "Up",
+                "down": "Down",
+                "left": "Left",
+                "right": "Right"
+              },
+              "dpad": {
+                "up": "I",
+                "down": "K",
+                "left": "J",
+                "right": "L"
+              },
+              "face": {
+                "a": "Space",
+                "x": "E"
+              },
+              "shoulders": {
+                "lb": "Q",
+                "rt": "R"
+              },
+              "menu": [
+                {
+                  "label": "Shot",
+                  "action": "screenshot"
+                },
+                {
+                  "label": "Menu",
+                  "key": "Escape"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "output": {
+      "id": "demo",
+      "name": "Demo",
+      "description": "",
+      "target": "desktop",
+      "hasBuild": false,
+      "hasTest": false,
+      "hasUnityBridge": false,
+      "hasVideo": false,
+      "hasAudio": false,
+      "capture": null,
+      "input": {
+        "buttons": [],
+        "pad": {
+          "leftStick": {
+            "up": "W",
+            "down": "S",
+            "left": "A",
+            "right": "D",
+            "press": "Q"
+          },
+          "rightStick": {
+            "up": "Up",
+            "down": "Down",
+            "left": "Left",
+            "right": "Right"
+          },
+          "dpad": {
+            "up": "I",
+            "down": "K",
+            "left": "J",
+            "right": "L"
+          },
+          "face": {
+            "a": "Space",
+            "x": "E"
+          },
+          "shoulders": {
+            "lb": "Q",
+            "rt": "R"
+          },
+          "menu": [
+            {
+              "label": "Shot",
+              "action": "screenshot"
+            },
+            {
+              "label": "Menu",
+              "key": "Escape"
+            }
+          ]
+        },
+        "allowKeyboard": true,
+        "allowMouse": true
+      },
+      "playLog": {
+        "enabled": false
+      }
+    }
+  },
+  {
+    "name": "audio",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "audio": {
+            "source": "process-loopback"
+          }
+        }
+      ]
+    },
+    "output": {
+      "id": "demo",
+      "name": "Demo",
+      "description": "",
+      "target": "desktop",
+      "hasBuild": false,
+      "hasTest": false,
+      "hasUnityBridge": false,
+      "hasVideo": false,
+      "hasAudio": true,
+      "capture": null,
+      "input": {
+        "buttons": [],
+        "allowKeyboard": true,
+        "allowMouse": true
+      },
+      "playLog": {
+        "enabled": false
+      }
+    }
+  },
+  {
+    "name": "playLog values",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "playLog": {
+            "enabled": false,
+            "statePollMs": 100,
+            "idleStopSec": 86400
+          }
+        }
+      ]
+    },
+    "output": {
+      "id": "demo",
+      "name": "Demo",
+      "description": "",
+      "target": "desktop",
+      "hasBuild": false,
+      "hasTest": false,
+      "hasUnityBridge": false,
+      "hasVideo": false,
+      "hasAudio": false,
+      "capture": null,
+      "input": {
+        "buttons": [],
+        "allowKeyboard": true,
+        "allowMouse": true
+      },
+      "playLog": {
+        "enabled": false
+      }
+    }
+  },
+  {
+    "name": "description",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "description": "text"
+        }
+      ]
+    },
+    "output": {
+      "id": "demo",
+      "name": "Demo",
+      "description": "text",
+      "target": "desktop",
+      "hasBuild": false,
+      "hasTest": false,
+      "hasUnityBridge": false,
+      "hasVideo": false,
+      "hasAudio": false,
+      "capture": null,
+      "input": {
+        "buttons": [],
+        "allowKeyboard": true,
+        "allowMouse": true
+      },
+      "playLog": {
+        "enabled": false
+      }
+    }
+  },
+  {
+    "name": "build and test",
+    "input": {
+      "apps": [
+        {
+          "id": "demo",
+          "name": "Demo",
+          "run": {
+            "cwd": ".",
+            "cmd": "x"
+          },
+          "build": {
+            "workingDir": "/b",
+            "cmd": "cmake",
+            "args": [
+              "--build",
+              "."
+            ]
+          },
+          "test": {
+            "workingDir": "/t",
+            "cmd": "ctest"
+          }
+        }
+      ]
+    },
+    "output": {
+      "id": "demo",
+      "name": "Demo",
+      "description": "",
+      "target": "desktop",
+      "hasBuild": true,
+      "hasTest": true,
+      "hasUnityBridge": false,
+      "hasVideo": false,
+      "hasAudio": false,
+      "capture": null,
+      "input": {
+        "buttons": [],
+        "allowKeyboard": true,
+        "allowMouse": true
+      },
+      "playLog": {
+        "enabled": false
+      }
+    }
+  }
+]

@@ -1,0 +1,97 @@
+[
+  {
+    "headers": {
+      "x-frame-width": "1280",
+      "x-frame-height": "720",
+      "x-frame-pixfmt": "bgra",
+      "x-frame-fps": "24"
+    },
+    "fallback": 24,
+    "output": {
+      "width": 1280,
+      "height": 720,
+      "pixfmt": "bgra",
+      "fps": 24
+    }
+  },
+  {
+    "headers": {
+      "x-frame-width": "603",
+      "x-frame-height": "319",
+      "x-frame-pixfmt": " bgra ",
+      "x-frame-fps": "0"
+    },
+    "fallback": 24,
+    "output": {
+      "width": 603,
+      "height": 319,
+      "pixfmt": "bgra",
+      "fps": 24
+    }
+  },
+  {
+    "headers": {
+      "x-frame-width": "1280px",
+      "x-frame-height": "720",
+      "x-frame-pixfmt": "bgra"
+    },
+    "fallback": 24,
+    "output": {
+      "width": 1280,
+      "height": 720,
+      "pixfmt": "bgra",
+      "fps": 24
+    }
+  },
+  {
+    "headers": {
+      "x-frame-width": "0",
+      "x-frame-height": "720",
+      "x-frame-pixfmt": "bgra",
+      "x-frame-fps": "30"
+    },
+    "fallback": 24,
+    "output": null
+  },
+  {
+    "headers": {
+      "x-frame-width": "1280",
+      "x-frame-height": "720",
+      "x-frame-pixfmt": ""
+    },
+    "fallback": 24,
+    "output": null
+  },
+  {
+    "headers": {
+      "x-frame-width": "-5",
+      "x-frame-height": "720",
+      "x-frame-pixfmt": "bgra"
+    },
+    "fallback": 24,
+    "output": null
+  },
+  {
+    "headers": {
+      "x-frame-height": "720",
+      "x-frame-pixfmt": "bgra"
+    },
+    "fallback": 24,
+    "output": null
+  },
+  {
+    "headers": {
+      "x-frame-width": " 640",
+      "x-frame-height": "+480",
+      "x-frame-pixfmt": "rgba",
+      "x-frame-fps": "60.5"
+    },
+    "fallback": 24,
+    "output": {
+      "width": 640,
+      "height": 480,
+      "pixfmt": "rgba",
+      "fps": 60
+    }
+  }
+]

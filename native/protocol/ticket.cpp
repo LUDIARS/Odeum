@@ -1,4 +1,5 @@
 #include <odeum/ticket.hpp>
+#include <odeum/json_limits.hpp>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <array>
@@ -51,7 +52,7 @@ Ticket TicketVerifier::verify(std::string_view compact, std::int64_t now) const 
         if (compact.size() > 8192) invalid();
         auto a = compact.find('.'), b = compact.find('.', a == std::string_view::npos ? 0 : a + 1);
         if (a == std::string_view::npos || b == std::string_view::npos || compact.find('.', b + 1) != std::string_view::npos) invalid();
-        auto h = Json::parse(decode(compact.substr(0, a)));
+        auto h = parse_json_within(decode(compact.substr(0, a)), ticket_part_limits);
         if (h.at("alg") != "EdDSA" || h.contains("crit") || h.contains("b64")) invalid();
         auto key = keys_.find(h.at("kid").get<std::string>()); if (key == keys_.end()) invalid();
         auto signature = decode(compact.substr(b + 1)); if (signature.size() != 64) invalid();
@@ -59,7 +60,7 @@ Ticket TicketVerifier::verify(std::string_view compact, std::int64_t now) const 
         if (!ctx || EVP_DigestVerifyInit(ctx.get(), nullptr, nullptr, nullptr, key->second->value) != 1 ||
             EVP_DigestVerify(ctx.get(), reinterpret_cast<const unsigned char*>(signature.data()), signature.size(),
                 reinterpret_cast<const unsigned char*>(compact.data()), b) != 1) invalid();
-        const auto j = Json::parse(decode(compact.substr(a + 1, b - a - 1)));
+        const auto j = parse_json_within(decode(compact.substr(a + 1, b - a - 1)), ticket_part_limits);
         if (j.at("iss") != "glab" || j.at("aud") != "odeum-relay") invalid();
         require_text(j, "sub", 256); require_text(j, "name", 64, true); require_text(j, "jti", 256);
         if (now < 0 || now > INT64_MAX - 300) invalid();

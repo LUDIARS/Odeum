@@ -1,11 +1,15 @@
 #include "archive_reader.hpp"
-#include <odeum/message.hpp>
+#include <odeum/bounded_file.hpp>
+#include <odeum/json_limits.hpp>
 #include <algorithm>
 #include <array>
 #include <stdexcept>
 
 namespace odeum::program {
 namespace {
+// archive.json as ArchiveRecorder writes it: one flat object of six fields.
+constexpr std::size_t max_manifest_bytes = 16384;
+constexpr JsonLimits manifest_limits{max_manifest_bytes, 64, 2};
 std::uint32_t be(std::span<const unsigned char> bytes) {
     std::uint32_t value = 0;
     for (auto b : bytes) value = (value << 8) | b;
@@ -18,9 +22,12 @@ void read(std::ifstream& file, void* data, std::size_t size) {
 bool finalized(const std::filesystem::path& file) {
     if (file.filename() != "program.flv" || std::filesystem::is_symlink(file) || !std::filesystem::is_regular_file(file)) return false;
     const auto manifest = file.parent_path() / "archive.json";
-    if (!std::filesystem::is_regular_file(manifest) || std::filesystem::is_symlink(manifest) || std::filesystem::file_size(manifest) > 16384) return false;
-    std::ifstream input(manifest, std::ios::binary);
-    const auto json = Json::parse(input);
+    if (!std::filesystem::is_regular_file(manifest) || std::filesystem::is_symlink(manifest)) return false;
+    // The size is enforced while reading: the file may change after a size check.
+    std::optional<std::string> text;
+    try { text = read_file_within(manifest, max_manifest_bytes); } catch (const FileTooLarge&) { return false; }
+    if (!text) return false;
+    const auto json = parse_json_within(*text, manifest_limits);
     return json.value("version", 0) == 1 && json.value("status", "") == "ready" && json.value("file", "") == "program.flv" &&
         json.value("bytes", std::uint64_t{}) == std::filesystem::file_size(file);
 }
